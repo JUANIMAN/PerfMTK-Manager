@@ -1,4 +1,4 @@
-# manager
+# PerfMTK-Manager
 
 PerfMTK Manager App.
 

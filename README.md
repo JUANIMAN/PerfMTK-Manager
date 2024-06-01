@@ -1,16 +1,12 @@
 # PerfMTK-Manager
 
-PerfMTK Manager App.
+Application to manage the performance and thermal limitation profiles of the Magisk PerfMTK Module, easily and simply.
 
-## Getting Started
+## App
 
-This project is a starting point for a Flutter application.
+![image](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/5c6d2126-d4c0-4844-aea6-d22838e390ce)
 
-A few resources to get you started if this is your first Flutter project:
+**Screenshots**:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+![image](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/a4bbb18d-5f12-448e-be1a-9f811075f812)
+![image](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/4e1b1755-36bc-4846-9101-d85b84afc93f)

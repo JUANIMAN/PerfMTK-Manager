@@ -30,7 +30,7 @@ class _PerfilesState extends State<Perfiles> {
 
   Future<void> _setProfile(String profile) async {
     // Ejecutar el comando para establecer el perfil seleccionado
-    await Process.run('su', ['-c', profile], runInShell: true);
+    await Process.run('su', ['-c', 'perfmtk', profile], runInShell: true);
     await _getCurrentProfile();
   }
 

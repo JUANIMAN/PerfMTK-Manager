@@ -48,7 +48,7 @@ class _ThermalState extends State<Thermal> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
-                width: 250,
+                width: 260,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -69,7 +69,7 @@ class _ThermalState extends State<Thermal> {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                width: 250,
+                width: 260,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,

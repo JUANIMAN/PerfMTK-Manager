@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/app_locales.dart';
-import 'package:manager/navegador.dart';
-import 'package:manager/theme.dart';
+import 'package:manager/localization/app_locales.dart';
+import 'package:manager/screens//navegador.dart';
+import 'package:manager/config/theme.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -26,7 +26,6 @@ class _MyAppState extends State<MyApp> {
       initLanguageCode: 'en',
     );
     _localization.onTranslatedLanguage = _onTranslatedLanguage;
-    _setLocale();
   }
 
   void _onTranslatedLanguage(Locale? locale) {
@@ -37,14 +36,6 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _isDarkMode = !_isDarkMode;
     });
-  }
-
-  void _setLocale() {
-    final String systemLocale = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-
-    if (_localization.supportedLanguageCodes.contains(systemLocale)) {
-      _localization.translate(systemLocale);
-    }
   }
 
   @override

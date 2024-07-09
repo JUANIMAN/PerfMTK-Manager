@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/app_locales.dart';
-import 'package:manager/vistas/perfiles.dart';
-import 'package:manager/vistas/thermal.dart';
+import 'package:manager/localization/app_locales.dart';
+import 'package:manager/screens/perfiles.dart';
+import 'package:manager/screens/thermal.dart';
 
 class Navegador extends StatefulWidget {
   final Function toggleTheme;

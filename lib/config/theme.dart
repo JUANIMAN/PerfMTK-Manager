@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static const _primaryColor = Color(0xFF3D46F2);
-  static const _primaryVariantColor = Color(0xFF636AF2);
   static const _secondaryColor = Color(0xFF03DAC6);
-  static const _secondaryVariantColor = Color(0xFF018786);
   static const _lightBackgroundColor = Color(0xFFFAFAFA);
   static const _darkBackgroundColor = Color(0xFF121212);
 
@@ -14,9 +12,7 @@ class AppTheme {
     primaryColor: _primaryColor,
     colorScheme: ColorScheme.light(
       primary: _primaryColor,
-      primaryContainer: _primaryVariantColor,
       secondary: _secondaryColor,
-      secondaryContainer: _secondaryVariantColor,
       surface: Colors.white,
       error: Colors.red.shade400,
       onPrimary: Colors.white,
@@ -94,9 +90,7 @@ class AppTheme {
     primaryColor: _primaryColor,
     colorScheme: ColorScheme.dark(
       primary: _primaryColor,
-      primaryContainer: _primaryVariantColor,
       secondary: _secondaryColor,
-      secondaryContainer: _secondaryVariantColor,
       surface: const Color(0xFF1E1E1E),
       error: Colors.red.shade300,
       onPrimary: Colors.white,
@@ -110,8 +104,8 @@ class AppTheme {
       foregroundColor: _secondaryColor,
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: const TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 20),
-      iconTheme: const IconThemeData(color: _secondaryColor),
+      titleTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+      iconTheme: const IconThemeData(color: Colors.white),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
       ),

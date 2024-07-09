@@ -9,6 +9,7 @@ mixin AppLocale {
   static const String powersave = 'powersave';
   static const String titleThermal = 'titleThermal';
   static const String thermalState = 'thermalState';
+  static const String thermalControl = 'thermalControl';
   static const String enabled = 'enabled';
   static const String disabled = 'disabled';
   static const String enable = 'enable';
@@ -30,6 +31,7 @@ mixin AppLocale {
     powersave: 'Powersave',
     titleThermal: 'Thermal management',
     thermalState: 'Thermal throttling',
+    thermalControl: 'Thermal Control',
     enabled: 'Enabled',
     disabled: 'Disabled',
     enable: 'Enable thermal throttling',
@@ -52,6 +54,7 @@ mixin AppLocale {
     powersave: 'Ahorro de batería',
     titleThermal: 'Gestión térmica',
     thermalState: 'Limitación térmica',
+    thermalControl: 'Control Térmico',
     enabled: 'Activada',
     disabled: 'Desactivada',
     enable: 'Activar limitación térmica',

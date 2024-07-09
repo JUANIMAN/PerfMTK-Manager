@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   flutter_localization: ^0.2.0
   flutter_launcher_icons: ^0.13.1
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

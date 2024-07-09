@@ -2,25 +2,27 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/app_locales.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Perfiles extends StatefulWidget {
   const Perfiles({super.key});
+
   @override
   State<Perfiles> createState() => _PerfilesState();
 }
 
 class _PerfilesState extends State<Perfiles> {
-  late String _currentProfile = 'balanced';
+  final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases');
+  String _currentProfile = '';
 
   @override
   void initState() {
-    _getCurrentProfile();
     super.initState();
+    _getCurrentProfile();
   }
 
   Future<void> _getCurrentProfile() async {
-    // Leer la variable que indica el perfil activo
-    final process = await Process.run('getprop', ['sys.perfmtk.current_profile'], runInShell: true);
+    final process = await Process.run('getprop', ['sys.perfmtk.current_profile']);
     final output = process.stdout as String;
 
     setState(() {
@@ -29,91 +31,203 @@ class _PerfilesState extends State<Perfiles> {
   }
 
   Future<void> _setProfile(String profile) async {
-    // Ejecutar el comando para establecer el perfil seleccionado
-    await Process.run('su', ['-c', 'perfmtk', profile], runInShell: true);
-    await _getCurrentProfile();
+    try {
+      await Process.run('su', ['-c', 'perfmtk', profile]);
+      await _getCurrentProfile();
+    } catch (e) {
+      _showErrorSnackBar();
+    }
+  }
+
+  void _showErrorSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocale.snackBarText.getString(context)),
+        action: SnackBarAction(
+          label: AppLocale.snackBarLabel.getString(context),
+          onPressed: () {
+            _launchUrl();
+          },
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchUrl() async {
+    try {
+      await launchUrl(_url);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocale.downloadMess.getString(context)),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '${AppLocale.currentProfile.getString(context)}: $_currentProfile',
-            style: const TextStyle(fontSize: 24),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocale.titleProfiles.getString(context),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            _buildCurrentProfileCard(
+              context,
+              _currentProfile,
+              _getProfileIcon(_currentProfile),
+              _getProfileColor(_currentProfile),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              AppLocale.changeProfile.getString(context),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            _buildProfileButton(
+                context, 'performance', Icons.speed, Colors.orange),
+            const SizedBox(height: 16),
+            _buildProfileButton(
+                context, 'balanced', Icons.balance, Colors.blue),
+            const SizedBox(height: 16),
+            _buildProfileButton(
+                context, 'powersave', Icons.battery_saver, Colors.green),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentProfileCard(
+      BuildContext context, String profile, IconData icon, Color color) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withOpacity(0.1),
+              color.withOpacity(0.05),
+            ],
           ),
-          const SizedBox(height: 20),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                width: 200,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.orange,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: _currentProfile == 'performance'
-                      ? null
-                      : () async {
-                          await _setProfile("performance");
-                        },
-                  child: Text(AppLocale.performance.getString(context)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocale.currentProfile.getString(context),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
                 ),
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: 200,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: color, size: 32),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      AppLocale.getValue(profile).getString(context),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
                     ),
                   ),
-                  onPressed: _currentProfile == 'balanced'
-                      ? null
-                      : () async {
-                          await _setProfile("balanced");
-                        },
-                  child: Text(AppLocale.balanced.getString(context)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: 200,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: _currentProfile == 'powersave'
-                      ? null
-                      : () async {
-                          await _setProfile("powersave");
-                        },
-                  child: Text(AppLocale.powerSave.getString(context)),
-                ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  Widget _buildProfileButton(
+      BuildContext context, String profile, IconData icon, Color color) {
+    final isSelected = _currentProfile == profile;
+    return Material(
+      color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: isSelected
+            ? null
+            : () async {
+                await _setProfile(profile);
+              },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  AppLocale.getValue(profile).getString(context),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: isSelected ? color : null,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                ),
+              ),
+              if (isSelected) Icon(Icons.check_circle, color: color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getProfileIcon(String profile) {
+    switch (profile) {
+      case 'performance':
+        return Icons.speed;
+      case 'balanced':
+        return Icons.balance;
+      case 'powersave':
+        return Icons.battery_saver;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  Color _getProfileColor(String profile) {
+    switch (profile) {
+      case 'performance':
+        return Colors.orange;
+      case 'balanced':
+        return Colors.blue;
+      case 'powersave':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
   }
 }

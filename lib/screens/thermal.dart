@@ -14,7 +14,7 @@ class Thermal extends StatefulWidget {
 }
 
 class _ThermalState extends State<Thermal> {
-  final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases');
+  final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
   String _thermalState = '';
 
   @override

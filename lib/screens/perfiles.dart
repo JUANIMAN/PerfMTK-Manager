@@ -13,7 +13,7 @@ class Perfiles extends StatefulWidget {
 }
 
 class _PerfilesState extends State<Perfiles> {
-  final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases');
+  final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
   String _currentProfile = '';
 
   @override

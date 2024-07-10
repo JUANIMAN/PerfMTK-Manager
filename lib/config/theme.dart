@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const _primaryColor = Color(0xFF3D46F2);
-  static const _secondaryColor = Color(0xFF03DAC6);
+  static const _primaryColor = Color(0xFF044BD9);
+  static const _secondaryColor = Color(0xFF0BC9E0);
   static const _lightBackgroundColor = Color(0xFFFAFAFA);
   static const _darkBackgroundColor = Color(0xFF121212);
 
@@ -99,25 +99,25 @@ class AppTheme {
       onError: Colors.black,
     ),
     scaffoldBackgroundColor: _darkBackgroundColor,
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.grey[900],
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF262626),
       foregroundColor: _secondaryColor,
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-      iconTheme: const IconThemeData(color: Colors.white),
-      shape: const RoundedRectangleBorder(
+      titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+      iconTheme: IconThemeData(color: Colors.white),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
       ),
     ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Colors.grey[900],
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF262626),
       selectedItemColor: _secondaryColor,
-      unselectedItemColor: Colors.grey[600],
+      unselectedItemColor: Colors.grey,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
-      selectedIconTheme: const IconThemeData(size: 28),
-      unselectedIconTheme: const IconThemeData(size: 24),
+      selectedIconTheme: IconThemeData(size: 28),
+      unselectedIconTheme: IconThemeData(size: 24),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -138,7 +138,7 @@ class AppTheme {
       bodyMedium: TextStyle(color: Colors.grey[400]!, fontSize: 14, height: 1.5),
     ),
     cardTheme: CardTheme(
-      color: const Color(0xFF2C2C2C),
+      color: const Color(0xFF262626),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       shadowColor: Colors.black.withOpacity(0.3),

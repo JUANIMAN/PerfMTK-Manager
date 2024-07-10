@@ -9,9 +9,15 @@ Application to manage the performance and thermal limitation profiles of the Mag
 ## Screenshots:
 
 **Theme Light**
-![profiles_light](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/88566dee-fcac-4aca-a667-2e6791447821)
-![thermal_light](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/48143de9-c0f3-400b-ad1c-cd6c709af26c)
+
+<div style="display: flex; justify-content: space-between;">
+    <img src="https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/88566dee-fcac-4aca-a667-2e6791447821" width="45%">
+    <img src="https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/48143de9-c0f3-400b-ad1c-cd6c709af26c" width="45%">
+</div>
 
 **Theme Dark**
-![profiles_dark](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/38cd9390-8fff-4974-a4a8-c3d586f665ab)
-![thermal_dark](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/628fd871-b0da-4da7-b3c1-cab0e600700b)
+
+<div style="display: flex; justify-content: space-between;">
+    <img src="https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/38cd9390-8fff-4974-a4a8-c3d586f665ab" width="45%">
+    <img src="https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/628fd871-b0da-4da7-b3c1-cab0e600700b" width="45%">
+</div>

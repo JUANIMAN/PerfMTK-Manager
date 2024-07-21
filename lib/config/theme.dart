@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const _primaryColor = Color(0xFF4E4AD9);
-  static const _secondaryColor = Color(0xFF6662D9);
+  static const _primaryColor = Color(0xFF0460D9);
+  static const _secondaryColor = Color(0xFF5BD96E);
   static const _lightBackgroundColor = Color(0xFFF2F2F2);
   static const _darkBackgroundColor = Color(0xFF121212);
 
@@ -111,7 +111,7 @@ class AppTheme {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      indicatorColor: Color(0xFF7672F2),
+      indicatorColor: _secondaryColor,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);

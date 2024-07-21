@@ -36,7 +36,7 @@ mixin AppLocale {
     disabled: 'Disabled',
     enable: 'Enable',
     disable: 'Disable',
-    enableSub: 'Enable temperature control..',
+    enableSub: 'Enable temperature control.',
     disableSub: 'Disable temperature control.',
     snackBarText: 'Install the latest version of the module.',
     snackBarLabel: 'Download',

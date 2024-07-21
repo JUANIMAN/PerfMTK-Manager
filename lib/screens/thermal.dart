@@ -13,7 +13,7 @@ class Thermal extends StatefulWidget {
   State<Thermal> createState() => _ThermalState();
 }
 
-class _ThermalState extends State<Thermal> {
+class _ThermalState extends State<Thermal> with SingleTickerProviderStateMixin {
   final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
   String _thermalState = '';
 
@@ -34,8 +34,14 @@ class _ThermalState extends State<Thermal> {
 
   Future<void> _setThermalLimit(String thermal) async {
     try {
-      await Process.run('su', ['-c', 'thermal_limit', thermal]);
-      await _getThermalState();
+      final process = await Process.run('su', ['-c', 'thermal_limit', thermal]);
+      final output = process.stderr as String;
+
+      if (output.contains('inaccessible or not found')) {
+        _showErrorSnackBar();
+      } else {
+        await _getThermalState();
+      }
     } catch (e) {
       _showErrorSnackBar();
     }
@@ -47,9 +53,7 @@ class _ThermalState extends State<Thermal> {
         content: Text(AppLocale.snackBarText.getString(context)),
         action: SnackBarAction(
           label: AppLocale.snackBarLabel.getString(context),
-          onPressed: () {
-            _launchUrl();
-          },
+          onPressed: _launchUrl,
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

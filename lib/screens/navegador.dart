@@ -6,16 +6,15 @@ import 'package:manager/screens/thermal.dart';
 
 class Navegador extends StatefulWidget {
   final Function toggleTheme;
-  final bool isDarkMode;
+  final ThemeMode themeMode;
 
-  const Navegador({super.key, required this.toggleTheme, required this.isDarkMode});
+  const Navegador({super.key, required this.toggleTheme, required this.themeMode});
 
   @override
   State<Navegador> createState() => _NavegadorState();
 }
 
 class _NavegadorState extends State<Navegador> {
-  final List<Widget> _cuerpo = [const Perfiles(), const Thermal()];
   int _indice = 0;
 
   @override
@@ -26,29 +25,42 @@ class _NavegadorState extends State<Navegador> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(widget.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
             onPressed: () => widget.toggleTheme(),
           ),
         ],
       ),
-      body: _cuerpo[_indice],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _indice,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.tune),
-            label: AppLocale.profiles.getString(context),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.ac_unit),
-            label: AppLocale.thermal.getString(context),
-          )
+      body: IndexedStack(
+        index: _indice,
+        children: const [
+          Perfiles(),
+          Thermal(),
         ],
-        onTap: (value) {
-          setState(() {
-            _indice = value;
-          });
-        },
+      ),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.all(16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: NavigationBar(
+            selectedIndex: _indice,
+            onDestinationSelected: (int index) {
+              setState(() {
+                _indice = index;
+              });
+            },
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.tune),
+                label: AppLocale.profiles.getString(context),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.thermostat),
+                label: AppLocale.thermal.getString(context),
+              ),
+            ],
+            animationDuration: const Duration(milliseconds: 300),
+          ),
+        ),
       ),
     );
   }

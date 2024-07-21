@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const _primaryColor = Color(0xFF044BD9);
-  static const _secondaryColor = Color(0xFF0BC9E0);
-  static const _lightBackgroundColor = Color(0xFFFAFAFA);
+  static const _primaryColor = Color(0xFF4E4AD9);
+  static const _secondaryColor = Color(0xFF6662D9);
+  static const _lightBackgroundColor = Color(0xFFF2F2F2);
   static const _darkBackgroundColor = Color(0xFF121212);
 
   static final lightTheme = ThemeData(
@@ -32,14 +32,24 @@ class AppTheme {
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
       ),
     ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    navigationBarTheme: NavigationBarThemeData(
+      indicatorColor: _secondaryColor,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold);
+        }
+        return const TextStyle(color: Colors.black54, fontSize: 14);
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(color: Colors.white, size: 24);
+        }
+        return const IconThemeData(color: Colors.black54, size: 24);
+      }),
       backgroundColor: Colors.white,
-      selectedItemColor: _primaryColor,
-      unselectedItemColor: Colors.grey[600],
-      type: BottomNavigationBarType.fixed,
       elevation: 8,
-      selectedIconTheme: const IconThemeData(size: 28),
-      unselectedIconTheme: const IconThemeData(size: 24),
+      height: 70,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -51,36 +61,26 @@ class AppTheme {
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     ),
-    textTheme: TextTheme(
-      displayLarge: const TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 32),
-      displayMedium: const TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 28),
-      displaySmall: const TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 24),
-      headlineMedium: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 20),
-      bodyLarge: const TextStyle(color: Colors.black87, fontSize: 16, height: 1.5),
-      bodyMedium: TextStyle(color: Colors.black.withOpacity(0.75), fontSize: 14, height: 1.5),
-    ),
     cardTheme: CardTheme(
       color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       shadowColor: Colors.black.withOpacity(0.1),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.grey[100],
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: _primaryColor, width: 2),
-      ),
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 32),
+      displayMedium: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 28),
+      displaySmall: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 24),
+      headlineMedium: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 20),
+      bodyLarge: TextStyle(color: Colors.black87, fontSize: 16, height: 1.5),
+      bodyMedium: TextStyle(color: Colors.black54, fontSize: 14, height: 1.5),
     ),
-    dividerTheme: DividerThemeData(
-      color: Colors.grey[300],
-      thickness: 1,
-      space: 32,
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: const Color(0xFF262626),
+      contentTextStyle: const TextStyle(color: Colors.white),
+      actionTextColor: _secondaryColor,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
   );
 
@@ -101,7 +101,7 @@ class AppTheme {
     scaffoldBackgroundColor: _darkBackgroundColor,
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF262626),
-      foregroundColor: _secondaryColor,
+      foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
       titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -110,14 +110,24 @@ class AppTheme {
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF262626),
-      selectedItemColor: _secondaryColor,
-      unselectedItemColor: Colors.grey,
-      type: BottomNavigationBarType.fixed,
+    navigationBarTheme: NavigationBarThemeData(
+      indicatorColor: Color(0xFF7672F2),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
+        }
+        return const TextStyle(color: Colors.white70, fontSize: 14);
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(color: Colors.black, size: 24);
+        }
+        return const IconThemeData(color: Colors.white70, size: 24);
+      }),
+      backgroundColor: const Color(0xFF1E1E1E),
       elevation: 8,
-      selectedIconTheme: IconThemeData(size: 28),
-      unselectedIconTheme: IconThemeData(size: 24),
+      height: 70,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -129,36 +139,26 @@ class AppTheme {
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
       ),
     ),
-    textTheme: TextTheme(
-      displayLarge: const TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 32),
-      displayMedium: const TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 28),
-      displaySmall: const TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 24),
-      headlineMedium: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
-      bodyLarge: TextStyle(color: Colors.grey[300]!, fontSize: 16, height: 1.5),
-      bodyMedium: TextStyle(color: Colors.grey[400]!, fontSize: 14, height: 1.5),
-    ),
     cardTheme: CardTheme(
       color: const Color(0xFF262626),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       shadowColor: Colors.black.withOpacity(0.3),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.grey[800],
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: _secondaryColor, width: 2),
-      ),
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 32),
+      displayMedium: TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 28),
+      displaySmall: TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 24),
+      headlineMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
+      bodyLarge: TextStyle(color: Colors.white70, fontSize: 16, height: 1.5),
+      bodyMedium: TextStyle(color: Colors.white54, fontSize: 14, height: 1.5),
     ),
-    dividerTheme: DividerThemeData(
-      color: Colors.grey[700],
-      thickness: 1,
-      space: 32,
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: const Color(0xFFF2F2F2),
+      contentTextStyle: const TextStyle(color: Colors.black),
+      actionTextColor: _secondaryColor,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
   );
 }

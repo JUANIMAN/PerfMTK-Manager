@@ -62,10 +62,9 @@ class AppTheme {
       ),
     ),
     cardTheme: CardTheme(
-      color: Colors.white,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white,
     ),
     textTheme: const TextTheme(
       displayLarge: TextStyle(color: _primaryColor, fontWeight: FontWeight.bold, fontSize: 32),
@@ -140,10 +139,9 @@ class AppTheme {
       ),
     ),
     cardTheme: CardTheme(
-      color: const Color(0xFF262626),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      shadowColor: Colors.black.withOpacity(0.3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: const Color(0xFF262626),
     ),
     textTheme: const TextTheme(
       displayLarge: TextStyle(color: _secondaryColor, fontWeight: FontWeight.bold, fontSize: 32),

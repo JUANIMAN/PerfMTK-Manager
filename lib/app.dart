@@ -7,7 +7,7 @@ import 'package:manager/localization/app_locales.dart';
 import 'package:manager/config/theme.dart';
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -42,12 +42,13 @@ class _MyAppState extends State<MyApp> {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
+            title: 'PerfMTK Manager',
             supportedLocales: _localization.supportedLocales,
             localizationsDelegates: _localization.localizationsDelegates,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
-            home: Navegador(),
+            home: const Navegador(),
           );
         },
       ),

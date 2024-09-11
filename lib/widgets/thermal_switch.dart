@@ -28,10 +28,7 @@ class ThermalSwitch extends StatelessWidget {
             children: [
               Text(
                 AppLocale.thermalControl.getString(context),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
               Row(

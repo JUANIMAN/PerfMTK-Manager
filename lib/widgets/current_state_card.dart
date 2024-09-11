@@ -42,7 +42,7 @@ class CurrentStateCard extends StatelessWidget {
             children: [
               Text(
                 AppLocale.getValue(titleLocaleKey).getString(context),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -72,7 +72,7 @@ class CurrentStateCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          AppLocale.getValue(stateLocaleKey).getString(context),
+                          stateLocaleKey.getString(context),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                           ),

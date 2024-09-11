@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
+import 'package:manager/services/system_service.dart';
 import 'package:manager/widgets/current_state_card.dart';
 import 'package:manager/widgets/thermal_switch.dart';
-import 'package:manager/services/system_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Thermal extends StatefulWidget {
@@ -48,16 +48,12 @@ class _ThermalState extends State<Thermal> {
           onPressed: _launchUrl,
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
       ),
     );
   }
 
   Future<void> _launchUrl() async {
-    final Uri _url =
-        Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
+    final Uri _url = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
     try {
       await launchUrl(_url);
     } catch (e) {
@@ -72,40 +68,41 @@ class _ThermalState extends State<Thermal> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async {
-        await _getThermalState();
-      },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocale.titleThermal.getString(context),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+      onRefresh: _getThermalState,
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocale.titleThermal.getString(context),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  CurrentStateCard(
+                    state: _thermalState,
+                    icon: _getThermalIcon(_thermalState),
+                    color: _getThermalColor(_thermalState),
+                    titleLocaleKey: 'thermalState',
+                    stateLocaleKey: _thermalState,
+                  ),
+                  const SizedBox(height: 32),
+                  ThermalSwitch(
+                    isEnabled: _thermalState == 'enabled',
+                    onChanged: (bool value) async {
+                      await _setThermalLimit(value ? 'enable' : 'disable');
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              CurrentStateCard(
-                state: _thermalState,
-                icon: _getThermalIcon(_thermalState),
-                color: _getThermalColor(_thermalState),
-                titleLocaleKey: 'thermalState',
-                stateLocaleKey: _thermalState,
-              ),
-              const SizedBox(height: 32),
-              ThermalSwitch(
-                isEnabled: _thermalState == 'enabled',
-                onChanged: (bool value) async {
-                  await _setThermalLimit(value ? 'enable' : 'disable');
-                },
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

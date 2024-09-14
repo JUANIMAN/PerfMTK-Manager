@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/theme_provider.dart';
 import 'package:manager/localization/app_locales.dart';
-import 'package:manager/screens/perfiles.dart';
+import 'package:manager/screens/profiles.dart';
 import 'package:manager/screens/thermal.dart';
 
 enum NavScreens { profiles, thermal }
@@ -18,7 +18,7 @@ class _NavegadorState extends State<Navegador> {
   NavScreens _currentScreen = NavScreens.profiles;
 
   final Map<NavScreens, Widget> _screens = {
-    NavScreens.profiles: const Perfiles(),
+    NavScreens.profiles: const Profiles(),
     NavScreens.thermal: const Thermal(),
   };
 

@@ -6,14 +6,14 @@ import 'package:manager/widgets/current_state_card.dart';
 import 'package:manager/widgets/profile_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class Perfiles extends StatefulWidget {
-  const Perfiles({super.key});
+class Profiles extends StatefulWidget {
+  const Profiles({super.key});
 
   @override
-  State<Perfiles> createState() => _PerfilesState();
+  State<Profiles> createState() => _ProfilesState();
 }
 
-class _PerfilesState extends State<Perfiles> {
+class _ProfilesState extends State<Profiles> {
   final SystemService _systemService = SystemService();
   String _currentProfile = '';
   List<String> profiles = ['performance', 'balanced', 'powersave'];

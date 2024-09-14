@@ -44,8 +44,7 @@ class ProfileButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      AppLocale.getValue(profile).getString(context),
+                    Text(AppLocale.getValue(profile).getString(context),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: isSelected ? color : null,
                         fontWeight: FontWeight.bold,

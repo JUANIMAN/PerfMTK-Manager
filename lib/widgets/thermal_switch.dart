@@ -17,7 +17,9 @@ class ThermalSwitch extends StatelessWidget {
     return Semantics(
       toggled: isEnabled,
       label: AppLocale.thermalControl.getString(context),
-      value: isEnabled ? AppLocale.enabled.getString(context) : AppLocale.disabled.getString(context),
+      value: isEnabled
+          ? AppLocale.enabled.getString(context)
+          : AppLocale.disabled.getString(context),
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -38,7 +40,9 @@ class ThermalSwitch extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEnabled ? AppLocale.disable.getString(context) : AppLocale.enable.getString(context),
+                          isEnabled
+                              ? AppLocale.disable.getString(context)
+                              : AppLocale.enable.getString(context),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -46,7 +50,9 @@ class ThermalSwitch extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          isEnabled ? AppLocale.disableSub.getString(context) : AppLocale.enableSub.getString(context),
+                          isEnabled
+                              ? AppLocale.disableSub.getString(context)
+                              : AppLocale.enableSub.getString(context),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                           ),

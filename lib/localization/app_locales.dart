@@ -7,6 +7,9 @@ mixin AppLocale {
   static const String performance = 'performance';
   static const String balanced = 'balanced';
   static const String powersave = 'powersave';
+  static const String performanceDsc = 'performanceDsc';
+  static const String balancedDsc = 'balancedDsc';
+  static const String powersaveDsc = 'powersaveDsc';
   static const String titleThermal = 'titleThermal';
   static const String thermalState = 'thermalState';
   static const String thermalControl = 'thermalControl';
@@ -14,8 +17,8 @@ mixin AppLocale {
   static const String disabled = 'disabled';
   static const String enable = 'enable';
   static const String disable = 'disable';
-  static const String enableSub = 'enableSub';
-  static const String disableSub = 'disableSub';
+  static const String enableDsc = 'enableSub';
+  static const String disableDsc = 'disableSub';
   static const String snackBarText = 'snackBarText';
   static const String snackBarLabel = 'snackBarLabel';
   static const String downloadMess = 'downloadMess';
@@ -29,6 +32,9 @@ mixin AppLocale {
     performance: 'Performance',
     balanced: 'Balanced',
     powersave: 'Powersave',
+    performanceDsc: 'Best performance, only recommended for benchmarks',
+    balancedDsc: 'Slight performance improvements, recommended in games and daily use',
+    powersaveDsc: 'Lower performance to save battery, recommended for daily use',
     titleThermal: 'Thermal management',
     thermalState: 'Thermal throttling',
     thermalControl: 'Thermal Control',
@@ -36,8 +42,8 @@ mixin AppLocale {
     disabled: 'Disabled',
     enable: 'Enable',
     disable: 'Disable',
-    enableSub: 'Enable temperature control.',
-    disableSub: 'Disable temperature control.',
+    enableDsc: 'Enable temperature control; it is recommended to keep it activated',
+    disableDsc: 'Disable temperature control; there may be no performance improvement',
     snackBarText: 'Install the latest version of the module.',
     snackBarLabel: 'Download',
     downloadMess: 'Could not open download link.'
@@ -52,6 +58,9 @@ mixin AppLocale {
     performance: 'Alto rendimiento',
     balanced: 'Balanceado',
     powersave: 'Ahorro de batería',
+    performanceDsc: 'Mejor rendimiento, solo recomendado para benchmarks',
+    balancedDsc: 'Ligeras mejoras de rendimiento, recomendado en juegos y uso diario',
+    powersaveDsc: 'Menor rendimiento para ahorrar batería, recomendado para uso diario',
     titleThermal: 'Gestión térmica',
     thermalState: 'Limitación térmica',
     thermalControl: 'Control Térmico',
@@ -59,8 +68,8 @@ mixin AppLocale {
     disabled: 'Desactivada',
     enable: 'Activar',
     disable: 'Desactivar',
-    enableSub: 'Activa el control de temperatura.',
-    disableSub: 'Desactiva el control de temperatura.',
+    enableDsc: 'Activa el control de temperatura; se recomienda mantenerlo activado',
+    disableDsc: 'Desactiva el control de temperatura; es posible que no haya mejora en el rendimiento',
     snackBarText: 'Instale la última versión del módulo.',
     snackBarLabel: 'Descargar',
     downloadMess: 'No se pudo abrir el enlace de descarga.'

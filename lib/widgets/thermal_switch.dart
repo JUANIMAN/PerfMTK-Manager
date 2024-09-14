@@ -51,8 +51,8 @@ class ThermalSwitch extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           isEnabled
-                              ? AppLocale.disableSub.getString(context)
-                              : AppLocale.enableSub.getString(context),
+                              ? AppLocale.disableDsc.getString(context)
+                              : AppLocale.enableDsc.getString(context),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                           ),

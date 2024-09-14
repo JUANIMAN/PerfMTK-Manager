@@ -69,11 +69,11 @@ class ProfileButton extends StatelessWidget {
   String _getProfileDescription(BuildContext context, String profile) {
     switch (profile) {
       case 'performance':
-        return AppLocale.performance.getString(context);
+        return AppLocale.performanceDsc.getString(context);
       case 'balanced':
-        return AppLocale.balanced.getString(context);
+        return AppLocale.balancedDsc.getString(context);
       case 'powersave':
-        return AppLocale.powersave.getString(context);
+        return AppLocale.powersaveDsc.getString(context);
       default:
         return '';
     }

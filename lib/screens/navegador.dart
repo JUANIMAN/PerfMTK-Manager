@@ -52,10 +52,8 @@ class _NavegadorState extends State<Navegador> {
             });
           },
           destinations: [
-            _buildNavigationDestination(
-                NavScreens.profiles, Icons.tune, 'profiles'),
-            _buildNavigationDestination(
-                NavScreens.thermal, Icons.thermostat, 'thermal'),
+            _buildNavigationDestination(NavScreens.profiles, Icons.tune, 'profiles'),
+            _buildNavigationDestination(NavScreens.thermal, Icons.thermostat, 'thermal'),
           ],
           animationDuration: const Duration(milliseconds: 300),
         ),

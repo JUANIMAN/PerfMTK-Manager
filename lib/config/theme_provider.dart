@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ThemeProvider extends ChangeNotifier {
+class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
+  static const String _themeModeKey = 'themeMode';
 
   ThemeMode get themeMode => _themeMode;
 
@@ -13,25 +15,45 @@ class ThemeProvider extends ChangeNotifier {
 
   void _loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedThemeMode = prefs.getInt('themeMode');
+    final savedThemeMode = prefs.getString(_themeModeKey);
     if (savedThemeMode != null) {
-      _themeMode = ThemeMode.values[savedThemeMode];
+      _themeMode = ThemeMode.values.firstWhere(
+        (e) => e.toString() == savedThemeMode,
+        orElse: () => ThemeMode.system,
+      );
       notifyListeners();
+    }
+    _updateSystemUIOverlayStyle();
+  }
+
+  void setThemeMode(ThemeMode mode) async {
+    if (_themeMode != mode) {
+      _themeMode = mode;
+      notifyListeners();
+      _updateSystemUIOverlayStyle();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_themeModeKey, _themeMode.toString());
     }
   }
 
-  void toggleTheme() async {
-    if (_themeMode == ThemeMode.light) {
-      _themeMode = ThemeMode.dark;
-    } else if (_themeMode == ThemeMode.dark) {
-      _themeMode = ThemeMode.light;
-    } else {
-      _themeMode = ThemeMode.system;
-    }
-    notifyListeners();
+  void toggleTheme() {
+    setThemeMode(_themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light);
+  }
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('themeMode', _themeMode.index);
+  void _updateSystemUIOverlayStyle() {
+    SystemChrome.setSystemUIOverlayStyle(
+      _themeMode == ThemeMode.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+    );
+  }
+
+  bool isDarkMode(BuildContext context) {
+    if (_themeMode == ThemeMode.system) {
+      return View.of(context).platformDispatcher.platformBrightness == Brightness.dark;
+    }
+    return _themeMode == ThemeMode.dark;
   }
 }
 

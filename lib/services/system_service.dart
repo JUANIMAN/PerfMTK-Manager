@@ -26,7 +26,7 @@ class SystemService extends ChangeNotifier {
     try {
       final result = await Process.run(command, arguments);
       if (result.exitCode != 0) {
-        throw Exception('Comando failed: ${result.stderr}');
+        throw Exception('Command failed: ${result.stderr}');
       }
       return result.stdout.trim();
     } catch (e) {

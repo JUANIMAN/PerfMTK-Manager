@@ -53,7 +53,9 @@ class ProfileButton extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _getProfileDescription(context, profile),
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),

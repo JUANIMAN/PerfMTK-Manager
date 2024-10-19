@@ -2,6 +2,8 @@
 
 Application to manage the performance and thermal limitation profiles of the Magisk PerfMTK Module, easily and simply.
 
+![GitHub all releases](https://img.shields.io/github/downloads/JUANIMAN/PerfMTK-Manager/total)
+
 ## App
 
 ![image](https://github.com/JUANIMAN/PerfMTK-Manager/assets/84895566/5c6d2126-d4c0-4844-aea6-d22838e390ce)

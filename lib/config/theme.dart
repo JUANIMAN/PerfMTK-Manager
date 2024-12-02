@@ -30,6 +30,9 @@ class AppTheme {
         fontSize: 20,
         color: Colors.white,
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       indicatorColor: _secondaryColor,
@@ -56,6 +59,13 @@ class AppTheme {
         backgroundColor: _primaryColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: const Color(0xFF262626),
+      contentTextStyle: const TextStyle(color: Colors.white),
+      actionTextColor: _secondaryColor,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
@@ -87,6 +97,9 @@ class AppTheme {
         fontSize: 20,
         color: Colors.white,
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+      ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       indicatorColor: _secondaryColor,
@@ -113,6 +126,13 @@ class AppTheme {
         backgroundColor: _primaryColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: const Color(0xFFF2F2F2),
+      contentTextStyle: const TextStyle(color: Colors.black),
+      actionTextColor: _secondaryColor,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {

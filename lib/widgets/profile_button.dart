@@ -22,19 +22,16 @@ class ProfileButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: isSelected ? null : onTap,
-        splashColor: color.withOpacity(0.1),
-        highlightColor: color.withOpacity(0.05),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: _buildDecoration(theme),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: _buildContent(context, theme),
-        ),
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: isSelected ? null : onTap,
+      splashColor: color.withOpacity(0.1),
+      highlightColor: color.withOpacity(0.05),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: _buildDecoration(theme),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: _buildContent(context, theme),
       ),
     );
   }
@@ -51,10 +48,10 @@ class ProfileButton extends StatelessWidget {
       boxShadow: [
         BoxShadow(
           color: isSelected
-              ? color.withOpacity(0.15)
+              ? color.withOpacity(0.1)
               : theme.colorScheme.onSurface.withOpacity(0.05),
           blurRadius: isSelected ? 15 : 10,
-          spreadRadius: isSelected ? 2 : 1,
+          spreadRadius: isSelected ? 10 : 1,
           offset: const Offset(0, 3),
         )
       ],

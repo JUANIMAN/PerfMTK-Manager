@@ -18,39 +18,35 @@ class Thermal extends StatelessWidget {
           future: systemService.getCurrentThermal(),
           builder: (context, snapshot) {
             final thermalState = snapshot.data ?? '';
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(AppLocale.titleThermal.getString(context),
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocale.titleThermal.getString(context),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 24),
-                        CurrentStateCard(
-                          state: thermalState,
-                          icon: _getThermalIcon(thermalState),
-                          color: _getThermalColor(thermalState),
-                          titleLocaleKey: 'thermalState',
-                          stateLocaleKey: thermalState,
-                        ),
-                        const SizedBox(height: 32),
-                        ThermalSwitch(
-                          isEnabled: thermalState == 'enabled',
-                          onChanged: (bool value) async {
-                            await _setThermalLimit(context, value ? 'enable' : 'disable');
-                          },
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  CurrentStateCard(
+                    state: thermalState,
+                    icon: _getThermalIcon(thermalState),
+                    color: _getThermalColor(thermalState),
+                    titleLocaleKey: 'thermalState',
+                    stateLocaleKey: thermalState,
+                  ),
+                  const SizedBox(height: 32),
+                  ThermalSwitch(
+                    isEnabled: thermalState == 'enabled',
+                    onChanged: (bool value) async {
+                      await _setThermalLimit(
+                          context, value ? 'enable' : 'disable');
+                    },
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -80,10 +76,10 @@ class Thermal extends StatelessWidget {
   }
 
   Future<void> _launchUrl(BuildContext context) async {
-    final Uri _url =
+    final Uri url =
         Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
     try {
-      await launchUrl(_url);
+      await launchUrl(url);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -96,9 +92,9 @@ class Thermal extends StatelessWidget {
   IconData _getThermalIcon(String state) {
     switch (state) {
       case 'enabled':
-        return Icons.thermostat;
-      case 'disabled':
         return Icons.thermostat_auto;
+      case 'disabled':
+        return Icons.thermostat;
       default:
         return Icons.help_outline;
     }

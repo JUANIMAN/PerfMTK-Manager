@@ -14,6 +14,8 @@ class ThermalSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Semantics(
       toggled: isEnabled,
       label: AppLocale.thermalControl.getString(context),
@@ -28,50 +30,66 @@ class ThermalSwitch extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                AppLocale.thermalControl.getString(context),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              _buildTitle(context, theme),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isEnabled
-                              ? AppLocale.disable.getString(context)
-                              : AppLocale.enable.getString(context),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          isEnabled
-                              ? AppLocale.disableDsc.getString(context)
-                              : AppLocale.enableDsc.getString(context),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Switch.adaptive(
-                    value: isEnabled,
-                    onChanged: onChanged,
-                    activeColor: Colors.green,
-                    inactiveThumbColor: Colors.red,
-                  ),
-                ],
-              ),
+              _buildSwitchContent(context, theme),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTitle(BuildContext context, ThemeData theme) {
+    return Text(
+      AppLocale.thermalControl.getString(context),
+      style: theme.textTheme.titleLarge,
+    );
+  }
+
+  Widget _buildSwitchContent(BuildContext context, ThemeData theme) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSwitchDetails(context, theme),
+        ),
+        _buildAdaptiveSwitch(),
+      ],
+    );
+  }
+
+  Widget _buildSwitchDetails(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isEnabled
+              ? AppLocale.disable.getString(context)
+              : AppLocale.enable.getString(context),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          isEnabled
+              ? AppLocale.disableDsc.getString(context)
+              : AppLocale.enableDsc.getString(context),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdaptiveSwitch() {
+    return Switch.adaptive(
+      value: isEnabled,
+      onChanged: onChanged,
+      activeColor: Colors.green,
+      inactiveThumbColor: Colors.red,
     );
   }
 }

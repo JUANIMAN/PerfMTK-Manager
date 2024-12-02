@@ -7,9 +7,15 @@ mixin AppLocale {
   static const String performance = 'performance';
   static const String balanced = 'balanced';
   static const String powersave = 'powersave';
+  static const String powersavePlus = 'powersave+';
   static const String performanceDsc = 'performanceDsc';
   static const String balancedDsc = 'balancedDsc';
   static const String powersaveDsc = 'powersaveDsc';
+  static const String powersavePlusDsc = 'powersavePlusDsc';
+  static const String performanceCard = 'performanceCard';
+  static const String balancedCard = 'balancedCard';
+  static const String powersaveCard = 'powersaveCard';
+  static const String powersavePlusCard = 'powersavePlusCard';
   static const String titleThermal = 'titleThermal';
   static const String thermalState = 'thermalState';
   static const String thermalControl = 'thermalControl';
@@ -31,10 +37,16 @@ mixin AppLocale {
     changeProfile: 'Change profile',
     performance: 'Performance',
     balanced: 'Balanced',
-    powersave: 'Powersave',
-    performanceDsc: 'Best performance, only recommended for benchmarks',
-    balancedDsc: 'Slight performance improvements, recommended in games and daily use',
-    powersaveDsc: 'Lower performance to save battery, recommended for daily use',
+    powersave: 'Power Saver',
+    powersavePlus: 'Ultra Power Saver',
+    performanceCard: 'Maximum performance.',
+    balancedCard: 'Good performance.',
+    powersaveCard: 'Saves battery.',
+    powersavePlusCard: 'Maximizes battery life.',
+    performanceDsc: 'Unleashes maximum power for demanding tasks and benchmarks.',
+    balancedDsc: 'Optimized for smooth gaming and daily tasks with improved efficiency.',
+    powersaveDsc: 'Focuses on conserving battery by lowering performance, ideal for standard use.',
+    powersavePlusDsc: 'Extends battery life to the fullest by minimizing system resources.',
     titleThermal: 'Thermal management',
     thermalState: 'Thermal throttling',
     thermalControl: 'Thermal Control',
@@ -56,11 +68,17 @@ mixin AppLocale {
     currentProfile: 'Perfil actual',
     changeProfile: 'Cambiar perfil',
     performance: 'Alto rendimiento',
-    balanced: 'Balanceado',
-    powersave: 'Ahorro de batería',
-    performanceDsc: 'Mejor rendimiento, solo recomendado para benchmarks',
-    balancedDsc: 'Ligeras mejoras de rendimiento, recomendado en juegos y uso diario',
-    powersaveDsc: 'Menor rendimiento para ahorrar batería, recomendado para uso diario',
+    balanced: 'Equilibrado',
+    powersave: 'Ahorro de energía',
+    powersavePlus: 'Ahorro máximo de energía',
+    performanceCard: 'Máximo rendimiento.',
+    balancedCard: 'Buen rendimiento.',
+    powersaveCard: 'Ahorra batería.',
+    powersavePlusCard: 'Maximiza la vida de tu batería.',
+    performanceDsc: 'Libera el máximo poder para tareas exigentes y benchmarks.',
+    balancedDsc: 'Optimizado para un rendimiento fluido en juegos y tareas diarias con mayor eficiencia.',
+    powersaveDsc: 'Se centra en conservar batería reduciendo el rendimiento, ideal para uso estándar.',
+    powersavePlusDsc: 'Maximiza la duración de la batería minimizando los recursos del sistema.',
     titleThermal: 'Gestión térmica',
     thermalState: 'Limitación térmica',
     thermalControl: 'Control Térmico',

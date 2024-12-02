@@ -8,6 +8,7 @@ class CurrentStateCard extends StatelessWidget {
   final Color color;
   final String titleLocaleKey;
   final String stateLocaleKey;
+  final String? descriptionLocaleKey;
 
   const CurrentStateCard({
     super.key,
@@ -16,29 +17,28 @@ class CurrentStateCard extends StatelessWidget {
     required this.color,
     required this.titleLocaleKey,
     required this.stateLocaleKey,
+    this.descriptionLocaleKey,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 4,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(16),
-        ),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(
-            Radius.circular(16),
-          ),
+          borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
             colors: [
               color.withOpacity(0.1),
               color.withOpacity(0.05),
             ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
         child: Padding(
@@ -48,52 +48,65 @@ class CurrentStateCard extends StatelessWidget {
             children: [
               Text(
                 AppLocale.getValue(titleLocaleKey).getString(context),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(12),
-                      ),
-                    ),
-                    child: Icon(icon, color: color, size: 32),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          stateLocaleKey.getString(context),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: color,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          stateLocaleKey.getString(context),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              _buildStateContent(context, theme),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStateContent(BuildContext context, ThemeData theme) {
+    return Row(
+      children: [
+        _buildIconContainer(),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppLocale.getValue(stateLocaleKey).getString(context),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              if (descriptionLocaleKey != null) ...[
+                const SizedBox(height: 4),
+                _buildDescription(context, theme),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconContainer() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: color, size: 32),
+    );
+  }
+
+  Widget _buildDescription(BuildContext context, ThemeData theme) {
+    return Text(
+      AppLocale.getValue(descriptionLocaleKey!).getString(context),
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.colorScheme.onSurface.withOpacity(0.6),
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

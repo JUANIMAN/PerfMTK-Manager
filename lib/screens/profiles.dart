@@ -14,44 +14,50 @@ class Profiles extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SystemService>(
       builder: (context, systemService, child) {
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocale.titleProfiles.getString(context),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 24),
-                    CurrentStateCard(
-                      state: systemService.currentProfile,
-                      icon: _getProfileIcon(systemService.currentProfile),
-                      color: _getProfileColor(systemService.currentProfile),
-                      titleLocaleKey: 'currentProfile',
-                      stateLocaleKey: systemService.currentProfile,
-                    ),
-                    const SizedBox(height: 32),
-                    Text(
-                      AppLocale.changeProfile.getString(context),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocale.titleProfiles.getString(context),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+                  CurrentStateCard(
+                    state: systemService.currentProfile,
+                    icon: _getProfileIcon(systemService.currentProfile),
+                    color: _getProfileColor(systemService.currentProfile),
+                    titleLocaleKey: 'currentProfile',
+                    stateLocaleKey: systemService.currentProfile,
+                    descriptionLocaleKey: _getProfileDsc(systemService.currentProfile),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    AppLocale.changeProfile.getString(context),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
               ),
             ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final profile = ['performance', 'balanced', 'powersave'][index];
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  final profile = [
+                    'performance',
+                    'balanced',
+                    'powersave',
+                    'powersave+'
+                  ][index];
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ProfileButton(
                       profile: profile,
                       isSelected: systemService.currentProfile == profile,
@@ -61,7 +67,6 @@ class Profiles extends StatelessWidget {
                     ),
                   );
                 },
-                childCount: 3,
               ),
             ),
           ],
@@ -112,6 +117,8 @@ class Profiles extends StatelessWidget {
       case 'balanced':
         return Icons.balance;
       case 'powersave':
+        return Icons.battery_full;
+      case 'powersave+':
         return Icons.battery_saver;
       default:
         return Icons.help_outline;
@@ -126,8 +133,25 @@ class Profiles extends StatelessWidget {
         return Colors.blue;
       case 'powersave':
         return Colors.green;
+      case 'powersave+':
+        return Colors.teal;
       default:
         return Colors.grey;
+    }
+  }
+
+  String _getProfileDsc(String profile) {
+    switch (profile) {
+      case 'performance':
+        return AppLocale.performanceCard;
+      case 'balanced':
+        return AppLocale.balancedCard;
+      case 'powersave':
+        return AppLocale.powersaveCard;
+      case 'powersave+':
+        return AppLocale.powersavePlusCard;
+      default:
+        return '';
     }
   }
 }

@@ -1,25 +1,38 @@
-import 'dart:io';
+import 'dart:io' show Process;
 import 'package:flutter/foundation.dart';
 
 class SystemService extends ChangeNotifier {
   String _currentProfile = '';
   String _currentThermal = '';
+  bool _isInitialized = false;
+
   String get currentProfile => _currentProfile;
   String get currentThermal => _currentThermal;
+  bool get isInitialized => _isInitialized;
 
   SystemService() {
-    _initCurrentProfile();
-    _initCurrentThermal();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await Future.wait([
+        _initCurrentProfile(),
+        _initCurrentThermal(),
+      ]);
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to initialize SystemService: $e');
+    }
   }
 
   Future<void> _initCurrentProfile() async {
     _currentProfile = await getCurrentProfile();
-    notifyListeners();
   }
 
   Future<void> _initCurrentThermal() async {
     _currentThermal = await getCurrentThermal();
-    notifyListeners();
   }
 
   Future<String> runCommand(String command, List<String> arguments) async {
@@ -40,7 +53,7 @@ class SystemService extends ChangeNotifier {
 
   Future<void> setProfile(String profile) async {
     await runCommand('su', ['-c', 'perfmtk', profile]);
-    _currentProfile = await getCurrentProfile();
+    _currentProfile = profile;
     notifyListeners();
   }
 
@@ -50,7 +63,7 @@ class SystemService extends ChangeNotifier {
 
   Future<void> setThermal(String thermal) async {
     await runCommand('su', ['-c', 'thermal_limit', thermal]);
-    _currentThermal = await getCurrentThermal();
+    _currentThermal = thermal;
     notifyListeners();
   }
 }

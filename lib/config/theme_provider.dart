@@ -10,38 +10,26 @@ class ThemeProvider with ChangeNotifier {
 
   ThemeMode get themeMode => _themeMode;
 
-  ThemeProvider(BuildContext context) {
-    _loadThemePreference(context);
+  ThemeProvider() {
+    _loadThemePreference();
   }
 
-  void _loadThemePreference(BuildContext context) async {
+  Future<void> _loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // Check if it's the first launch
     bool isFirstLaunch = prefs.getBool(_firstLaunchKey) ?? true;
 
     if (isFirstLaunch) {
-      // First launch, use system mode
       _themeMode = ThemeMode.system;
-
-      // Mark that first launch is complete
       await prefs.setBool(_firstLaunchKey, false);
     } else {
-      // Not first launch, load user's previous preference
       final savedThemeMode = prefs.getString(_themeModeKey);
-
-      if (savedThemeMode != null) {
-        _themeMode = ThemeMode.values.firstWhere(
-              (e) => e.toString() == savedThemeMode,
-          orElse: () => ThemeMode.light, // Default to light if something goes wrong
-        );
-      } else {
-        // If no saved preference, default to light
-        _themeMode = ThemeMode.light;
-      }
+      _themeMode = savedThemeMode != null
+          ? ThemeMode.values.firstWhere(
+            (e) => e.toString() == savedThemeMode,
+        orElse: () => ThemeMode.light,
+      )
+          : ThemeMode.light;
     }
-
-    _updateSystemUIOverlayStyle(context);
     notifyListeners();
   }
 
@@ -53,21 +41,22 @@ class ThemeProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_themeModeKey, _themeMode.toString());
     }
+    _updateSystemUIOverlayStyle();
   }
 
   void toggleTheme() {
     setThemeMode(_themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light);
   }
 
-  void _updateSystemUIOverlayStyle(BuildContext context) {
+  void _updateSystemUIOverlayStyle() {
     bool isDark = _themeMode == ThemeMode.dark ||
-        (_themeMode == ThemeMode.system &&
-            View.of(context).platformDispatcher.platformBrightness == Brightness.dark);
+        (_themeMode == ThemeMode.system && WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
 
     SystemChrome.setSystemUIOverlayStyle(
       isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
     );
   }
+
 }
 
 class ThemeSwitcher extends StatelessWidget {
@@ -75,19 +64,29 @@ class ThemeSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return IconButton(
-          icon: Icon(
-            themeProvider.themeMode == ThemeMode.light
-                ? Icons.dark_mode
-                : Icons.light_mode,
-          ),
-          onPressed: () {
-            themeProvider.toggleTheme();
-          },
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return RotationTransition(
+          turns: animation,
+          child: child,
         );
       },
+      child: IconButton(
+        key: ValueKey<ThemeMode>(
+            Theme.of(context).brightness == Brightness.light
+                ? ThemeMode.light
+                : ThemeMode.dark),
+        icon: Icon(
+          Theme.of(context).brightness == Brightness.light
+              ? Icons.dark_mode
+              : Icons.light_mode,
+        ),
+        onPressed: () {
+          final themeProvider = context.read<ThemeProvider>();
+          themeProvider.toggleTheme();
+        },
+      ),
     );
   }
 }

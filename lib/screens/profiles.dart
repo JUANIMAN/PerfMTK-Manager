@@ -97,10 +97,10 @@ class Profiles extends StatelessWidget {
   }
 
   Future<void> _launchUrl(BuildContext context) async {
-    final Uri _url =
+    final Uri url =
         Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
     try {
-      await launchUrl(_url);
+      await launchUrl(url);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

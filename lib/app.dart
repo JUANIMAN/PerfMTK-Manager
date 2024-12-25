@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/theme_provider.dart';
@@ -15,19 +17,19 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final FlutterLocalization _localization = FlutterLocalization.instance;
+  final FlutterLocalization localization = FlutterLocalization.instance;
 
   @override
   void initState() {
-    super.initState();
-    _localization.init(
+    localization.init(
       mapLocales: [
         const MapLocale('en', AppLocale.EN),
         const MapLocale('es', AppLocale.ES),
       ],
-      initLanguageCode: '',
+      initLanguageCode: Platform.localeName.substring(0, 2) == 'es' ? 'es' : 'en',
     );
-    _localization.onTranslatedLanguage = _onTranslatedLanguage;
+    localization.onTranslatedLanguage = _onTranslatedLanguage;
+    super.initState();
   }
 
   void _onTranslatedLanguage(Locale? locale) {
@@ -38,15 +40,15 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => ThemeProvider(context)),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => SystemService()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'PerfMTK Manager',
-            supportedLocales: _localization.supportedLocales,
-            localizationsDelegates: _localization.localizationsDelegates,
+            supportedLocales: localization.supportedLocales,
+            localizationsDelegates: localization.localizationsDelegates,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,

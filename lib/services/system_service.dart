@@ -1,7 +1,7 @@
 import 'dart:io' show Process;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
-class SystemService extends ChangeNotifier {
+class SystemService with ChangeNotifier {
   String _currentProfile = '';
   String _currentThermal = '';
   bool _isInitialized = false;

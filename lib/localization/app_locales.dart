@@ -28,6 +28,10 @@ mixin AppLocale {
   static const String snackBarText = 'snackBarText';
   static const String snackBarLabel = 'snackBarLabel';
   static const String downloadMess = 'downloadMess';
+  static const String updateMess = 'updateMess';
+  static const String updateNew = 'updateNew';
+  static const String updateCancel = 'updateCancel';
+  static const String updateDown = 'updateDown';
 
   static const Map<String, dynamic> EN = {
     profiles: 'Profiles',
@@ -58,7 +62,11 @@ mixin AppLocale {
     disableDsc: 'Disable temperature control; there may be no performance improvement',
     snackBarText: 'Install the latest version of the module.',
     snackBarLabel: 'Download',
-    downloadMess: 'Could not open download link.'
+    downloadMess: 'Could not open download link.',
+    updateMess: 'New update available',
+    updateNew: 'What\'s new:',
+    updateCancel: 'Later',
+    updateDown: 'Download',
   };
 
   static const Map<String, dynamic> ES = {
@@ -90,7 +98,11 @@ mixin AppLocale {
     disableDsc: 'Desactiva el control de temperatura; es posible que no haya mejora en el rendimiento',
     snackBarText: 'Instale la última versión del módulo.',
     snackBarLabel: 'Descargar',
-    downloadMess: 'No se pudo abrir el enlace de descarga.'
+    downloadMess: 'No se pudo abrir el enlace de descarga.',
+    updateMess: 'Nueva actualización disponible',
+    updateNew: 'Novedades:',
+    updateCancel: 'Más tarde',
+    updateDown: 'Descargar',
   };
 
   static String getValue(String key) {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/config/theme_provider.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/views/profiles.dart';
+import 'package:manager/views/settings_screen.dart';
 import 'package:manager/views/thermal.dart';
 import 'package:manager/utils/update_checker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -49,12 +49,35 @@ class _NavegadorState extends State<Navegador> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('PerfMTK Manager'),
-        actions: const [
-          ThemeSwitcher(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
         ],
       ),
       body: AnimatedSwitcher(
-        duration: const Duration(microseconds: 300),
+        duration: const Duration(milliseconds: 400),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.2, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            ),
+          );
+        },
         child: _screens[_currentScreen],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),

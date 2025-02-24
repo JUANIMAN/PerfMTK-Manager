@@ -32,6 +32,25 @@ mixin AppLocale {
   static const String updateNew = 'updateNew';
   static const String updateCancel = 'updateCancel';
   static const String updateDown = 'updateDown';
+  static const String settings = 'settings';
+  static const String appearance = 'appearance';
+  static const String language = 'language';
+  static const String profileSettings = 'profileSettings';
+  static const String about = 'about';
+  static const String themeMode = 'themeMode';
+  static const String themeSystem = 'themeSystem';
+  static const String themeLight = 'themeLight';
+  static const String themeDark = 'themeDark';
+  static const String selectTheme = 'selectTheme';
+  static const String selectLanguage = 'selectLanguage';
+  static const String lockFreq = 'autoProfileSwitch';
+  static const String lockFreqDescription = 'autoProfileDescription';
+  static const String defaultProfile = 'defaultProfile';
+  static const String defaultProfileDescription = 'defaultProfileDescription';
+  static const String aboutDescription = 'aboutDescription';
+  static const String back = 'back';
+  static const String developer = 'developer';
+  static const String compDevices = 'compDevices';
 
   static const Map<String, dynamic> EN = {
     profiles: 'Profiles',
@@ -67,6 +86,25 @@ mixin AppLocale {
     updateNew: 'What\'s new:',
     updateCancel: 'Later',
     updateDown: 'Download',
+    settings: 'Settings',
+    appearance: 'Appearance',
+    language: 'Language',
+    profileSettings: 'Profile Settings',
+    about: 'About',
+    themeMode: 'Theme Mode',
+    themeSystem: 'System',
+    themeLight: 'Light',
+    themeDark: 'Dark',
+    selectTheme: 'Select Theme',
+    selectLanguage: 'Select Language',
+    lockFreq: 'lock processor frequencies',
+    lockFreqDescription: 'This setting only applies to the Performance profile.',
+    defaultProfile: 'Default Profile',
+    defaultProfileDescription: 'Select the default profile to use when the app starts',
+    aboutDescription: 'PerfMTK Manager is an app to manage your device\'s performance profiles and thermal settings.',
+    back: 'Back',
+    developer: 'Developer',
+    compDevices: 'Compatible devices',
   };
 
   static const Map<String, dynamic> ES = {
@@ -103,6 +141,25 @@ mixin AppLocale {
     updateNew: 'Novedades:',
     updateCancel: 'Más tarde',
     updateDown: 'Descargar',
+    settings: 'Ajustes',
+    appearance: 'Apariencia',
+    language: 'Idioma',
+    profileSettings: 'Ajustes de Perfil',
+    about: 'Acerca de',
+    themeMode: 'Tema',
+    themeSystem: 'Sistema',
+    themeLight: 'Claro',
+    themeDark: 'Oscuro',
+    selectTheme: 'Seleccionar Tema',
+    selectLanguage: 'Seleccionar Idioma',
+    lockFreq: 'Bloquear frecuencias de procesador',
+    lockFreqDescription: 'Este ajuste solo se aplica al perfil de Rendimiento.',
+    defaultProfile: 'Perfil Predeterminado',
+    defaultProfileDescription: 'Selecciona el perfil predeterminado al iniciar la aplicación',
+    aboutDescription: 'PerfMTK Manager es una aplicación para gestionar los perfiles de rendimiento y ajustes térmicos de tu dispositivo.',
+    back: 'Regresar',
+    developer: 'Desarrollador',
+    compDevices: 'Dispositivos compatibles',
   };
 
   static String getValue(String key) {

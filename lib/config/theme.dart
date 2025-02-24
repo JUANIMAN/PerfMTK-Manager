@@ -72,6 +72,15 @@ class AppTheme {
         TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
       },
     ),
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+    ),
+    dialogTheme: DialogTheme(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
+    ),
   );
 
   static ThemeData darkTheme = ThemeData(
@@ -138,6 +147,15 @@ class AppTheme {
       builders: {
         TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
       },
+    ),
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+    ),
+    dialogTheme: DialogTheme(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 8,
     ),
   );
 }

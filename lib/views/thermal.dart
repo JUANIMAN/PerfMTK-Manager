@@ -63,9 +63,6 @@ class _ThermalState extends State<Thermal> {
                     context,
                     value ? 'enable' : 'disable',
                   );
-                  setState(() {
-                    _currentThermal = value ? 'enabled' : 'disabled';
-                  });
                 },
               ),
             ],
@@ -78,6 +75,9 @@ class _ThermalState extends State<Thermal> {
   Future<void> _setThermalLimit(BuildContext context, String thermal) async {
     try {
       await context.read<SystemService>().setThermal(thermal);
+      setState(() {
+        _currentThermal = "${thermal}d";
+      });
     } catch (e) {
       _showErrorSnackBar(context);
     }

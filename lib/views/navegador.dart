@@ -51,7 +51,7 @@ class _NavegadorState extends State<Navegador> {
         title: const Text('PerfMTK Manager'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () {
               Navigator.push(
                 context,

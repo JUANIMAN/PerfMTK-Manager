@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
-import '../localization/app_locales.dart';
+import 'package:manager/localization/app_locales.dart';
 
 class ProfileButton extends StatefulWidget {
   final String profile;
@@ -33,7 +33,7 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       vsync: this,
     );
 
@@ -100,17 +100,17 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(
                       color: _getBorderColor(isFocused, theme),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: widget.color.withOpacity(0.1),
-                        blurRadius: widget.isSelected ? 8 : 4,
+                        color: widget.color.withOpacity(0.15),
+                        blurRadius: widget.isSelected ? 12 : 4,
                         spreadRadius: widget.isSelected ? 2 : 0,
-                        offset: const Offset(0, 2),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -132,7 +132,7 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
             child: _buildSelectedBackground(),
           ),
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: Row(
             children: [
               _buildIcon(),
@@ -142,7 +142,7 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildTitle(theme),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     _buildDescription(theme),
                   ],
                 ),
@@ -160,14 +160,8 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
       animation: _slideAnimation,
       builder: (context, child) => DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              widget.color.withOpacity(0.15 * _slideAnimation.value),
-              widget.color.withOpacity(0.05 * _slideAnimation.value),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: widget.color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(22),
         ),
       ),
     );
@@ -202,7 +196,7 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
     return Text(
       _getProfileDescription(),
       style: theme.textTheme.bodyMedium?.copyWith(
-        color: theme.colorScheme.onSurface.withOpacity(0.6),
+        color: theme.colorScheme.onSurface.withOpacity(0.7),
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -225,7 +219,7 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
 
   Color _getBorderColor(bool isFocused, ThemeData theme) {
     if (widget.isSelected) return widget.color;
-    if (isFocused) return theme.colorScheme.primary.withOpacity(0.5);
+    if (isFocused) return theme.colorScheme.primary.withOpacity(0.6);
     return theme.colorScheme.onSurface.withOpacity(0.1);
   }
 

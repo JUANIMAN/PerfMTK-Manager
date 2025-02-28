@@ -81,15 +81,7 @@ class _CurrentStateCardState extends State<CurrentStateCard> with SingleTickerPr
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              colors: [
-                widget.color.withOpacity(0.15),
-                widget.color.withOpacity(0.05),
-                Colors.transparent,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: widget.color.withOpacity(0.1),
           ),
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -128,6 +120,8 @@ class _CurrentStateCardState extends State<CurrentStateCard> with SingleTickerPr
                               fontWeight: FontWeight.bold,
                               color: widget.color,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           if (widget.descriptionLocaleKey != null) ...[
                             const SizedBox(height: 6),

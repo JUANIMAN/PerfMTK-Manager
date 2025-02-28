@@ -15,91 +15,75 @@ class ThermalSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = isEnabled ? Colors.green : Colors.red;
+
     return Card(
-      elevation: 2,
-      shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
+      elevation: 1,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            colors: [
-              isEnabled
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
-              Colors.transparent,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    isEnabled ? Icons.check_circle : Icons.warning,
-                    color: isEnabled ? Colors.green : Colors.red,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    AppLocale.thermalControl.getString(context),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isEnabled
-                              ? AppLocale.disable.getString(context)
-                              : AppLocale.enable.getString(context),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isEnabled ? Icons.check_circle_outline : Icons.highlight_off,
+                  color: color,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  AppLocale.thermalControl.getString(context),
+                  style: theme.textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEnabled
+                            ? AppLocale.disable.getString(context)
+                            : AppLocale.enable.getString(context),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          isEnabled
-                              ? AppLocale.disableDsc.getString(context)
-                              : AppLocale.enableDsc.getString(context),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isEnabled
+                            ? AppLocale.disableDsc.getString(context)
+                            : AppLocale.enableDsc.getString(context),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
-                      ],
-                    ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  Transform.scale(
-                    scale: 1.2,
-                    child: Switch.adaptive(
-                      value: isEnabled,
-                      onChanged: (value) {
-                        HapticFeedback.mediumImpact();
-                        onChanged(value);
-                      },
-                      activeColor: Colors.green,
-                      activeTrackColor: Colors.green.withOpacity(0.3),
-                      inactiveThumbColor: Colors.red,
-                      inactiveTrackColor: Colors.red.withOpacity(0.3),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                Switch(
+                  value: isEnabled,
+                  onChanged: (value) {
+                    HapticFeedback.lightImpact();
+                    onChanged(value);
+                  },
+                  activeColor: Colors.green,
+                  inactiveThumbColor: Colors.red,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

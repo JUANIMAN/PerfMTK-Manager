@@ -3,7 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/theme_provider.dart';
-import 'package:manager/views/navegador.dart';
+import 'package:manager/views/navigator.dart';
 import 'package:manager/services/system_service.dart';
 import 'package:provider/provider.dart';
 import 'package:manager/localization/app_locales.dart';

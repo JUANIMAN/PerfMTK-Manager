@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/views/profiles.dart';
@@ -53,6 +54,7 @@ class _NavegadorState extends State<Navegador> {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
+              HapticFeedback.lightImpact();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
@@ -92,6 +94,7 @@ class _NavegadorState extends State<Navegador> {
         child: NavigationBar(
           selectedIndex: _currentScreen.index,
           onDestinationSelected: (int index) {
+            HapticFeedback.mediumImpact();
             setState(() {
               _currentScreen = NavScreens.values[index];
             });

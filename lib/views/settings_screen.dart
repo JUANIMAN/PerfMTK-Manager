@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/widgets/about_dialog.dart';
 import 'package:provider/provider.dart';
@@ -50,14 +51,14 @@ class SettingsScreen extends StatelessWidget {
                       _buildLanguageSelector(context, localization),
                     ],
                   ),
-                  _buildSection(
-                    context,
-                    title: AppLocale.profileSettings.getString(context),
-                    icon: Icons.tune_outlined,
-                    children: [
-                      _buildProfileSettings(context),
-                    ],
-                  ),
+                  // _buildSection(
+                  //   context,
+                  //   title: AppLocale.profileSettings.getString(context),
+                  //   icon: Icons.tune_outlined,
+                  //   children: [
+                  //     _buildProfileSettings(context),
+                  //   ],
+                  // ),
                   _buildSection(
                     context,
                     title: AppLocale.about.getString(context),
@@ -238,6 +239,7 @@ class SettingsScreen extends StatelessWidget {
       title: Text(AppLocale.about.getString(context)),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
+        HapticFeedback.lightImpact();
         showDialog(
           context: context,
           builder: (context) => CustomAboutDialog(),
@@ -268,6 +270,8 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
+    HapticFeedback.lightImpact();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -292,8 +296,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showLanguageDialog(
-      BuildContext context, FlutterLocalization localization) {
+  void _showLanguageDialog(BuildContext context, FlutterLocalization localization) {
+    HapticFeedback.lightImpact();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

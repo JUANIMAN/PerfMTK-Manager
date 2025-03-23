@@ -51,8 +51,10 @@ class SystemService with ChangeNotifier {
     return runCommand('getprop', ['sys.perfmtk.current_profile']);
   }
 
-  Future<void> setProfile(String profile) async {
-    await runCommand('su', ['-c', 'perfmtk', profile]);
+  Future<void> setProfile(String profile, bool appProfileExist) async {
+    if (!appProfileExist) {
+      await runCommand('su', ['-c', 'perfmtk', profile]);
+    }
     _currentProfile = profile;
     notifyListeners();
   }

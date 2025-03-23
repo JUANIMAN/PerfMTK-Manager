@@ -226,13 +226,13 @@ class _ProfileButtonState extends State<ProfileButton> with SingleTickerProvider
   String _getProfileDescription() {
     switch (widget.profile) {
       case 'performance':
-        return AppLocale.performanceDsc.getString(context);
+        return AppLocale.performanceDesc.getString(context);
       case 'balanced':
-        return AppLocale.balancedDsc.getString(context);
+        return AppLocale.balancedDesc.getString(context);
       case 'powersave':
-        return AppLocale.powersaveDsc.getString(context);
+        return AppLocale.powersaveDesc.getString(context);
       case 'powersave+':
-        return AppLocale.powersavePlusDsc.getString(context);
+        return AppLocale.powersavePlusDesc.getString(context);
       default:
         return '';
     }

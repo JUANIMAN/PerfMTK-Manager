@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/services/system_service.dart';
+import 'package:manager/services/app_profile_service.dart';
 import 'package:manager/widgets/current_state_card.dart';
 import 'package:manager/widgets/profile_button.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +40,7 @@ class Profiles extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    AppLocale.changeProfile.getString(context),
+                    AppLocale.subtitleProfiles.getString(context),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
@@ -77,7 +78,15 @@ class Profiles extends StatelessWidget {
 
   Future<void> _setProfile(BuildContext context, String profile) async {
     try {
-      await context.read<SystemService>().setProfile(profile);
+      final appProfileService = context.read<AppProfileService>();
+      final appProfileExist = await appProfileService.checkConfigExists();
+
+      if (appProfileExist) {
+        await appProfileService.loadAppProfiles();
+        await appProfileService.setDefaultProfile(profile);
+      }
+
+      await context.read<SystemService>().setProfile(profile, appProfileExist);
     } catch (e) {
       _showErrorSnackBar(context);
     }

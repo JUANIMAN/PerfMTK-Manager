@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/theme_provider.dart';
+import 'package:manager/services/app_profile_service.dart';
 import 'package:manager/views/navigator.dart';
 import 'package:manager/services/system_service.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +43,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => SystemService()),
+        ChangeNotifierProvider(create: (context) => AppProfileService()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -2,16 +2,13 @@ mixin AppLocale {
   static const String profiles = 'profiles';
   static const String thermal = 'thermal';
   static const String titleProfiles = 'titleProfiles';
+  static const String subtitleProfiles = "subtitleProfiles";
   static const String currentProfile = 'currentProfile';
-  static const String changeProfile = 'changeProfile';
+  static const String defaultProfile = 'defaultProfile';
   static const String performance = 'performance';
   static const String balanced = 'balanced';
   static const String powersave = 'powersave';
   static const String powersavePlus = 'powersave+';
-  static const String performanceDsc = 'performanceDsc';
-  static const String balancedDsc = 'balancedDsc';
-  static const String powersaveDsc = 'powersaveDsc';
-  static const String powersavePlusDsc = 'powersavePlusDsc';
   static const String performanceCard = 'performanceCard';
   static const String balancedCard = 'balancedCard';
   static const String powersaveCard = 'powersaveCard';
@@ -45,19 +42,43 @@ mixin AppLocale {
   static const String selectLanguage = 'selectLanguage';
   static const String lockFreq = 'autoProfileSwitch';
   static const String lockFreqDescription = 'autoProfileDescription';
-  static const String defaultProfile = 'defaultProfile';
   static const String defaultProfileDescription = 'defaultProfileDescription';
   static const String aboutDescription = 'aboutDescription';
   static const String back = 'back';
   static const String developer = 'developer';
   static const String compDevices = 'compDevices';
+  static const String appProfiles = 'appProfiles';
+  static const String titleAppProfiles = 'titleAppProfiles';
+  static const String searchApps = 'searchApps';
+  static const String noAppsFound = 'noAppsFound';
+  static const String appProfilesDescription = 'appProfilesDescription';
+  static const String allApps = 'allApps';
+  static const String configuredApps = 'configuredApps';
+  static const String notConfiguredApps = 'notConfiguredApps';
+  static const String noSearchResults = 'noSearchResults';
+  static const String clearSearch = 'clearSearch';
+  static const String errorLoadingApps = 'errorLoadingApps';
+  static const String retry = 'retry';
+  static const String profileSet = 'profileSet';
+  static const String profileReset = 'profileReset';
+  static const String undo = 'undo';
+  static const String changeProfile = 'changeProfile';
+  static const String selectProfile = 'selectProfile';
+
+  // Profile descriptions
+  static const String defaultProfileDesc = 'defaultProfileDesc';
+  static const String performanceDesc = 'performanceDesc';
+  static const String balancedDesc = 'balancedDesc';
+  static const String powersaveDesc = 'powersaveDesc';
+  static const String powersavePlusDesc = 'powersavePlusDesc';
 
   static const Map<String, dynamic> EN = {
     profiles: 'Profiles',
     thermal: 'Thermal',
     titleProfiles: 'Power profiles',
+    subtitleProfiles: 'Global profiles',
     currentProfile: 'Current profile',
-    changeProfile: 'Change profile',
+    defaultProfile: 'Default profile',
     performance: 'Performance',
     balanced: 'Balanced',
     powersave: 'Power Saver',
@@ -66,10 +87,6 @@ mixin AppLocale {
     balancedCard: 'Good performance.',
     powersaveCard: 'Saves battery.',
     powersavePlusCard: 'Maximizes battery life.',
-    performanceDsc: 'Unleashes maximum power for demanding tasks and benchmarks.',
-    balancedDsc: 'Optimized for smooth gaming and daily tasks with improved efficiency.',
-    powersaveDsc: 'Focuses on conserving battery by lowering performance, ideal for standard use.',
-    powersavePlusDsc: 'Extends battery life to the fullest by minimizing system resources.',
     titleThermal: 'Thermal management',
     thermalState: 'Thermal throttling',
     thermalControl: 'Thermal Control',
@@ -99,20 +116,43 @@ mixin AppLocale {
     selectLanguage: 'Select Language',
     lockFreq: 'lock processor frequencies',
     lockFreqDescription: 'This setting only applies to the Performance profile.',
-    defaultProfile: 'Default Profile',
     defaultProfileDescription: 'Select the default profile to use when the app starts',
     aboutDescription: 'PerfMTK Manager is an app to manage your device\'s performance profiles and thermal settings.',
     back: 'Back',
     developer: 'Developer',
     compDevices: 'Compatible devices',
+    appProfiles: 'App Profiles',
+    titleAppProfiles: 'Application Profiles',
+    searchApps: 'Search applications',
+    noAppsFound: 'No applications found',
+    appProfilesDescription: 'Configure performance profiles for individual apps',
+    allApps: 'All Apps',
+    configuredApps: 'Configured',
+    notConfiguredApps: 'Not Configured',
+    noSearchResults : 'No apps found for your search',
+    clearSearch: 'Clear Search',
+    errorLoadingApps: 'Error loading applications',
+    retry: 'Retry',
+    profileSet: 'Profile for {app} set to {profile}',
+    profileReset: 'Default profile restored for {app}',
+    undo: 'Undo',
+    changeProfile: 'Change profile',
+    selectProfile: 'Select performance profile',
+
+    defaultProfileDesc: 'Use the global default profile setting',
+    performanceDesc: 'Maximum CPU and GPU performance. Higher battery usage',
+    balancedDesc: 'Balance between performance and battery life',
+    powersaveDesc: 'Reduced performance for better battery life',
+    powersavePlusDesc: 'Maximum battery savings with minimal performance',
   };
 
   static const Map<String, dynamic> ES = {
     profiles: 'Perfiles',
     thermal: 'Termal',
     titleProfiles: 'Perfiles de Energía',
+    subtitleProfiles: 'Perfiles globales',
     currentProfile: 'Perfil actual',
-    changeProfile: 'Cambiar perfil',
+    defaultProfile: 'Perfil predeterminado',
     performance: 'Alto rendimiento',
     balanced: 'Equilibrado',
     powersave: 'Ahorro de energía',
@@ -121,10 +161,6 @@ mixin AppLocale {
     balancedCard: 'Buen rendimiento.',
     powersaveCard: 'Ahorra batería.',
     powersavePlusCard: 'Maximiza la vida de tu batería.',
-    performanceDsc: 'Libera el máximo poder para tareas exigentes y benchmarks.',
-    balancedDsc: 'Optimizado para un rendimiento fluido en juegos y tareas diarias con mayor eficiencia.',
-    powersaveDsc: 'Se centra en conservar batería reduciendo el rendimiento, ideal para uso estándar.',
-    powersavePlusDsc: 'Maximiza la duración de la batería minimizando los recursos del sistema.',
     titleThermal: 'Gestión térmica',
     thermalState: 'Limitación térmica',
     thermalControl: 'Control Térmico',
@@ -154,12 +190,34 @@ mixin AppLocale {
     selectLanguage: 'Seleccionar Idioma',
     lockFreq: 'Bloquear frecuencias de procesador',
     lockFreqDescription: 'Este ajuste solo se aplica al perfil de Rendimiento.',
-    defaultProfile: 'Perfil Predeterminado',
     defaultProfileDescription: 'Selecciona el perfil predeterminado al iniciar la aplicación',
     aboutDescription: 'PerfMTK Manager es una aplicación para gestionar los perfiles de rendimiento y ajustes térmicos de tu dispositivo.',
     back: 'Regresar',
     developer: 'Desarrollador',
     compDevices: 'Dispositivos compatibles',
+    appProfiles: 'Perfiles de Apps',
+    titleAppProfiles: 'Perfiles de Aplicación',
+    searchApps: 'Buscar aplicaciones',
+    noAppsFound: 'No se encontraron aplicaciones',
+    appProfilesDescription: 'Configura perfiles de rendimiento para aplicaciones individuales',
+    allApps: 'Todas las Apps',
+    configuredApps: 'Configuradas',
+    notConfiguredApps: 'Sin Configurar',
+    noSearchResults : 'No se encontraron apps para tu búsqueda',
+    clearSearch: 'Limpiar Búsqueda',
+    errorLoadingApps: 'Error al cargar aplicaciones',
+    retry: 'Reintentar',
+    profileSet: 'Perfil para {app} configurado a {profile}',
+    profileReset: 'Perfil predeterminado restaurado para {app}',
+    undo: 'Deshacer',
+    changeProfile: 'Cambiar perfil',
+    selectProfile: 'Seleccionar perfil de rendimiento',
+
+    defaultProfileDesc: 'Usar la configuración predeterminada global',
+    performanceDesc: 'Máximo rendimiento de CPU y GPU. Mayor consumo de batería',
+    balancedDesc: 'Equilibrio entre rendimiento y duración de batería',
+    powersaveDesc: 'Rendimiento reducido para mejor duración de batería',
+    powersavePlusDesc: 'Máximo ahorro de batería con rendimiento mínimo',
   };
 
   static String getValue(String key) {

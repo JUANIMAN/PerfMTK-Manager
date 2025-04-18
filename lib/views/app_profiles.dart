@@ -5,7 +5,8 @@ import 'package:manager/localization/app_locales.dart';
 import 'package:manager/services/app_profile_service.dart';
 import 'package:manager/widgets/app_profile_item.dart';
 import 'package:provider/provider.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class AppProfiles extends StatefulWidget {
   const AppProfiles({super.key});
@@ -14,13 +15,17 @@ class AppProfiles extends StatefulWidget {
   State<AppProfiles> createState() => _AppProfilesState();
 }
 
-class _AppProfilesState extends State<AppProfiles> {
+class _AppProfilesState extends State<AppProfiles> with AutomaticKeepAliveClientMixin {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilter = 'all'; // Filtro actual: 'all', 'configured', 'notConfigured'
   final ScrollController _scrollController = ScrollController();
   bool _showBackToTopButton = false;
+
+  // Para mantener el estado cuando se cambia de pestaña
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -61,15 +66,17 @@ class _AppProfilesState extends State<AppProfiles> {
         _isLoading = false;
       });
       // Mostrar un snackbar para el error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocale.errorLoadingApps.getString(context)),
-          action: SnackBarAction(
-            label: AppLocale.retry.getString(context),
-            onPressed: _loadData,
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocale.errorLoadingApps.getString(context)),
+            action: SnackBarAction(
+              label: AppLocale.retry.getString(context),
+              onPressed: _loadData,
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -78,14 +85,14 @@ class _AppProfilesState extends State<AppProfiles> {
   }
 
   // Filtrar apps según el criterio seleccionado
-  List<Application> get _filteredApps {
+  List<AppInfo> get _filteredApps {
     final appProfileService = context.read<AppProfileService>();
-    List<Application> filteredList = appProfileService.installedApps;
+    List<AppInfo> filteredList = appProfileService.installedApps;
 
     // Primero filtrar por búsqueda
     if (_searchQuery.isNotEmpty) {
       filteredList = filteredList.where((app) =>
-      app.appName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+      app.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           app.packageName.toLowerCase().contains(_searchQuery.toLowerCase())
       ).toList();
     }
@@ -271,59 +278,74 @@ class _AppProfilesState extends State<AppProfiles> {
     );
   }
 
-  Widget _buildAppsList() {
-    final appProfileService = context.watch<AppProfileService>();
+  Widget _buildAppsList({Key? key}) {
     final filteredApps = _filteredApps;
+    final appProfileService = context.read<AppProfileService>();
 
     return Expanded(
+      key: key,
       child: RefreshIndicator(
         onRefresh: _refreshData,
         child: filteredApps.isEmpty
             ? _buildEmptyState()
-            : ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          itemCount: filteredApps.length + 1, // +1 para el espacio adicional abajo
-          itemBuilder: (context, index) {
-            if (index == filteredApps.length) {
-              return const SizedBox(height: 80); // Espacio para FloatingActionButton
-            }
+            : AnimationLimiter(
+          child: ListView.builder(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: filteredApps.length + 1, // +1 para el espacio adicional al final
+            itemBuilder: (context, index) {
+              if (index == filteredApps.length) {
+                return const SizedBox(height: 80); // Espacio adicional al final
+              }
 
-            final app = filteredApps[index] as ApplicationWithIcon;
-            final currentProfile = appProfileService.getAppProfile(app.packageName);
+              final app = filteredApps[index];
+              final currentProfile = appProfileService.getAppProfile(app.packageName);
 
-            return AppProfileItem(
-              app: app,
-              currentProfile: currentProfile,
-              onProfileSelected: (profile) {
-                appProfileService.setAppProfile(app.packageName, profile);
-                HapticFeedback.mediumImpact();
+              // Usar AnimationConfiguration para una animación de entrada más suave
+              return AnimationConfiguration.staggeredList(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: AppProfileItem(
+                      app: app,
+                      currentProfile: currentProfile,
+                      onProfileSelected: (profile) {
+                        appProfileService.setAppProfile(app.packageName, profile);
+                        setState(() {}); // Actualiza la UI
 
-                // Mostrar feedback al usuario
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      profile.isEmpty
-                          ? AppLocale.profileReset.getString(context).replaceAll('{app}', app.appName)
-                          : AppLocale.profileSet.getString(context)
-                          .replaceAll('{app}', app.appName)
-                          .replaceAll('{profile}', _getProfileName(profile, context)),
-                    ),
-                    duration: const Duration(seconds: 5),
-                    behavior: SnackBarBehavior.floating,
-                    action: SnackBarAction(
-                      label: AppLocale.undo.getString(context),
-                      onPressed: () {
-                        // Revertir el cambio
-                        appProfileService.setAppProfile(app.packageName, currentProfile);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              profile.isEmpty
+                                  ? AppLocale.profileReset.getString(context).replaceAll('{app}', app.name)
+                                  : AppLocale.profileSet.getString(context)
+                                  .replaceAll('{app}', app.name)
+                                  .replaceAll('{profile}', _getProfileName(profile, context)),
+                            ),
+                            duration: const Duration(seconds: 5),
+                            behavior: SnackBarBehavior.floating,
+                            action: SnackBarAction(
+                              label: AppLocale.undo.getString(context),
+                              onPressed: () {
+                                // Revertir el cambio
+                                appProfileService.setAppProfile(app.packageName, currentProfile);
+                              },
+                            ),
+                          ),
+                        );
                       },
                     ),
                   ),
-                );
-              },
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

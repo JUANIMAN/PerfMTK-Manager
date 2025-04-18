@@ -1,24 +1,39 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:path_provider/path_provider.dart';
 
 class AppProfileService with ChangeNotifier {
-  List<Application> _installedApps = [];
+  final List<AppInfo> _installedApps = [];
   final Map<String, String> _appProfiles = {};
-  String _defaultProfile = 'balanced';
   final String _configFilePath = '/data/adb/modules/perfmtk/app_profiles.conf';
+  String _defaultProfile = 'balanced';
+  bool _initialized = false;
   bool _configExists = false;
-  bool _appsLoaded = false;
 
-  List<Application> get installedApps => _installedApps;
+  List<AppInfo> get installedApps => List.unmodifiable(_installedApps);
   String get defaultProfile => _defaultProfile;
+  bool get isInitialized => _initialized;
   bool get configExists => _configExists;
+
+  Future<void> initialize() async {
+    await loadAppProfiles();
+
+    // Verificar si existe alguna configuración
+    _configExists = await checkConfigExists();
+
+    _initialized = true;
+    notifyListeners();
+  }
 
   // Función para verificar si el archivo de configuración existe
   Future<bool> checkConfigExists() async {
     try {
-      final result = await Process.run('su', ['-c', 'test -f $_configFilePath && echo "exists" || echo "not exists"']);
+      final result = await Process.run('su', [
+        '-c',
+        'test -f $_configFilePath && echo "exists" || echo "not exists"'
+      ]);
       _configExists = result.stdout.toString().trim() == 'exists';
       return _configExists;
     } catch (e) {
@@ -28,32 +43,23 @@ class AppProfileService with ChangeNotifier {
     }
   }
 
-  // Inicializar el servicio y verficar si el archivo de configuración existe
-  Future<void> initialize() async {
-    await checkConfigExists();
-    notifyListeners();
-  }
-
   Future<void> loadInstalledApps({bool forceReload = false}) async {
-    if (_appsLoaded && !forceReload) {
-      return;
-    }
+    if (_installedApps.isNotEmpty && !forceReload) return;
+
+    _installedApps.clear();
 
     try {
-      final apps = await DeviceApps.getInstalledApplications(
-        includeAppIcons: true,
-        includeSystemApps: false,
-        onlyAppsWithLaunchIntent: true,
-      );
+      // Cargar todas las aplicaciones instaladas
+      final apps = await InstalledApps.getInstalledApps(true, true);
+      _installedApps.addAll(apps);
 
-      // Ordenar aplicaciones por nombre
-      apps.sort((a, b) => a.appName.compareTo(b.appName));
+      // Ordenar por nombre de aplicación
+      _installedApps.sort((a, b) => a.name.compareTo(b.name));
 
-      _installedApps = apps;
-      _appsLoaded = true;
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to load installed apps: $e');
+      rethrow;
     }
   }
 

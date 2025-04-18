@@ -11,27 +11,6 @@ subprojects {
 }
 
 subprojects {
-    afterEvaluate { project ->
-        // check only for "com.android.library" to not modify
-        // your "app" subproject. All plugins will have "com.android.library" plugin, and only your app "com.android.application"
-        // Change your application's namespace in main build.gradle and in main android block.
-
-        if (project.plugins.hasPlugin("com.android.application") ||
-                project.plugins.hasPlugin("com.android.library")) {
-            project.android {
-                compileSdkVersion 35
-                buildToolsVersion "35.0.0"
-            }
-        }
-
-        if (project.hasProperty("android")) {
-            project.android {
-                if (namespace == null) {
-                    namespace project.group
-                }
-            }
-        }
-    }
     project.evaluationDependsOn(":app")
 }
 

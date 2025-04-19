@@ -56,7 +56,7 @@ class _AppProfilesState extends State<AppProfiles> with AutomaticKeepAliveClient
       // Cargar perfiles de aplicaciones desde AppProfileService
       final appProfileService = context.read<AppProfileService>();
       await appProfileService.loadInstalledApps(forceReload: refresh);
-      await appProfileService.loadAppProfiles();
+      if (!appProfileService.isInitialized) appProfileService.loadAppProfiles();
 
       setState(() {
         _isLoading = false;
@@ -113,6 +113,8 @@ class _AppProfilesState extends State<AppProfiles> with AutomaticKeepAliveClient
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

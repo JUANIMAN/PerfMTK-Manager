@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 class AppProfileService with ChangeNotifier {
   final List<AppInfo> _installedApps = [];
   final Map<String, String> _appProfiles = {};
-  final String _configFilePath = '/data/adb/modules/perfmtk/app_profiles.conf';
+  final String _configFilePath = '/data/local/app_profiles.conf';
   String _defaultProfile = 'balanced';
   bool _initialized = false;
   bool _configExists = false;
@@ -18,10 +18,10 @@ class AppProfileService with ChangeNotifier {
   bool get configExists => _configExists;
 
   Future<void> initialize() async {
-    await loadAppProfiles();
-
     // Verificar si existe alguna configuración
     _configExists = await checkConfigExists();
+
+    if (_configExists) await loadAppProfiles();
 
     _initialized = true;
     notifyListeners();
@@ -65,14 +65,6 @@ class AppProfileService with ChangeNotifier {
 
   Future<void> loadAppProfiles() async {
     try {
-      // Verificar si el archivo de configuración existe
-      final configExists = await checkConfigExists();
-      if (!configExists) {
-        // Crear archivo de configuración predeterminado, si este no existe
-        await _saveAppProfiles();
-        return;
-      }
-
       // Leer el archivo de configuración usando root
       final catResult = await Process.run('su', ['-c', 'cat $_configFilePath']);
       if (catResult.exitCode != 0) {

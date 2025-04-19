@@ -35,37 +35,39 @@ class _ThermalState extends State<Thermal> {
   Widget build(BuildContext context) {
     return Consumer<SystemService>(
       builder: (context, systemService, child) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocale.titleThermal.getString(context),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 24),
-              CurrentStateCard(
-                state: _currentThermal,
-                icon: _getThermalIcon(_currentThermal),
-                color: _getThermalColor(_currentThermal),
-                titleLocaleKey: 'thermalState',
-                stateLocaleKey: _currentThermal,
-              ),
-              const SizedBox(height: 32),
-              ThermalSwitch(
-                key: ValueKey(_currentThermal),
-                isEnabled: _currentThermal == 'enabled',
-                onChanged: (bool value) async {
-                  await _setThermalLimit(
-                    context,
-                    value ? 'enable' : 'disable',
-                  );
-                },
-              ),
-            ],
+        return Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocale.titleThermal.getString(context),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                CurrentStateCard(
+                  state: _currentThermal,
+                  icon: _getThermalIcon(_currentThermal),
+                  color: _getThermalColor(_currentThermal),
+                  titleLocaleKey: 'thermalState',
+                  stateLocaleKey: _currentThermal,
+                ),
+                const SizedBox(height: 32),
+                ThermalSwitch(
+                  key: ValueKey(_currentThermal),
+                  isEnabled: _currentThermal == 'enabled',
+                  onChanged: (bool value) async {
+                    await _setThermalLimit(
+                      context,
+                      value ? 'enable' : 'disable',
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -15,62 +15,65 @@ class Profiles extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SystemService>(
       builder: (context, systemService, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocale.titleProfiles.getString(context),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 24),
-                  CurrentStateCard(
-                    state: systemService.currentProfile,
-                    icon: _getProfileIcon(systemService.currentProfile),
-                    color: _getProfileColor(systemService.currentProfile),
-                    titleLocaleKey: 'currentProfile',
-                    stateLocaleKey: systemService.currentProfile,
-                    descriptionLocaleKey: _getProfileDsc(systemService.currentProfile),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    AppLocale.subtitleProfiles.getString(context),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  final profile = [
-                    'performance',
-                    'balanced',
-                    'powersave',
-                    'powersave+'
-                  ][index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ProfileButton(
-                      profile: profile,
-                      isSelected: systemService.currentProfile == profile,
-                      icon: _getProfileIcon(profile),
-                      color: _getProfileColor(profile),
-                      onTap: () => _setProfile(context, profile),
+        return Scaffold(
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocale.titleProfiles.getString(context),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
-                  );
-                },
+                    const SizedBox(height: 24),
+                    CurrentStateCard(
+                      state: systemService.currentProfile,
+                      icon: _getProfileIcon(systemService.currentProfile),
+                      color: _getProfileColor(systemService.currentProfile),
+                      titleLocaleKey: 'currentProfile',
+                      stateLocaleKey: systemService.currentProfile,
+                      descriptionLocaleKey:
+                          _getProfileDsc(systemService.currentProfile),
+                    ),
+                    const SizedBox(height: 32),
+                    Text(
+                      AppLocale.subtitleProfiles.getString(context),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  itemCount: 4,
+                  itemBuilder: (context, index) {
+                    final profile = [
+                      'performance',
+                      'balanced',
+                      'powersave',
+                      'powersave+'
+                    ][index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ProfileButton(
+                        profile: profile,
+                        isSelected: systemService.currentProfile == profile,
+                        icon: _getProfileIcon(profile),
+                        color: _getProfileColor(profile),
+                        onTap: () => _setProfile(context, profile),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

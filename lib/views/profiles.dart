@@ -79,14 +79,14 @@ class Profiles extends StatelessWidget {
   Future<void> _setProfile(BuildContext context, String profile) async {
     try {
       final appProfileService = context.read<AppProfileService>();
-      final appProfileExist = await appProfileService.checkConfigExists();
+      final systemService = context.read<SystemService>();
+      final appProfileExist = appProfileService.configExists;
 
       if (appProfileExist) {
-        await appProfileService.loadAppProfiles();
         await appProfileService.setDefaultProfile(profile);
       }
 
-      await context.read<SystemService>().setProfile(profile, appProfileExist);
+      await systemService.setProfile(profile, appProfileExist);
     } catch (e) {
       _showErrorSnackBar(context);
     }

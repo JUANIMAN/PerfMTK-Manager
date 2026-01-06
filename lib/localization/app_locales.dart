@@ -64,6 +64,13 @@ mixin AppLocale {
   static const String undo = 'undo';
   static const String changeProfile = 'changeProfile';
   static const String selectProfile = 'selectProfile';
+  static const String profileApplied = 'profileApplied';
+  static const String applying = 'applying';
+
+  // Theme descriptions
+  static const themeSystemDesc = 'themeSystemDesc';
+  static const themeLightDesc = 'themeLightDesc';
+  static const themeDarkDesc = 'themeDarkDesc';
 
   // Profile descriptions
   static const String defaultProfileDesc = 'defaultProfileDesc';
@@ -138,6 +145,12 @@ mixin AppLocale {
     undo: 'Undo',
     changeProfile: 'Change profile',
     selectProfile: 'Select performance profile',
+    profileApplied: '“{profile}” profile applied globally',
+    applying: 'Applying...',
+
+    themeSystemDesc: 'Use system settings',
+    themeLightDesc: 'Light theme',
+    themeDarkDesc: 'Dark theme',
 
     defaultProfileDesc: 'Use the global default profile setting',
     performanceDesc: 'Maximum CPU and GPU performance. Higher battery usage',
@@ -212,6 +225,12 @@ mixin AppLocale {
     undo: 'Deshacer',
     changeProfile: 'Cambiar perfil',
     selectProfile: 'Seleccionar perfil de rendimiento',
+    profileApplied: 'Perfil "{profile}" aplicado globalmente',
+    applying: 'Aplicando...',
+
+    themeSystemDesc: 'Usar configuración del sistema',
+    themeLightDesc: 'Tema claro',
+    themeDarkDesc: 'Tema oscuro',
 
     defaultProfileDesc: 'Usar la configuración predeterminada global',
     performanceDesc: 'Máximo rendimiento de CPU y GPU. Mayor consumo de batería',

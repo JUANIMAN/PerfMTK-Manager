@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
     <application
-        android:label="PerfMTK Manager"
+        android:label="PerfMTK-Manager"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

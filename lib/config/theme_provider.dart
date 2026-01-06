@@ -1,53 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ThemeProvider with ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
+// Provider para SharedPreferences
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError('SharedPreferences must be overridden in main.dart');
+});
+
+// Provider principal del ThemeMode
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  return ThemeModeNotifier(ref.read(sharedPreferencesProvider));
+});
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   static const String _themeModeKey = 'themeMode';
+  final SharedPreferences _prefs;
 
-  ThemeMode get themeMode => _themeMode;
-
-  ThemeProvider() {
+  ThemeModeNotifier(this._prefs) : super(ThemeMode.system) {
     _loadThemePreference();
   }
 
   Future<void> _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedThemeMode = prefs.getString(_themeModeKey);
+    final savedThemeMode = _prefs.getString(_themeModeKey);
 
-    _themeMode = savedThemeMode != null
+    state = savedThemeMode != null
         ? ThemeMode.values.firstWhere(
-            (e) => e.toString() == savedThemeMode,
-            orElse: () => ThemeMode.light,
-          )
+          (e) => e.toString() == savedThemeMode,
+      orElse: () => ThemeMode.system,
+    )
         : ThemeMode.system;
 
     _updateSystemUIOverlayStyle();
-    notifyListeners();
   }
 
-  void setThemeMode(ThemeMode mode) async {
-    if (_themeMode != mode) {
-      _themeMode = mode;
-      notifyListeners();
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_themeModeKey, _themeMode.toString());
+  Future<void> setThemeMode(ThemeMode mode) async {
+    if (state != mode) {
+      state = mode;
+      await _prefs.setString(_themeModeKey, mode.toString());
+      _updateSystemUIOverlayStyle();
     }
   }
 
   void toggleTheme() {
-    setThemeMode(
-        _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light);
+    final newMode = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    setThemeMode(newMode);
   }
 
   void _updateSystemUIOverlayStyle() {
-    bool isDark = _themeMode == ThemeMode.dark ||
-        (_themeMode == ThemeMode.system &&
-            WidgetsBinding.instance.platformDispatcher.platformBrightness ==
-                Brightness.dark);
+    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final isDark = state == ThemeMode.dark ||
+        (state == ThemeMode.system && brightness == Brightness.dark);
 
     SystemChrome.setSystemUIOverlayStyle(
       isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -55,34 +59,11 @@ class ThemeProvider with ChangeNotifier {
   }
 }
 
-class ThemeSwitcher extends StatelessWidget {
-  const ThemeSwitcher({super.key});
+// Provider derivado para obtener si está en modo oscuro
+final isDarkModeProvider = Provider<bool>((ref) {
+  final themeMode = ref.watch(themeModeProvider);
+  final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return RotationTransition(
-          turns: animation,
-          child: child,
-        );
-      },
-      child: IconButton(
-        key: ValueKey<ThemeMode>(
-            Theme.of(context).brightness == Brightness.light
-                ? ThemeMode.light
-                : ThemeMode.dark),
-        icon: Icon(
-          Theme.of(context).brightness == Brightness.light
-              ? Icons.dark_mode
-              : Icons.light_mode,
-        ),
-        onPressed: () {
-          final themeProvider = context.read<ThemeProvider>();
-          themeProvider.toggleTheme();
-        },
-      ),
-    );
-  }
-}
+  return themeMode == ThemeMode.dark ||
+      (themeMode == ThemeMode.system && brightness == Brightness.dark);
+});

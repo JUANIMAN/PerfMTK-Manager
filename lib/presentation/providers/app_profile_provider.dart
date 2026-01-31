@@ -23,31 +23,36 @@ class AppProfileState {
   final List<AppProfile> appProfiles;
   final ProfileType defaultProfile;
   final bool configExists;
+  final bool includeSystemApps;
 
   const AppProfileState({
     required this.appProfiles,
     required this.defaultProfile,
     required this.configExists,
+    this.includeSystemApps = false,
   });
 
   AppProfileState copyWith({
     List<AppProfile>? appProfiles,
     ProfileType? defaultProfile,
     bool? configExists,
+    bool? includeSystemApps,
   }) {
     return AppProfileState(
       appProfiles: appProfiles ?? this.appProfiles,
       defaultProfile: defaultProfile ?? this.defaultProfile,
       configExists: configExists ?? this.configExists,
+      includeSystemApps: includeSystemApps ?? this.includeSystemApps,
     );
   }
-  
+
   // Estado inicial
   factory AppProfileState.initial() {
     return const AppProfileState(
       appProfiles: [],
       defaultProfile: ProfileType.balanced,
       configExists: false,
+      includeSystemApps: false,
     );
   }
 }
@@ -69,6 +74,8 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
         state = const AsyncValue.loading();
       }
 
+      final currentIncludeSystemApps = state.value?.includeSystemApps ?? false;
+
       final configExists = await _repository.configExists();
 
       // Actualizar visibilidad basado en si existe config
@@ -84,7 +91,10 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
           ? await _repository.loadAppProfiles()
           : <String, ProfileType>{};
 
-      final installedApps = await InstalledApps.getInstalledApps(withIcon: true);
+      final installedApps = await InstalledApps.getInstalledApps(
+        withIcon: true,
+        excludeSystemApps: !currentIncludeSystemApps,
+      );
 
       final appProfiles = installedApps.map((app) {
         return AppProfile(
@@ -97,6 +107,7 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
         appProfiles: appProfiles,
         defaultProfile: defaultProfile,
         configExists: configExists,
+        includeSystemApps: currentIncludeSystemApps,
       ));
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
@@ -169,6 +180,41 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
       await initialize();
+    }
+  }
+
+  /// Toggle para incluir/excluir apps del sistema
+  Future<void> toggleSystemApps(bool include) async {
+    final currentState = state.value;
+    if (currentState == null) return;
+
+    try {
+      state = AsyncValue.data(currentState.copyWith(
+        includeSystemApps: include,
+      ));
+
+      state = const AsyncValue.loading();
+
+      final profileMap = await _repository.loadAppProfiles();
+
+      final installedApps = await InstalledApps.getInstalledApps(
+        withIcon: true,
+        excludeSystemApps: !include,
+      );
+
+      final appProfiles = installedApps.map((app) {
+        return AppProfile(
+          appInfo: app,
+          assignedProfile: profileMap[app.packageName],
+        );
+      }).toList()..sort((a, b) => a.appInfo.name.compareTo(b.appInfo.name));
+
+      state = AsyncValue.data(currentState.copyWith(
+        appProfiles: appProfiles,
+        includeSystemApps: include,
+      ));
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
     }
   }
 

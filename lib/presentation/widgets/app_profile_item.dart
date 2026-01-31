@@ -10,12 +10,14 @@ import 'package:manager/config/app_constants.dart';
 class AppProfileItem extends StatelessWidget {
   final AppInfo app;
   final ProfileType? currentProfile;
+  final bool isSystemApp;
   final Function(ProfileType?) onProfileSelected;
 
   const AppProfileItem({
     super.key,
     required this.app,
     required this.currentProfile,
+    this.isSystemApp = false,
     required this.onProfileSelected,
   });
 
@@ -48,7 +50,7 @@ class AppProfileItem extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    _buildAppIcon(),
+                    _buildAppIcon(context),
                     const SizedBox(width: AppConstants.spacing16),
                     Expanded(
                       child: Column(
@@ -106,26 +108,51 @@ class AppProfileItem extends StatelessWidget {
     );
   }
 
-  Widget _buildAppIcon() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.light,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  Widget _buildAppIcon(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.light,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
-        child: Image.memory(
-          app.icon!,
-          width: AppConstants.iconSizeXXLarge,
-          height: AppConstants.iconSizeXXLarge,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+            child: Image.memory(
+              app.icon!,
+              width: AppConstants.iconSizeXXLarge,
+              height: AppConstants.iconSizeXXLarge,
+            ),
+          ),
         ),
-      ),
+        if (isSystemApp)
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.security,
+                size: 12,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -213,6 +240,7 @@ class AppProfileItem extends StatelessWidget {
       builder: (context) => ProfileSelectionSheet(
         app: app,
         currentProfile: currentProfile,
+        isSystemApp: isSystemApp,
         onProfileSelected: (profile) {
           Navigator.of(context).pop();
           onProfileSelected(profile);

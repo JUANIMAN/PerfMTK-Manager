@@ -10,12 +10,14 @@ import 'package:manager/presentation/widgets/custom_selection_tile.dart';
 class ProfileSelectionSheet extends StatelessWidget {
   final AppInfo app;
   final ProfileType? currentProfile;
+  final bool isSystemApp;
   final Function(ProfileType?) onProfileSelected;
 
   const ProfileSelectionSheet({
     super.key,
     required this.app,
     required this.currentProfile,
+    this.isSystemApp = false,
     required this.onProfileSelected,
   });
 
@@ -51,14 +53,39 @@ class ProfileSelectionSheet extends StatelessWidget {
               padding: AppConstants.paddingHorizontal,
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
-                    child: Image.memory(
-                      app.icon!,
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                    ),
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                        child: Image.memory(
+                          app.icon!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      if (isSystemApp)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.security,
+                              size: 14,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(width: AppConstants.spacing16),
                   Expanded(

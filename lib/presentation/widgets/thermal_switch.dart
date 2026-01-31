@@ -76,6 +76,7 @@ class ThermalSwitch extends StatelessWidget {
                 },
                 activeThumbColor: Colors.green,
                 inactiveThumbColor: Colors.red,
+                inactiveTrackColor: Colors.red.medium,
               ),
             ],
           ),

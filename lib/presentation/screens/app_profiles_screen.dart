@@ -116,6 +116,9 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
   }
 
   Widget _buildSearchAndFilterBar() {
+    final appProfileState = ref.watch(appProfileProvider);
+    final includeSystemApps = appProfileState.value?.includeSystemApps ?? false;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppConstants.spacing16,
@@ -147,6 +150,65 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
             onChanged: (value) => setState(() => _searchQuery = value),
           ),
           const SizedBox(height: AppConstants.spacing16),
+
+          // Toggle para apps del sistema
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacing16,
+              vertical: AppConstants.spacing12,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.disabled,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.security,
+                  size: AppConstants.iconSizeSmall,
+                  color: includeSystemApps
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: AppConstants.spacing12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocale.includeSystemApps.getString(context),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        AppLocale.includeSystemAppsDesc.getString(context),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: includeSystemApps,
+                  onChanged: (value) {
+                    HapticFeedback.lightImpact();
+                    ref.read(appProfileProvider.notifier).toggleSystemApps(value);
+                  },
+                  activeTrackColor: Theme.of(context).colorScheme.primary,
+                  inactiveThumbColor: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppConstants.spacing16),
+
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -265,6 +327,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
                     key: ValueKey(appProfile.appInfo.packageName),
                     app: appProfile.appInfo,
                     currentProfile: appProfile.assignedProfile,
+                    isSystemApp: appProfile.appInfo.isSystemApp,
                     onProfileSelected: (profile) {
                       ref.read(appProfileProvider.notifier).setAppProfile(
                         appProfile.appInfo.packageName,

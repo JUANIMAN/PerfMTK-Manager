@@ -66,6 +66,8 @@ mixin AppLocale {
   static const String selectProfile = 'selectProfile';
   static const String profileApplied = 'profileApplied';
   static const String applying = 'applying';
+  static const String includeSystemApps = 'includeSystemApps';
+  static const String includeSystemAppsDesc = 'includeSystemAppsDesc';
 
   // Theme descriptions
   static const themeSystemDesc = 'themeSystemDesc';
@@ -147,6 +149,8 @@ mixin AppLocale {
     selectProfile: 'Select performance profile',
     profileApplied: '“{profile}” profile applied globally',
     applying: 'Applying...',
+    includeSystemApps: 'Include system apps',
+    includeSystemAppsDesc: 'Show system applications',
 
     themeSystemDesc: 'Use system settings',
     themeLightDesc: 'Light theme',
@@ -227,6 +231,8 @@ mixin AppLocale {
     selectProfile: 'Seleccionar perfil de rendimiento',
     profileApplied: 'Perfil "{profile}" aplicado globalmente',
     applying: 'Aplicando...',
+    includeSystemApps: 'Incluir aplicaciones del sistema',
+    includeSystemAppsDesc: 'Mostrar aplicaciones críticas del sistema',
 
     themeSystemDesc: 'Usar configuración del sistema',
     themeLightDesc: 'Tema claro',

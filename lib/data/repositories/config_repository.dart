@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:manager/core/root_shell_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:manager/data/models/profile.dart';
 
@@ -14,15 +15,15 @@ abstract class ConfigRepository {
 /// Implementación del repositorio
 class ConfigRepositoryImpl implements ConfigRepository {
   final String _configFilePath = '/data/local/app_profiles.conf';
+  final _shellManager = RootShellManager();
 
   @override
   Future<bool> configExists() async {
     try {
-      final result = await Process.run('su', [
-        '-c',
-        'test -f $_configFilePath && echo "exists" || echo "not exists"'
-      ]);
-      return result.stdout.toString().trim() == 'exists';
+      final result = await _shellManager.executeCommand(
+          'test -f $_configFilePath && echo "exists" || echo "not exists"'
+      );
+      return result.trim() == 'exists';
     } catch (e) {
       return false;
     }
@@ -31,13 +32,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
   @override
   Future<Map<String, ProfileType>> loadAppProfiles() async {
     try {
-      final catResult = await Process.run('su', ['-c', 'cat $_configFilePath']);
+      final content = await _shellManager.executeCommand('cat $_configFilePath');
 
-      if (catResult.exitCode != 0) {
-        throw ConfigReadException('Failed to read config: ${catResult.stderr}');
-      }
-
-      final lines = catResult.stdout.toString().split('\n');
+      final lines = content.split('\n');
       final profiles = <String, ProfileType>{};
 
       for (final line in lines) {
@@ -63,13 +60,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
   @override
   Future<ProfileType> getDefaultProfile() async {
     try {
-      final catResult = await Process.run('su', ['-c', 'cat $_configFilePath']);
+      final content = await _shellManager.executeCommand('cat $_configFilePath');
 
-      if (catResult.exitCode != 0) {
-        return ProfileType.balanced;
-      }
-
-      final lines = catResult.stdout.toString().split('\n');
+      final lines = content.split('\n');
 
       for (final line in lines) {
         if (line.startsWith('DEFAULT_PROFILE')) {
@@ -109,14 +102,9 @@ class ConfigRepositoryImpl implements ConfigRepository {
 
       await tempFile.writeAsString(buffer.toString());
 
-      final result = await Process.run('su', [
-        '-c',
-        'cp ${tempFile.path} $_configFilePath && chmod 644 $_configFilePath'
-      ]);
-
-      if (result.exitCode != 0) {
-        throw ConfigWriteException('Failed to save config: ${result.stderr}');
-      }
+      await _shellManager.executeCommand(
+        'cp ${tempFile.path} $_configFilePath && chmod 644 $_configFilePath && sync'
+      );
 
       await tempFile.delete();
     } catch (e) {
@@ -128,11 +116,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
   @override
   Future<void> deleteConfig() async {
     try {
-      final result = await Process.run('su', ['-c', 'rm -f $_configFilePath']);
-
-      if (result.exitCode != 0) {
-        throw ConfigWriteException('Failed to delete config: ${result.stderr}');
-      }
+      await _shellManager.executeCommand('rm -f $_configFilePath && sync');
     } catch (e) {
       if (e is ConfigWriteException) rethrow;
       throw ConfigWriteException('Unexpected error deleting config: $e');

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:manager/core/root_shell_manager.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
 
@@ -13,6 +14,8 @@ abstract class SystemRepository {
 
 /// Implementación del repositorio
 class SystemRepositoryImpl implements SystemRepository {
+  final _shellManager = RootShellManager();
+
   @override
   Future<ProfileType> getCurrentProfile() async {
     try {
@@ -50,15 +53,10 @@ class SystemRepositoryImpl implements SystemRepository {
   @override
   Future<void> setProfile(ProfileType profile) async {
     try {
-      final result = await Process.run('su', [
-        '-c',
-        'perfmtk',
-        profile.value,
-      ]);
-
-      if (result.exitCode != 0) {
-        throw SystemCommandException('Failed to set profile: ${result.stderr}');
-      }
+      await _shellManager.executeCommand(
+          'perfmtk ${profile.value}',
+          timeout: const Duration(seconds: 20)
+      );
 
       // Verificar que el perfil se aplicó correctamente
       await Future.delayed(const Duration(milliseconds: 500));
@@ -76,18 +74,9 @@ class SystemRepositoryImpl implements SystemRepository {
   @override
   Future<void> setThermal(ThermalState thermalState) async {
     try {
-      // Los comandos usan 'enable'/'disable', no 'enabled'/'disabled'
       final command = thermalState == ThermalState.enabled ? 'enable' : 'disable';
 
-      final result = await Process.run('su', [
-        '-c',
-        'thermal_limit',
-        command,
-      ]);
-
-      if (result.exitCode != 0) {
-        throw SystemCommandException('Failed to set thermal state: ${result.stderr}');
-      }
+      await _shellManager.executeCommand('thermal_limit $command');
 
       // Verificar que se aplicó correctamente
       await Future.delayed(const Duration(milliseconds: 500));
@@ -105,8 +94,8 @@ class SystemRepositoryImpl implements SystemRepository {
   @override
   Future<bool> checkRootAccess() async {
     try {
-      final result = await Process.run('su', ['-c', 'echo "test"']);
-      return result.exitCode == 0;
+      await _shellManager.initialize();
+      return true;
     } catch (e) {
       return false;
     }

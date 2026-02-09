@@ -63,37 +63,25 @@ class SystemStateNotifier extends StateNotifier<AsyncValue<SystemState>> {
     try {
       _ref.read(isChangingProfileProvider.notifier).state = true;
 
+      // Aplicar el perfil
+      await _repository.setProfile(profile);
+
       // Verificar si existe configuración de app profiles
       final appProfileState = _ref.read(appProfileProvider).value;
       final hasAppProfiles = appProfileState?.configExists ?? false;
 
-      // Aplicar el perfil
-      await _repository.setProfile(profile);
-
+      // Si hay app profiles, actualizar el perfil por defecto
       if (hasAppProfiles) {
-        // Actualizar el perfil por defecto en app profiles también
         await _ref.read(appProfileProvider.notifier).setDefaultProfile(profile);
       }
 
-      // Obtener el nuevo estado
-      final profileResult = await _repository.getCurrentProfile();
-      final thermalResult = await _repository.getCurrentThermal();
-
-      final newSystemState = SystemState(
-        currentProfile: profileResult,
-        thermalState: thermalResult,
-      );
-
-      // Actualizar el estado manteniendo AsyncValue.data
-      state = AsyncValue.data(newSystemState);
+      // Recargar estado del sistema
+      await initialize();
 
     } catch (e, stackTrace) {
-      // Revertir en caso de error
       state = AsyncValue.error(e, stackTrace);
-      // Intentar recargar el estado correcto
       await initialize();
     } finally {
-      // Marcar que terminamos de cambiar el perfil
       _ref.read(isChangingProfileProvider.notifier).state = false;
     }
   }
@@ -104,20 +92,12 @@ class SystemStateNotifier extends StateNotifier<AsyncValue<SystemState>> {
     if (currentState == null) return;
 
     try {
-      // Marcar que estamos cambiando
       _ref.read(isChangingThermalProvider.notifier).state = true;
 
       await _repository.setThermal(thermalState);
 
-      final profileResult = await _repository.getCurrentProfile();
-      final thermalResult = await _repository.getCurrentThermal();
-
-      final newSystemState = SystemState(
-        currentProfile: profileResult,
-        thermalState: thermalResult,
-      );
-
-      state = AsyncValue.data(newSystemState);
+      // Recargar estado
+      await initialize();
 
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);

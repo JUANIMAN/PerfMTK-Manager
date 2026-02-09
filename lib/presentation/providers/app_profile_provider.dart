@@ -120,25 +120,14 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
     if (currentState == null) return;
 
     try {
-      // Actualizar UI
-      final updatedAppProfiles = currentState.appProfiles.map((app) {
-        if (app.appInfo.packageName == packageName) {
-          return profile == null
-              ? app.copyWith(clearProfile: true)
-              : app.copyWith(assignedProfile: profile);
-        }
-        return app;
-      }).toList();
-
-      state = AsyncValue.data(currentState.copyWith(
-        appProfiles: updatedAppProfiles,
-        configExists: true,
-      ));
-
       // Construir el mapa actualizado
       final updatedProfiles = <String, ProfileType>{};
-      for (final app in updatedAppProfiles) {
-        if (app.assignedProfile != null) {
+      for (final app in currentState.appProfiles) {
+        if (app.appInfo.packageName == packageName) {
+          if (profile != null) {
+            updatedProfiles[packageName] = profile;
+          }
+        } else if (app.assignedProfile != null) {
           updatedProfiles[app.appInfo.packageName] = app.assignedProfile!;
         }
       }
@@ -146,10 +135,13 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
       // Guardar en disco
       await _repository.saveAppProfiles(updatedProfiles, currentState.defaultProfile);
 
+      // Actualizar visibilidad
       await _visibilityNotifier.show();
 
+      // Recargar desde archivo
+      await initialize(isRefresh: true);
+
     } catch (e, stackTrace) {
-      // Revertir en caso de error
       state = AsyncValue.error(e, stackTrace);
       // Recargar el estado correcto
       await initialize();
@@ -162,12 +154,6 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
     if (currentState == null) return;
 
     try {
-      // Optimistic update
-      state = AsyncValue.data(currentState.copyWith(
-        defaultProfile: profile,
-        configExists: true,
-      ));
-
       final profileMap = <String, ProfileType>{};
       for (final app in currentState.appProfiles) {
         if (app.assignedProfile != null) {
@@ -175,7 +161,11 @@ class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
         }
       }
 
+      // Guardar
       await _repository.saveAppProfiles(profileMap, profile);
+
+      // Recargar desde archivo
+      await initialize(isRefresh: true);
 
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);

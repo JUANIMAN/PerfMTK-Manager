@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
@@ -9,14 +8,6 @@ import 'package:manager/presentation/providers/app_profile_visibility_provider.d
 // Provider del repositorio
 final configRepositoryProvider = Provider<ConfigRepository>((ref) {
   return ConfigRepositoryImpl();
-});
-
-// Provider del estado de la configuración
-final appProfileProvider = StateNotifierProvider<AppProfileNotifier, AsyncValue<AppProfileState>>((ref) {
-  return AppProfileNotifier(
-    ref.read(configRepositoryProvider),
-    ref.read(appProfileVisibilityProvider.notifier),
-  );
 });
 
 class AppProfileState {
@@ -45,184 +36,108 @@ class AppProfileState {
       includeSystemApps: includeSystemApps ?? this.includeSystemApps,
     );
   }
-
-  // Estado inicial
-  factory AppProfileState.initial() {
-    return const AppProfileState(
-      appProfiles: [],
-      defaultProfile: ProfileType.balanced,
-      configExists: false,
-      includeSystemApps: false,
-    );
-  }
 }
 
-class AppProfileNotifier extends StateNotifier<AsyncValue<AppProfileState>> {
-  final ConfigRepository _repository;
-  final AppProfileVisibilityNotifier _visibilityNotifier;
+/// Provider del estado de la configuración de app profiles.
+final appProfileProvider =
+AsyncNotifierProvider<AppProfileNotifier, AppProfileState>(
+  AppProfileNotifier.new,
+);
 
-  AppProfileNotifier(this._repository, this._visibilityNotifier)
-      : super(const AsyncValue.loading()) {
-    initialize();
-  }
+class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
+  ConfigRepository get _repository => ref.read(configRepositoryProvider);
 
-  /// Inicializa el estado cargando configuración y apps instaladas
-  Future<void> initialize({bool isRefresh = false}) async {
-    try {
-      // Si es un refresh, no cambiar el estado a loading
-      if (!isRefresh) {
-        state = const AsyncValue.loading();
-      }
+  @override
+  Future<AppProfileState> build() => _load(includeSystemApps: false);
 
-      final currentIncludeSystemApps = state.value?.includeSystemApps ?? false;
+  Future<AppProfileState> _load({required bool includeSystemApps}) async {
+    final config = await _repository.loadConfig();
+    final configExists = config.existsOnDisk;
 
-      final configExists = await _repository.configExists();
-
-      // Actualizar visibilidad basado en si existe config
-      if (configExists) {
-        await _visibilityNotifier.show();
-      }
-
-      final defaultProfile = configExists
-          ? await _repository.getDefaultProfile()
-          : ProfileType.balanced;
-
-      final profileMap = configExists
-          ? await _repository.loadAppProfiles()
-          : <String, ProfileType>{};
-
-      final installedApps = await InstalledApps.getInstalledApps(
-        withIcon: true,
-        excludeSystemApps: !currentIncludeSystemApps,
-      );
-
-      final appProfiles = installedApps.map((app) {
-        return AppProfile(
-          appInfo: app,
-          assignedProfile: profileMap[app.packageName],
-        );
-      }).toList()..sort((a, b) => a.appInfo.name.compareTo(b.appInfo.name));
-
-      state = AsyncValue.data(AppProfileState(
-        appProfiles: appProfiles,
-        defaultProfile: defaultProfile,
-        configExists: configExists,
-        includeSystemApps: currentIncludeSystemApps,
-      ));
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
+    if (configExists) {
+      // Notificar al provider de visibilidad
+      ref.read(appProfileVisibilityProvider.notifier).show();
     }
+
+    final installedApps = await InstalledApps.getInstalledApps(
+      withIcon: true,
+      excludeSystemApps: !includeSystemApps,
+    );
+
+    final appProfiles = installedApps.map((app) {
+      return AppProfile(
+        appInfo: app,
+        assignedProfile: config.appProfiles[app.packageName],
+      );
+    }).toList()
+      ..sort((a, b) => a.appInfo.name.compareTo(b.appInfo.name));
+
+    return AppProfileState(
+      appProfiles: appProfiles,
+      defaultProfile: config.defaultProfile,
+      configExists: configExists,
+      includeSystemApps: includeSystemApps,
+    );
   }
 
   /// Actualiza el perfil de una app específica
   Future<void> setAppProfile(String packageName, ProfileType? profile) async {
-    final currentState = state.value;
-    if (currentState == null) return;
+    final current = state.requireValue;
 
-    try {
-      // Construir el mapa actualizado
-      final updatedProfiles = <String, ProfileType>{};
-      for (final app in currentState.appProfiles) {
-        if (app.appInfo.packageName == packageName) {
-          if (profile != null) {
-            updatedProfiles[packageName] = profile;
-          }
-        } else if (app.assignedProfile != null) {
-          updatedProfiles[app.appInfo.packageName] = app.assignedProfile!;
-        }
-      }
+    // Construir el mapa actualizado en memoria antes de tocar disco
+    final updatedProfiles = <String, ProfileType>{
+      for (final app in current.appProfiles)
+        if (app.appInfo.packageName != packageName && app.assignedProfile != null)
+          app.appInfo.packageName: app.assignedProfile!,
+      if (profile != null) packageName: profile,
+    };
 
-      // Guardar en disco
-      await _repository.saveAppProfiles(updatedProfiles, currentState.defaultProfile);
+    await _repository.saveAppProfiles(updatedProfiles, current.defaultProfile);
+    await ref.read(appProfileVisibilityProvider.notifier).show();
 
-      // Actualizar visibilidad
-      await _visibilityNotifier.show();
-
-      // Recargar desde archivo
-      await initialize(isRefresh: true);
-
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-      // Recargar el estado correcto
-      await initialize();
-    }
+    // Recargar desde disco para reflejar el estado real
+    state = AsyncData(await _load(includeSystemApps: current.includeSystemApps));
   }
 
   /// Actualiza el perfil por defecto
   Future<void> setDefaultProfile(ProfileType profile) async {
-    final currentState = state.value;
-    if (currentState == null) return;
+    final current = state.requireValue;
 
-    try {
-      final profileMap = <String, ProfileType>{};
-      for (final app in currentState.appProfiles) {
-        if (app.assignedProfile != null) {
-          profileMap[app.appInfo.packageName] = app.assignedProfile!;
-        }
-      }
+    final profileMap = <String, ProfileType>{
+      for (final app in current.appProfiles)
+        if (app.assignedProfile != null)
+          app.appInfo.packageName: app.assignedProfile!,
+    };
 
-      // Guardar
-      await _repository.saveAppProfiles(profileMap, profile);
-
-      // Recargar desde archivo
-      await initialize(isRefresh: true);
-
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-      await initialize();
-    }
+    await _repository.saveAppProfiles(profileMap, profile);
+    state = AsyncData(await _load(includeSystemApps: current.includeSystemApps));
   }
 
-  /// Toggle para incluir/excluir apps del sistema
+  /// Cambia si se muestran apps del sistema y recarga la lista
   Future<void> toggleSystemApps(bool include) async {
-    final currentState = state.value;
-    if (currentState == null) return;
-
-    try {
-      state = AsyncValue.data(currentState.copyWith(
-        includeSystemApps: include,
-      ));
-
-      state = const AsyncValue.loading();
-
-      final profileMap = await _repository.loadAppProfiles();
-
-      final installedApps = await InstalledApps.getInstalledApps(
-        withIcon: true,
-        excludeSystemApps: !include,
-      );
-
-      final appProfiles = installedApps.map((app) {
-        return AppProfile(
-          appInfo: app,
-          assignedProfile: profileMap[app.packageName],
-        );
-      }).toList()..sort((a, b) => a.appInfo.name.compareTo(b.appInfo.name));
-
-      state = AsyncValue.data(currentState.copyWith(
-        appProfiles: appProfiles,
-        includeSystemApps: include,
-      ));
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+          () => _load(includeSystemApps: include),
+    );
   }
 
-  /// Recarga las apps instaladas
+  /// Recarga la lista de apps instaladas
   Future<void> reloadInstalledApps() async {
-    await initialize(isRefresh: true);
+    final include = state.value?.includeSystemApps ?? false;
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => _load(includeSystemApps: include));
   }
 
-  /// Eliminar la configuración y ocultar la pestaña
+  /// Elimina la configuración y oculta la pestaña App Profiles
   Future<void> deleteConfiguration() async {
-    try {
-      await _repository.deleteConfig();
-      await _visibilityNotifier.hide();
-      await initialize();
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
+    await _repository.deleteConfig();
+    await ref.read(appProfileVisibilityProvider.notifier).hide();
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => _load(includeSystemApps: false));
   }
+
+  /// Expone si existe configuración en disco
+  bool get hasConfig => state.value?.configExists ?? false;
 }
 
 enum AppFilterType {

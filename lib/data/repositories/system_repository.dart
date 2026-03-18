@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:manager/core/root_shell_manager.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
@@ -19,16 +18,13 @@ class SystemRepositoryImpl implements SystemRepository {
   @override
   Future<ProfileType> getCurrentProfile() async {
     try {
-      final result = await Process.run('getprop', ['sys.perfmtk.current_profile']);
-
-      if (result.exitCode != 0) {
-        throw SystemCommandException('Failed to get profile: ${result.stderr}');
-      }
-
-      final profileStr = result.stdout.toString().trim();
-      return ProfileType.fromString(profileStr);
+      final result = await _shellManager.executeCommand(
+        'getprop sys.perfmtk.current_profile',
+      );
+      return ProfileType.fromString(result.trim());
+    } on RootShellException catch (e) {
+      throw SystemCommandException('Failed to get profile: $e');
     } catch (e) {
-      if (e is SystemCommandException) rethrow;
       throw SystemCommandException('Unexpected error getting profile: $e');
     }
   }
@@ -36,16 +32,13 @@ class SystemRepositoryImpl implements SystemRepository {
   @override
   Future<ThermalState> getCurrentThermal() async {
     try {
-      final result = await Process.run('getprop', ['sys.perfmtk.thermal_state']);
-
-      if (result.exitCode != 0) {
-        throw SystemCommandException('Failed to get thermal state: ${result.stderr}');
-      }
-
-      final thermalStr = result.stdout.toString().trim();
-      return ThermalState.fromString(thermalStr);
+      final result = await _shellManager.executeCommand(
+        'getprop sys.perfmtk.thermal_state',
+      );
+      return ThermalState.fromString(result.trim());
+    } on RootShellException catch (e) {
+      throw SystemCommandException('Failed to get thermal state: $e');
     } catch (e) {
-      if (e is SystemCommandException) rethrow;
       throw SystemCommandException('Unexpected error getting thermal state: $e');
     }
   }
@@ -54,19 +47,19 @@ class SystemRepositoryImpl implements SystemRepository {
   Future<void> setProfile(ProfileType profile) async {
     try {
       await _shellManager.executeCommand(
-          'perfmtk ${profile.value}',
-          timeout: const Duration(seconds: 20)
+        'perfmtk ${profile.value}',
+        timeout: const Duration(seconds: 20),
       );
 
-      // Verificar que el perfil se aplicó correctamente
       await Future.delayed(const Duration(milliseconds: 500));
-      final currentProfile = await getCurrentProfile();
+      final current = await getCurrentProfile();
 
-      if (currentProfile != profile) {
+      if (current != profile) {
         throw SystemCommandException('Profile was not applied correctly');
       }
+    } on SystemCommandException {
+      rethrow;
     } catch (e) {
-      if (e is SystemCommandException) rethrow;
       throw SystemCommandException('Unexpected error setting profile: $e');
     }
   }
@@ -74,19 +67,19 @@ class SystemRepositoryImpl implements SystemRepository {
   @override
   Future<void> setThermal(ThermalState thermalState) async {
     try {
-      final command = thermalState == ThermalState.enabled ? 'enable' : 'disable';
-
+      final command =
+      thermalState == ThermalState.enabled ? 'enable' : 'disable';
       await _shellManager.executeCommand('thermal_limit $command');
 
-      // Verificar que se aplicó correctamente
       await Future.delayed(const Duration(milliseconds: 500));
-      final currentThermal = await getCurrentThermal();
+      final current = await getCurrentThermal();
 
-      if (currentThermal != thermalState) {
+      if (current != thermalState) {
         throw SystemCommandException('Thermal state was not applied correctly');
       }
+    } on SystemCommandException {
+      rethrow;
     } catch (e) {
-      if (e is SystemCommandException) rethrow;
       throw SystemCommandException('Unexpected error setting thermal state: $e');
     }
   }
@@ -96,16 +89,16 @@ class SystemRepositoryImpl implements SystemRepository {
     try {
       await _shellManager.initialize();
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 }
 
-// Excepción personalizada
+/// Excepción personalizada para errores de comandos del sistema.
 class SystemCommandException implements Exception {
   final String message;
-  SystemCommandException(this.message);
+  const SystemCommandException(this.message);
 
   @override
   String toString() => 'SystemCommandException: $message';

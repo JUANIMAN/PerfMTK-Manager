@@ -3,91 +3,105 @@ import 'package:manager/core/root_shell_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:manager/data/models/profile.dart';
 
-/// Interface del repositorio de la configuración
+/// Interface del repositorio de configuración
 abstract class ConfigRepository {
   Future<bool> configExists();
-  Future<Map<String, ProfileType>> loadAppProfiles();
-  Future<ProfileType> getDefaultProfile();
-  Future<void> saveAppProfiles(Map<String, ProfileType> profiles, ProfileType defaultProfile);
+  Future<ConfigData> loadConfig();
+  Future<void> saveAppProfiles(
+      Map<String, ProfileType> profiles,
+      ProfileType defaultProfile,
+      );
   Future<void> deleteConfig();
 }
 
-/// Implementación del repositorio
+class ConfigData {
+  final Map<String, ProfileType> appProfiles;
+  final ProfileType defaultProfile;
+  final bool existsOnDisk;
+
+  const ConfigData({
+    required this.appProfiles,
+    required this.defaultProfile,
+    this.existsOnDisk = false,
+  });
+
+  factory ConfigData.empty() {
+    return const ConfigData(
+      appProfiles: {},
+      defaultProfile: ProfileType.balanced,
+      existsOnDisk: false,
+    );
+  }
+}
+
 class ConfigRepositoryImpl implements ConfigRepository {
-  final String _configFilePath = '/data/local/app_profiles.conf';
+  static const String _configFilePath = '/data/local/app_profiles.conf';
   final _shellManager = RootShellManager();
 
   @override
   Future<bool> configExists() async {
     try {
       final result = await _shellManager.executeCommand(
-          'test -f $_configFilePath && echo "exists" || echo "not exists"'
+        'test -f $_configFilePath && echo "exists" || echo "not_exists"',
       );
       return result.trim() == 'exists';
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 
+  /// Lee y parsea el archivo de configuración
   @override
-  Future<Map<String, ProfileType>> loadAppProfiles() async {
+  Future<ConfigData> loadConfig() async {
     try {
-      final content = await _shellManager.executeCommand('cat $_configFilePath');
+      final exists = await configExists();
+      if (!exists) return ConfigData.empty();
 
-      final lines = content.split('\n');
-      final profiles = <String, ProfileType>{};
-
-      for (final line in lines) {
-        if (line.trim().isEmpty || line.startsWith('#') || line.startsWith('DEFAULT_PROFILE')) {
-          continue;
-        }
-
-        final parts = line.split('=');
-        if (parts.length == 2) {
-          final packageName = parts[0].trim();
-          final profileStr = parts[1].trim();
-          profiles[packageName] = ProfileType.fromString(profileStr);
-        }
-      }
-
-      return profiles;
-    } catch (e) {
-      if (e is ConfigReadException) rethrow;
-      throw ConfigReadException('Unexpected error reading config: $e');
+      final content =
+      await _shellManager.executeCommand('cat $_configFilePath');
+      return _parseConfig(content);
+    } on RootShellException catch (e) {
+      throw ConfigReadException('Shell error reading config: $e');
     }
   }
 
-  @override
-  Future<ProfileType> getDefaultProfile() async {
-    try {
-      final content = await _shellManager.executeCommand('cat $_configFilePath');
+  ConfigData _parseConfig(String content) {
+    final appProfiles = <String, ProfileType>{};
+    ProfileType defaultProfile = ProfileType.balanced;
 
-      final lines = content.split('\n');
+    for (final rawLine in content.split('\n')) {
+      final line = rawLine.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
 
-      for (final line in lines) {
-        if (line.startsWith('DEFAULT_PROFILE')) {
-          final parts = line.split('=');
-          if (parts.length == 2) {
-            return ProfileType.fromString(parts[1].trim());
-          }
-        }
+      final parts = line.split('=');
+      if (parts.length != 2) continue;
+
+      final key = parts[0].trim();
+      final value = parts[1].trim();
+
+      if (key == 'DEFAULT_PROFILE') {
+        defaultProfile = ProfileType.fromString(value);
+      } else {
+        appProfiles[key] = ProfileType.fromString(value);
       }
-
-      return ProfileType.balanced;
-    } catch (e) {
-      return ProfileType.balanced;
     }
+
+    return ConfigData(
+      appProfiles: appProfiles,
+      defaultProfile: defaultProfile,
+      existsOnDisk: true,
+    );
   }
 
   @override
   Future<void> saveAppProfiles(
       Map<String, ProfileType> profiles,
-      ProfileType defaultProfile
+      ProfileType defaultProfile,
       ) async {
-    try {
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/app_profiles.conf');
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File('${tempDir.path}/app_profiles.conf');
 
+    try {
       final buffer = StringBuffer()
         ..writeln('# Configuration file for PerfMTK Daemon')
         ..writeln('# Format: package_name=energy_profile')
@@ -100,34 +114,35 @@ class ConfigRepositoryImpl implements ConfigRepository {
         buffer.writeln('$packageName=${profile.value}');
       });
 
-      await tempFile.writeAsString(buffer.toString());
+      await tempFile.writeAsString(buffer.toString(), flush: true);
 
       await _shellManager.executeCommand(
-        'cp ${tempFile.path} $_configFilePath && chmod 644 $_configFilePath && sync'
+        'cp ${tempFile.path} $_configFilePath && chmod 644 $_configFilePath && sync',
       );
-
-      await tempFile.delete();
-    } catch (e) {
-      if (e is ConfigWriteException) rethrow;
-      throw ConfigWriteException('Unexpected error saving config: $e');
+    } on FileSystemException catch (e) {
+      throw ConfigWriteException('Error writing temp file: ${e.message}');
+    } on RootShellException catch (e) {
+      throw ConfigWriteException(
+          'Error copying config to destination: $e');
+    } finally {
+      if (await tempFile.exists()) await tempFile.delete();
     }
   }
 
   @override
   Future<void> deleteConfig() async {
     try {
-      await _shellManager.executeCommand('rm -f $_configFilePath && sync');
-    } catch (e) {
-      if (e is ConfigWriteException) rethrow;
-      throw ConfigWriteException('Unexpected error deleting config: $e');
+      await _shellManager.executeCommand(
+          'rm -f $_configFilePath && sync');
+    } on RootShellException catch (e) {
+      throw ConfigWriteException('Error deleting config: $e');
     }
   }
 }
 
-// Excepciones personalizadas
 class ConfigReadException implements Exception {
   final String message;
-  ConfigReadException(this.message);
+  const ConfigReadException(this.message);
 
   @override
   String toString() => 'ConfigReadException: $message';
@@ -135,7 +150,7 @@ class ConfigReadException implements Exception {
 
 class ConfigWriteException implements Exception {
   final String message;
-  ConfigWriteException(this.message);
+  const ConfigWriteException(this.message);
 
   @override
   String toString() => 'ConfigWriteException: $message';

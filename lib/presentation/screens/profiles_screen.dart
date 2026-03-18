@@ -22,7 +22,7 @@ class ProfilesScreen extends ConsumerWidget {
       body: systemState.when(
         data: (state) => _buildContent(context, ref, state),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorView(context, ref, error),
+        error: (error, _) => _buildErrorView(context, ref, error),
       ),
     );
   }
@@ -126,8 +126,7 @@ class ProfilesScreen extends ConsumerWidget {
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
-                onPressed: () =>
-                    ref.read(systemStateProvider.notifier).initialize(),
+                onPressed: () => ref.refresh(systemStateProvider),
               ),
               const SizedBox(width: AppConstants.spacing8),
               OutlinedButton.icon(
@@ -144,40 +143,17 @@ class ProfilesScreen extends ConsumerWidget {
 
   void _setProfile(BuildContext context, WidgetRef ref, ProfileType profile) {
     HapticFeedback.mediumImpact();
-
-    try {
-      ref.read(systemStateProvider.notifier).setProfile(profile);
-    } catch (e) {
-      if (context.mounted) {
-        _showErrorSnackBar(context);
-      }
-    }
-  }
-
-  void _showErrorSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocale.snackBarText.getString(context)),
-        action: SnackBarAction(
-          label: AppLocale.snackBarLabel.getString(context),
-          onPressed: () => _launchUrl(context),
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    ref.read(systemStateProvider.notifier).setProfile(profile);
   }
 
   Future<void> _launchUrl(BuildContext context) async {
-    final Uri url =
-    Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
+    final uri = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
     try {
-      await launchUrl(url);
-    } catch (e) {
+      await launchUrl(uri);
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocale.downloadMess.getString(context)),
-          ),
+          SnackBar(content: Text(AppLocale.downloadMess.getString(context))),
         );
       }
     }

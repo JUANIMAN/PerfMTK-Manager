@@ -38,10 +38,9 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
   }
 
   void _handleScroll() {
-    if (_scrollController.offset >= 300 && !_showBackToTopButton) {
-      setState(() => _showBackToTopButton = true);
-    } else if (_scrollController.offset < 300 && _showBackToTopButton) {
-      setState(() => _showBackToTopButton = false);
+    final shouldShow = _scrollController.offset >= 300;
+    if (shouldShow != _showBackToTopButton) {
+      setState(() => _showBackToTopButton = shouldShow);
     }
   }
 
@@ -56,19 +55,19 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appProfileState = ref.watch(appProfileProvider);
+    final appProfileAsync = ref.watch(appProfileProvider);
 
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(),
-          _buildSearchAndFilterBar(),
+          _buildSearchAndFilterBar(appProfileAsync),
           Expanded(
-            child: appProfileState.when(
+            child: appProfileAsync.when(
               data: (state) => _buildAppsList(state),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => _buildErrorView(error),
+              error: (error, _) => _buildErrorView(error),
             ),
           ),
         ],
@@ -82,6 +81,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
     );
   }
 
+  // ── Header ────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -115,9 +115,10 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
     );
   }
 
-  Widget _buildSearchAndFilterBar() {
-    final appProfileState = ref.watch(appProfileProvider);
-    final includeSystemApps = appProfileState.value?.includeSystemApps ?? false;
+  // ── Barra de búsqueda y filtros ───────────────────────────────────────────
+  Widget _buildSearchAndFilterBar(AsyncValue<AppProfileState> asyncState) {
+    final isLoading = asyncState.isLoading;
+    final includeSystemApps = asyncState.value?.includeSystemApps ?? false;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -153,10 +154,10 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
 
           // Toggle para apps del sistema
           IgnorePointer(
-            ignoring: appProfileState.isLoading,
+            ignoring: isLoading,
             child: AnimatedOpacity(
               duration: AppConstants.animationFast,
-              opacity: appProfileState.isLoading ? AppConstants.opacityDisabled : 1.0,
+              opacity: isLoading ? AppConstants.opacityDisabled : 1.0,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppConstants.spacing16,
@@ -164,7 +165,8 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                  borderRadius:
+                  BorderRadius.circular(AppConstants.radiusMedium),
                   border: Border.all(
                     color: Theme.of(context).dividerColor.disabled,
                   ),
@@ -185,15 +187,19 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
                         children: [
                           Text(
                             AppLocale.includeSystemApps.getString(context),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style:
+                            Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             AppLocale.includeSystemAppsDesc.getString(context),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            style:
+                            Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -203,10 +209,14 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
                       value: includeSystemApps,
                       onChanged: (value) {
                         HapticFeedback.lightImpact();
-                        ref.read(appProfileProvider.notifier).toggleSystemApps(value);
+                        ref
+                            .read(appProfileProvider.notifier)
+                            .toggleSystemApps(value);
                       },
-                      activeTrackColor: Theme.of(context).colorScheme.primary,
-                      inactiveThumbColor: Theme.of(context).colorScheme.primary,
+                      activeTrackColor:
+                      Theme.of(context).colorScheme.primary,
+                      inactiveThumbColor:
+                      Theme.of(context).colorScheme.primary,
                     ),
                   ],
                 ),
@@ -276,13 +286,14 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
               : Theme.of(context).dividerColor.border,
         ),
       ),
-      onSelected: (selected) {
+      onSelected: (_) {
         setState(() => _selectedFilter = filterType);
         HapticFeedback.lightImpact();
       },
     );
   }
 
+  // ── Lista de apps ─────────────────────────────────────────────────────────
   Widget _buildAppsList(AppProfileState state) {
     var filteredApps = state.appProfiles;
 
@@ -297,9 +308,11 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
 
     // Filtrar por categoría
     if (_selectedFilter == AppFilterType.configured) {
-      filteredApps = filteredApps.where((app) => app.isConfigured).toList();
+      filteredApps =
+          filteredApps.where((app) => app.isConfigured).toList();
     } else if (_selectedFilter == AppFilterType.notConfigured) {
-      filteredApps = filteredApps.where((app) => !app.isConfigured).toList();
+      filteredApps =
+          filteredApps.where((app) => !app.isConfigured).toList();
     }
 
     if (filteredApps.isEmpty) {
@@ -340,7 +353,6 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
                         appProfile.appInfo.packageName,
                         profile,
                       );
-
                       _showProfileChangedSnackbar(
                         appProfile.appInfo.name,
                         profile,
@@ -356,6 +368,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
     );
   }
 
+  // ── Estados vacío / error ─────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -397,20 +410,16 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.refresh),
             label: Text(AppLocale.retry.getString(context)),
-            onPressed: () =>
-                ref.read(appProfileProvider.notifier).initialize(),
+            onPressed: () => ref.refresh(appProfileProvider),
           ),
         ],
       ),
     );
   }
 
-  void _showProfileChangedSnackbar(
-      String appName,
-      ProfileType? newProfile,
-      ) {
+  // ── Snackbar ──────────────────────────────────────────────────────────────
+  void _showProfileChangedSnackbar(String appName, ProfileType? newProfile) {
     ScaffoldMessenger.of(context).clearSnackBars();
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

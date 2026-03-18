@@ -21,7 +21,7 @@ class ThermalScreen extends ConsumerWidget {
       body: systemState.when(
         data: (state) => _buildContent(context, ref, state),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorView(context, ref, error),
+        error: (error, _) => _buildErrorView(context, ref, error),
       ),
     );
   }
@@ -58,8 +58,7 @@ class ThermalScreen extends ConsumerWidget {
               child: ThermalSwitch(
                 key: ValueKey(state.thermalState),
                 isEnabled: state.thermalState == ThermalState.enabled,
-                onChanged: (bool value) =>
-                    _setThermalLimit(context, ref, value),
+                onChanged: (value) => _setThermalLimit(context, ref, value),
               ),
             ),
           ),
@@ -97,8 +96,7 @@ class ThermalScreen extends ConsumerWidget {
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
-                onPressed: () =>
-                    ref.read(systemStateProvider.notifier).initialize(),
+                onPressed: () => ref.refresh(systemStateProvider),
               ),
               const SizedBox(width: AppConstants.spacing8),
               OutlinedButton.icon(
@@ -115,38 +113,16 @@ class ThermalScreen extends ConsumerWidget {
 
   void _setThermalLimit(BuildContext context, WidgetRef ref, bool enabled) {
     HapticFeedback.mediumImpact();
-
     final thermalState =
     enabled ? ThermalState.enabled : ThermalState.disabled;
-
-    try {
-      ref.read(systemStateProvider.notifier).setThermalState(thermalState);
-    } catch (e) {
-      if (context.mounted) {
-        _showErrorSnackBar(context);
-      }
-    }
-  }
-
-  void _showErrorSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocale.snackBarText.getString(context)),
-        action: SnackBarAction(
-          label: AppLocale.snackBarLabel.getString(context),
-          onPressed: () => _launchUrl(context),
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    ref.read(systemStateProvider.notifier).setThermalState(thermalState);
   }
 
   Future<void> _launchUrl(BuildContext context) async {
-    final Uri url =
-    Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
+    final uri = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
     try {
-      await launchUrl(url);
-    } catch (e) {
+      await launchUrl(uri);
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -5,120 +5,88 @@ import 'package:manager/data/models/system_state.dart';
 import 'package:manager/data/repositories/system_repository.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
 
-// Provider del repositorio
+/// Provider del repositorio
 final systemRepositoryProvider = Provider<SystemRepository>((ref) {
   return SystemRepositoryImpl();
 });
 
-// Provider del estado del sistema
-final systemStateProvider = StateNotifierProvider<SystemStateNotifier, AsyncValue<SystemState>>((ref) {
-  return SystemStateNotifier(
-    ref.read(systemRepositoryProvider),
-    ref,
-  );
-});
-
-// Provider para verificar acceso root
-final rootAccessProvider = FutureProvider<bool>((ref) async {
-  final repository = ref.read(systemRepositoryProvider);
-  return repository.checkRootAccess();
-});
-
+/// Providers de estado de carga de acciones puntuales
 final isChangingProfileProvider = StateProvider<bool>((ref) => false);
 final isChangingThermalProvider = StateProvider<bool>((ref) => false);
 
-class SystemStateNotifier extends StateNotifier<AsyncValue<SystemState>> {
-  final SystemRepository _repository;
-  final Ref _ref;
+/// Verificación de acceso root
+final rootAccessProvider = FutureProvider<bool>((ref) async {
+  return ref.read(systemRepositoryProvider).checkRootAccess();
+});
 
-  SystemStateNotifier(this._repository, this._ref) : super(const AsyncValue.loading()) {
-    initialize();
+/// Provider del estado del sistema (perfil activo + estado térmico).
+final systemStateProvider =
+AsyncNotifierProvider<SystemStateNotifier, SystemState>(
+  SystemStateNotifier.new,
+);
+
+class SystemStateNotifier extends AsyncNotifier<SystemState> {
+  SystemRepository get _repository => ref.read(systemRepositoryProvider);
+
+  @override
+  Future<SystemState> build() async {
+    final profile = await _repository.getCurrentProfile();
+    final thermal = await _repository.getCurrentThermal();
+    return SystemState(currentProfile: profile, thermalState: thermal);
   }
 
-  /// Inicializa el estado del sistema
-  Future<void> initialize() async {
-    try {
-      state = const AsyncValue.loading();
-
-      final profileResult = await _repository.getCurrentProfile();
-      final thermalResult = await _repository.getCurrentThermal();
-
-      final systemState = SystemState(
-        currentProfile: profileResult,
-        thermalState: thermalResult,
-      );
-
-      state = AsyncValue.data(systemState);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  /// Establece un nuevo perfil
-  /// Si existe configuración de app profiles, actualiza el perfil por defecto también
+  /// Aplica un perfil al sistema.
   Future<void> setProfile(ProfileType profile) async {
-    final currentState = state.value;
-    if (currentState == null) return;
+    ref.read(isChangingProfileProvider.notifier).state = true;
 
     try {
-      _ref.read(isChangingProfileProvider.notifier).state = true;
-
-      // Aplicar el perfil
       await _repository.setProfile(profile);
 
-      // Verificar si existe configuración de app profiles
-      final appProfileState = _ref.read(appProfileProvider).value;
-      final hasAppProfiles = appProfileState?.configExists ?? false;
-
-      // Si hay app profiles, actualizar el perfil por defecto
-      if (hasAppProfiles) {
-        await _ref.read(appProfileProvider.notifier).setDefaultProfile(profile);
+      // Coordinación opcional con appProfileProvider:
+      final appProfileNotifier = ref.read(appProfileProvider.notifier);
+      if (appProfileNotifier.hasConfig) {
+        await appProfileNotifier.setDefaultProfile(profile);
       }
 
-      // Recargar estado del sistema
-      await initialize();
-
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-      await initialize();
+      // Recargar estado del sistema para reflejar el valor real de getprop
+      state = AsyncData(await build());
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      // Intentar recuperar el estado actual aunque el cambio haya fallado
+      state = await AsyncValue.guard(build);
     } finally {
-      _ref.read(isChangingProfileProvider.notifier).state = false;
+      ref.read(isChangingProfileProvider.notifier).state = false;
     }
   }
 
-  /// Establece el estado térmico
+  /// Aplica el estado térmico al sistema.
   Future<void> setThermalState(ThermalState thermalState) async {
-    final currentState = state.value;
-    if (currentState == null) return;
+    ref.read(isChangingThermalProvider.notifier).state = true;
 
     try {
-      _ref.read(isChangingThermalProvider.notifier).state = true;
-
       await _repository.setThermal(thermalState);
-
-      // Recargar estado
-      await initialize();
-
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-      await initialize();
+      state = AsyncData(await build());
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      state = await AsyncValue.guard(build);
     } finally {
-      _ref.read(isChangingThermalProvider.notifier).state = false;
+      ref.read(isChangingThermalProvider.notifier).state = false;
     }
   }
 
-  /// Recarga el estado del sistema
+  /// Recarga el estado del sistema (pull-to-refresh, etc.).
   Future<void> refresh() async {
-    await initialize();
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(build);
   }
 }
 
-// Provider derivado para obtener solo el perfil actual
+/// Perfil activo actual (null mientras carga o en error)
 final currentProfileProvider = Provider<ProfileType?>((ref) {
   return ref.watch(systemStateProvider).value?.currentProfile;
 });
 
-// Provider derivado para obtener solo el estado térmico
+/// Estado térmico actual (null mientras carga o en error)
 final currentThermalProvider = Provider<ThermalState?>((ref) {
   return ref.watch(systemStateProvider).value?.thermalState;
 });

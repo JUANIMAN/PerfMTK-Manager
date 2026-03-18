@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
-import 'package:manager/presentation/providers/app_profile_provider.dart';
 import 'package:manager/presentation/providers/app_profile_visibility_provider.dart';
 import 'package:manager/presentation/screens/app_profiles_screen.dart';
 import 'package:manager/presentation/screens/profiles_screen.dart';
@@ -30,7 +29,6 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(appProfileProvider.notifier).initialize();
       _checkForUpdates();
     });
   }
@@ -50,18 +48,35 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
     }
   }
 
+  /// Calcula el índice para `IndexedStack` y `NavigationBar`
+  int _resolvedIndex(bool showAppProfiles) {
+    // Normalizar si la pestaña desaparece.
+    if (!showAppProfiles && _currentScreen == NavScreens.appProfiles) {
+      _currentScreen = NavScreens.profiles;
+    }
+
+    if (!showAppProfiles) {
+      // Solo hay 2 destinos: profiles=0, thermal=1
+      return _currentScreen == NavScreens.profiles ? 0 : 1;
+    }
+
+    // 3 destinos: profiles=0, appProfiles=1, thermal=2
+    return _currentScreen.index;
+  }
+
+  NavScreens _screenFromIndex(int index, bool showAppProfiles) {
+    if (!showAppProfiles) {
+      return index == 0 ? NavScreens.profiles : NavScreens.thermal;
+    }
+    return NavScreens.values[index];
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Leer el estado de visibilidad
-    final showAppProfiles = ref.watch(appProfileVisibilityProvider);
+    final showAppProfiles =
+        ref.watch(appProfileVisibilityProvider).value ?? false;
 
-    if (_currentScreen == NavScreens.appProfiles && !showAppProfiles) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() => _currentScreen = NavScreens.profiles);
-        }
-      });
-    }
+    final selectedIndex = _resolvedIndex(showAppProfiles);
 
     return Scaffold(
       appBar: AppBar(
@@ -73,7 +88,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
               HapticFeedback.lightImpact();
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
+                  builder: (_) => const SettingsScreen(),
                 ),
               );
             },
@@ -81,35 +96,23 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
         ],
       ),
       body: IndexedStack(
-        index: _getSelectedIndex(showAppProfiles),
+        index: selectedIndex,
         children: [
           const ProfilesScreen(),
           if (showAppProfiles) const AppProfilesScreen(),
           const ThermalScreen(),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(showAppProfiles),
+      bottomNavigationBar: _buildBottomNav(showAppProfiles, selectedIndex),
     );
   }
 
-  Widget _buildBottomNavigationBar(bool showAppProfiles) {
+  Widget _buildBottomNav(bool showAppProfiles, int selectedIndex) {
     final destinations = <NavigationDestination>[
-      _buildNavigationDestination(
-        NavScreens.profiles,
-        Icons.tune,
-        'profiles',
-      ),
+      _navDestination(NavScreens.profiles, Icons.tune, 'profiles'),
       if (showAppProfiles)
-        _buildNavigationDestination(
-          NavScreens.appProfiles,
-          Icons.apps,
-          'appProfiles',
-        ),
-      _buildNavigationDestination(
-        NavScreens.thermal,
-        Icons.thermostat,
-        'thermal',
-      ),
+        _navDestination(NavScreens.appProfiles, Icons.apps, 'appProfiles'),
+      _navDestination(NavScreens.thermal, Icons.thermostat, 'thermal'),
     ];
 
     return Container(
@@ -117,11 +120,11 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         child: NavigationBar(
-          selectedIndex: _getSelectedIndex(showAppProfiles),
-          onDestinationSelected: (int index) {
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (index) {
             HapticFeedback.mediumImpact();
             setState(() {
-              _currentScreen = _getScreenFromIndex(index, showAppProfiles);
+              _currentScreen = _screenFromIndex(index, showAppProfiles);
             });
           },
           destinations: destinations,
@@ -131,21 +134,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
     );
   }
 
-  int _getSelectedIndex(bool showAppProfiles) {
-    if (!showAppProfiles) {
-      return _currentScreen == NavScreens.profiles ? 0 : 1;
-    }
-    return _currentScreen.index;
-  }
-
-  NavScreens _getScreenFromIndex(int index, bool showAppProfiles) {
-    if (!showAppProfiles) {
-      return index == 0 ? NavScreens.profiles : NavScreens.thermal;
-    }
-    return NavScreens.values[index];
-  }
-
-  NavigationDestination _buildNavigationDestination(
+  NavigationDestination _navDestination(
       NavScreens screen,
       IconData icon,
       String labelKey,

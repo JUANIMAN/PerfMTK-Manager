@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manager/data/repositories/config_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Provider que controla la visibilidad de la pestaña App Profiles.
@@ -12,8 +13,34 @@ class AppProfileVisibilityNotifier extends AsyncNotifier<bool> {
 
   @override
   Future<bool> build() async {
+    final results = await Future.wait([
+      _readPrefs(),
+      _configFileExists(),
+    ]);
+
+    final prefsVisible = results[0];
+    final fileExists = results[1];
+    final visible = prefsVisible || fileExists;
+
+    if (fileExists && !prefsVisible) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_visibilityKey, true);
+    }
+
+    return visible;
+  }
+
+  Future<bool> _readPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_visibilityKey) ?? false;
+  }
+
+  Future<bool> _configFileExists() async {
+    try {
+      return await ConfigRepositoryImpl().configExists();
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> show() async {

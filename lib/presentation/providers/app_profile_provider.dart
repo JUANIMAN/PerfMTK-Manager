@@ -40,9 +40,9 @@ class AppProfileState {
 
 /// Provider del estado de la configuración de app profiles.
 final appProfileProvider =
-AsyncNotifierProvider<AppProfileNotifier, AppProfileState>(
-  AppProfileNotifier.new,
-);
+    AsyncNotifierProvider<AppProfileNotifier, AppProfileState>(
+      AppProfileNotifier.new,
+    );
 
 class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
   ConfigRepository get _repository => ref.read(configRepositoryProvider);
@@ -84,13 +84,11 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
   Future<void> setAppProfile(String packageName, ProfileType? profile) async {
     final current = state.requireValue;
 
-    // Construir el mapa actualizado en memoria antes de tocar disco
-    final updatedProfiles = <String, ProfileType>{
-      for (final app in current.appProfiles)
-        if (app.appInfo.packageName != packageName && app.assignedProfile != null)
-          app.appInfo.packageName: app.assignedProfile!,
-      if (profile != null) packageName: profile,
-    };
+    // Leer el mapa completo desde disco
+    final diskConfig = await _repository.loadConfig();
+    final updatedProfiles = Map<String, ProfileType>.from(diskConfig.appProfiles)
+      ..remove(packageName);
+    if (profile != null) updatedProfiles[packageName] = profile;
 
     await _repository.saveAppProfiles(updatedProfiles, current.defaultProfile);
     await ref.read(appProfileVisibilityProvider.notifier).show();
@@ -103,13 +101,9 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
   Future<void> setDefaultProfile(ProfileType profile) async {
     final current = state.requireValue;
 
-    final profileMap = <String, ProfileType>{
-      for (final app in current.appProfiles)
-        if (app.assignedProfile != null)
-          app.appInfo.packageName: app.assignedProfile!,
-    };
+    final diskConfig = await _repository.loadConfig();
 
-    await _repository.saveAppProfiles(profileMap, profile);
+    await _repository.saveAppProfiles(diskConfig.appProfiles, profile);
     state = AsyncData(await _load(includeSystemApps: current.includeSystemApps));
   }
 

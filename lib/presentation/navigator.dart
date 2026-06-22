@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,32 +36,24 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
 
   Future<void> _checkForUpdates() async {
     final packageInfo = await PackageInfo.fromPlatform();
-
     final updateChecker = UpdateChecker(
       owner: 'JUANIMAN',
       repo: 'PerfMTK-Manager',
       currentVersion: packageInfo.version,
       currentLanguage: localization.currentLocale!.localeIdentifier,
     );
-
     if (mounted) {
       await updateChecker.checkForUpdates(context);
     }
   }
 
-  /// Calcula el índice para `IndexedStack` y `NavigationBar`
   int _resolvedIndex(bool showAppProfiles) {
-    // Normalizar si la pestaña desaparece.
     if (!showAppProfiles && _currentScreen == NavScreens.appProfiles) {
       _currentScreen = NavScreens.profiles;
     }
-
     if (!showAppProfiles) {
-      // Solo hay 2 destinos: profiles=0, thermal=1
       return _currentScreen == NavScreens.profiles ? 0 : 1;
     }
-
-    // 3 destinos: profiles=0, appProfiles=1, thermal=2
     return _currentScreen.index;
   }
 
@@ -75,72 +68,124 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
   Widget build(BuildContext context) {
     final showAppProfiles =
         ref.watch(appProfileVisibilityProvider).value ?? false;
-
     final selectedIndex = _resolvedIndex(showAppProfiles);
 
     return Scaffold(
+      extendBody: true, // body goes behind the nav bar for the glass effect
       appBar: AppBar(
         title: const Text('PerfMTK Manager'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_rounded),
             onPressed: () {
               HapticFeedback.lightImpact();
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SettingsScreen(),
-                ),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
             },
+            tooltip: 'Settings',
           ),
+          const SizedBox(width: 4),
         ],
       ),
-      body: IndexedStack(
-        index: selectedIndex,
-        children: [
-          const ProfilesScreen(),
-          if (showAppProfiles) const AppProfilesScreen(),
-          const ThermalScreen(),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomNav(showAppProfiles, selectedIndex),
+      body: _buildBody(selectedIndex, showAppProfiles),
+      bottomNavigationBar: _buildGlassNavBar(showAppProfiles, selectedIndex),
     );
   }
 
-  Widget _buildBottomNav(bool showAppProfiles, int selectedIndex) {
-    final destinations = <NavigationDestination>[
-      _navDestination(NavScreens.profiles, Icons.tune, 'profiles'),
-      if (showAppProfiles)
-        _navDestination(NavScreens.appProfiles, Icons.apps, 'appProfiles'),
-      _navDestination(NavScreens.thermal, Icons.thermostat, 'thermal'),
+  Widget _buildBody(int selectedIndex, bool showAppProfiles) {
+    // Use AnimatedSwitcher for smooth cross-fade between tabs
+    final screens = [
+      const ProfilesScreen(),
+      if (showAppProfiles) const AppProfilesScreen(),
+      const ThermalScreen(),
     ];
 
-    return Container(
-      margin: AppConstants.paddingNormal,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-        child: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: (index) {
-            HapticFeedback.mediumImpact();
-            setState(() {
-              _currentScreen = _screenFromIndex(index, showAppProfiles);
-            });
-          },
-          destinations: destinations,
-          animationDuration: AppConstants.animationNormal,
+    return AnimatedSwitcher(
+      duration: AppConstants.animationNormal,
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey(selectedIndex),
+        child: screens[selectedIndex],
+      ),
+    );
+  }
+
+  Widget _buildGlassNavBar(bool showAppProfiles, int selectedIndex) {
+    final theme = Theme.of(context);
+    final destinations = <NavigationDestination>[
+      _navDest(Icons.tune_rounded, Icons.tune, AppLocale.profiles),
+      if (showAppProfiles)
+        _navDest(
+          Icons.apps_rounded,
+          Icons.apps_outlined,
+          AppLocale.appProfiles,
+        ),
+      _navDest(
+        Icons.thermostat_rounded,
+        Icons.thermostat_outlined,
+        AppLocale.thermal,
+      ),
+    ];
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppConstants.spacing16,
+          AppConstants.spacing8,
+          AppConstants.spacing16,
+          AppConstants.spacing4,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  width: 0.5,
+                ),
+              ),
+              child: NavigationBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (index) {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _currentScreen = _screenFromIndex(index, showAppProfiles);
+                  });
+                },
+                destinations: destinations,
+                animationDuration: AppConstants.animationNormal,
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  NavigationDestination _navDestination(
-      NavScreens screen,
-      IconData icon,
-      String labelKey,
-      ) {
+  NavigationDestination _navDest(
+    IconData selectedIcon,
+    IconData icon,
+    String labelKey,
+  ) {
     return NavigationDestination(
       icon: Icon(icon),
+      selectedIcon: Icon(selectedIcon),
       label: AppLocale.getValue(labelKey).getString(context),
     );
   }

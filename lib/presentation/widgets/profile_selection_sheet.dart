@@ -5,6 +5,7 @@ import 'package:installed_apps/app_info.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/config/app_constants.dart';
+import 'package:manager/presentation/widgets/profile_utils.dart';
 import 'package:manager/presentation/widgets/custom_selection_tile.dart';
 
 class ProfileSelectionSheet extends StatelessWidget {
@@ -12,7 +13,6 @@ class ProfileSelectionSheet extends StatelessWidget {
   final ProfileType? currentProfile;
   final bool isSystemApp;
   final Function(ProfileType?) onProfileSelected;
-
   const ProfileSelectionSheet({
     super.key,
     required this.app,
@@ -20,14 +20,13 @@ class ProfileSelectionSheet extends StatelessWidget {
     this.isSystemApp = false,
     required this.onProfileSelected,
   });
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final profiles = _buildProfiles(context);
-
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: theme.colorScheme.surface,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppConstants.radiusXLarge),
         ),
@@ -42,11 +41,10 @@ class ProfileSelectionSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).dividerColor,
+                color: theme.colorScheme.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-
             // App info header
             const SizedBox(height: AppConstants.spacing16),
             Padding(
@@ -56,11 +54,13 @@ class ProfileSelectionSheet extends StatelessWidget {
                   Stack(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                        borderRadius:
+                        BorderRadius.circular(AppConstants.radiusSmall),
                         child: Image.memory(
                           app.icon!,
                           width: 48,
                           height: 48,
+                          cacheWidth: 96,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -71,17 +71,18 @@ class ProfileSelectionSheet extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
+                              color: theme.colorScheme.surface,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                color: theme.colorScheme.outline
+                                    .withValues(alpha: 0.3),
                                 width: 1,
                               ),
                             ),
                             child: Icon(
-                              Icons.security,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.primary,
+                              Icons.security_rounded,
+                              size: 12,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                         ),
@@ -94,8 +95,8 @@ class ProfileSelectionSheet extends StatelessWidget {
                       children: [
                         Text(
                           app.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -103,8 +104,9 @@ class ProfileSelectionSheet extends StatelessWidget {
                         const SizedBox(height: AppConstants.spacing4),
                         Text(
                           AppLocale.selectProfile.getString(context),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -113,11 +115,9 @@ class ProfileSelectionSheet extends StatelessWidget {
                 ],
               ),
             ),
-
-            const SizedBox(height: AppConstants.spacing20),
-            const Divider(height: 1),
+            const SizedBox(height: AppConstants.spacing16),
+            Divider(height: 1, color: theme.colorScheme.outlineVariant),
             const SizedBox(height: AppConstants.spacing8),
-
             // Profile options
             ListView.builder(
               shrinkWrap: true,
@@ -125,153 +125,108 @@ class ProfileSelectionSheet extends StatelessWidget {
               padding: EdgeInsets.zero,
               itemCount: profiles.length,
               itemBuilder: (context, index) {
-                final profile = profiles[index];
-                final isSelected = currentProfile == profile.value;
-
-                return _AnimatedListItem(
+                final p = profiles[index];
+                final isSelected = currentProfile == p.profileType;
+                return _AnimatedSheetItem(
                   index: index,
                   child: SelectionTile(
-                    icon: profile.icon,
-                    iconColor: profile.color,
-                    title: profile.name,
-                    subtitle: profile.description,
+                    icon: ProfileUtils.iconFor(p.profileType),
+                    iconColor: ProfileUtils.colorFor(p.profileType),
+                    title: p.name,
+                    subtitle: p.description,
                     isSelected: isSelected,
                     onTap: () {
                       HapticFeedback.selectionClick();
-                      onProfileSelected(profile.value);
+                      onProfileSelected(p.profileType);
                     },
                   ),
                 );
               },
             ),
-            const SizedBox(height: AppConstants.spacing20),
+            const SizedBox(height: AppConstants.spacing16),
           ],
         ),
       ),
     );
   }
-
-  List<ProfileData> _buildProfiles(BuildContext context) {
+  List<_SheetProfileData> _buildProfiles(BuildContext context) {
     return [
-      ProfileData(
-        value: null,
+      _SheetProfileData(
+        profileType: null,
         name: AppLocale.defaultProfile.getString(context),
-        icon: Icons.settings_applications,
-        color: Colors.grey,
         description: AppLocale.defaultProfileDesc.getString(context),
       ),
-      ProfileData(
-        value: ProfileType.performance,
-        name: AppLocale.performance.getString(context),
-        icon: Icons.speed,
-        color: Colors.orange,
+      _SheetProfileData(
+        profileType: ProfileType.performance,
+        name: ProfileType.performance.displayName,
         description: AppLocale.performanceDesc.getString(context),
       ),
-      ProfileData(
-        value: ProfileType.balanced,
-        name: AppLocale.balanced.getString(context),
-        icon: Icons.balance,
-        color: Colors.blue,
+      _SheetProfileData(
+        profileType: ProfileType.balanced,
+        name: ProfileType.balanced.displayName,
         description: AppLocale.balancedDesc.getString(context),
       ),
-      ProfileData(
-        value: ProfileType.powersave,
-        name: AppLocale.powersave.getString(context),
-        icon: Icons.battery_full,
-        color: Colors.green,
+      _SheetProfileData(
+        profileType: ProfileType.powersave,
+        name: ProfileType.powersave.displayName,
         description: AppLocale.powersaveDesc.getString(context),
       ),
-      ProfileData(
-        value: ProfileType.powersavePlus,
-        name: AppLocale.powersavePlus.getString(context),
-        icon: Icons.battery_saver,
-        color: Colors.teal,
+      _SheetProfileData(
+        profileType: ProfileType.powersavePlus,
+        name: ProfileType.powersavePlus.displayName,
         description: AppLocale.powersavePlusDesc.getString(context),
       ),
     ];
   }
 }
-
-// Clase helper para los datos del perfil
-class ProfileData {
-  final ProfileType? value;
+class _SheetProfileData {
+  final ProfileType? profileType;
   final String name;
-  final IconData icon;
-  final Color color;
   final String description;
-
-  ProfileData({
-    required this.value,
+  const _SheetProfileData({
+    required this.profileType,
     required this.name,
-    required this.icon,
-    required this.color,
     required this.description,
   });
 }
 
-class _AnimatedListItem extends StatefulWidget {
+// ── Animated slide-in for each sheet item ─────────────────────────────────────
+class _AnimatedSheetItem extends StatefulWidget {
   final Widget child;
   final int index;
-
-  const _AnimatedListItem({
-    required this.child,
-    required this.index,
-  });
-
+  const _AnimatedSheetItem({required this.child, required this.index});
   @override
-  State<_AnimatedListItem> createState() => _AnimatedListItemState();
+  State<_AnimatedSheetItem> createState() => _AnimatedSheetItemState();
 }
-
-class _AnimatedListItemState extends State<_AnimatedListItem>
+class _AnimatedSheetItemState extends State<_AnimatedSheetItem>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _opacityAnimation;
-  late Animation<Offset> _slideAnimation;
-
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: AppConstants.animationSlow,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.3, 0),
+    _ctrl = AnimationController(
+        vsync: this, duration: AppConstants.animationNormal);
+    _opacity = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0.15, 0),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
-
-    // Animar con delay escalonado
-    Future.delayed(Duration(milliseconds: 50 * widget.index), () {
-      if (mounted) _controller.forward();
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    Future.delayed(Duration(milliseconds: 40 * widget.index), () {
+      if (mounted) _ctrl.forward();
     });
   }
-
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: _opacityAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: widget.child,
-      ),
+      opacity: _opacity,
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }

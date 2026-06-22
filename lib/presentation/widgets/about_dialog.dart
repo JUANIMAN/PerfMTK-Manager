@@ -40,7 +40,7 @@ class _CustomAboutDialogState extends State<CustomAboutDialog>
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Color(0xFF056FD9);
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return buildWithEntryAnimation(
       Dialog(

@@ -6,195 +6,329 @@ import 'package:manager/localization/app_locales.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
-import 'package:manager/presentation/widgets/current_state_card.dart';
 import 'package:manager/presentation/widgets/profile_button.dart';
+import 'package:manager/presentation/widgets/profile_utils.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ProfilesScreen extends ConsumerWidget {
+class ProfilesScreen extends ConsumerStatefulWidget {
   const ProfilesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfilesScreen> createState() => _ProfilesScreenState();
+}
+
+class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
+    with SingleTickerProviderStateMixin, EntryAnimationMixin {
+
+  @override
+  void initState() {
+    super.initState();
+    initEntryAnimation();
+  }
+
+  @override
+  void dispose() {
+    disposeEntryAnimation();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final systemState = ref.watch(systemStateProvider);
 
     return Scaffold(
-      body: systemState.when(
-        data: (state) => _buildContent(context, ref, state),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _buildErrorView(context, ref, error),
+      body: buildWithEntryAnimation(
+        systemState.when(
+          data: (state) => _buildContent(state),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _buildErrorView(error),
+        ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, SystemState state) {
+  Widget _buildContent(SystemState state) {
     final isChanging = ref.watch(isChangingProfileProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: AppConstants.paddingNormal,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocale.titleProfiles.getString(context),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: AppConstants.spacing24),
-              CurrentStateCard(
-                state: state.currentProfile.value,
-                icon: _getProfileIcon(state.currentProfile),
-                color: _getProfileColor(state.currentProfile),
-                titleLocaleKey: 'currentProfile',
-                stateLocaleKey: state.currentProfile.value,
-                descriptionLocaleKey:
-                _getProfileDescriptionKey(state.currentProfile),
-                isLoading: isChanging,
-              ),
-              const SizedBox(height: AppConstants.spacing32),
-              Text(
-                AppLocale.subtitleProfiles.getString(context),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ],
-          ),
+    return RefreshIndicator(
+      onRefresh: () => ref.read(systemStateProvider.notifier).refresh(),
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
-        Expanded(
-          child: AbsorbPointer(
-            absorbing: isChanging,
-            child: AnimatedOpacity(
-              duration: AppConstants.animationFast,
-              opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
-              child: ListView.builder(
-                padding: AppConstants.paddingHorizontal,
-                itemCount: ProfileType.values.length,
-                itemBuilder: (context, index) {
-                  final profile = ProfileType.values[index];
-                  final isSelected = state.currentProfile == profile;
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppConstants.spacing8,
-                    ),
-                    child: ProfileButton(
-                      profile: profile.value,
-                      isSelected: isSelected,
-                      icon: _getProfileIcon(profile),
-                      color: _getProfileColor(profile),
-                      onTap: () => _setProfile(context, ref, profile),
-                    ),
-                  );
-                },
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppConstants.spacing16,
+              AppConstants.spacing16,
+              AppConstants.spacing16,
+              0,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocale.titleProfiles.getString(context),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: AppConstants.spacing16),
+                  _CurrentProfileHeroCard(
+                    state: state,
+                    isChanging: isChanging,
+                  ),
+                  const SizedBox(height: AppConstants.spacing24),
+                  Text(
+                    AppLocale.subtitleProfiles.getString(context),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: AppConstants.spacing12),
+                ],
               ),
             ),
           ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildErrorView(BuildContext context, WidgetRef ref, Object error) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          const SizedBox(height: AppConstants.spacing16),
-          Text(
-            AppLocale.snackBarText.getString(context),
-            style: Theme.of(context).textTheme.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppConstants.spacing8),
-          Text(
-            error.toString(),
-            style: Theme.of(context).textTheme.bodySmall,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppConstants.spacing16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-                onPressed: () => ref.refresh(systemStateProvider),
+          // ── Profile list ──────────────────────────────────────────────────
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacing16,
+            ),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final profile = ProfileType.values[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppConstants.spacing12),
+                    child: AbsorbPointer(
+                      absorbing: isChanging,
+                      child: AnimatedOpacity(
+                        duration: AppConstants.animationFast,
+                        opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
+                        child: ProfileButton(
+                          profile: profile,
+                          isSelected: state.currentProfile == profile,
+                          onTap: () => _setProfile(profile),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                childCount: ProfileType.values.length,
               ),
-              const SizedBox(width: AppConstants.spacing8),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.open_in_new),
-                label: Text(AppLocale.snackBarLabel.getString(context)),
-                onPressed: () => _launchUrl(context),
-              ),
-            ],
+            ),
+          ),
+
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppConstants.spacing80 + AppConstants.spacing16),
           ),
         ],
       ),
     );
   }
 
-  void _setProfile(BuildContext context, WidgetRef ref, ProfileType profile) {
+  Widget _buildErrorView(Object error) {
+    return Center(
+      child: Padding(
+        padding: AppConstants.paddingNormal,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppConstants.spacing20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: AppConstants.spacing20),
+            Text(
+              AppLocale.snackBarText.getString(context),
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppConstants.spacing8),
+            Text(
+              error.toString(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AppConstants.spacing24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FilledButton.icon(
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Retry'),
+                  onPressed: () => ref.refresh(systemStateProvider),
+                ),
+                const SizedBox(width: AppConstants.spacing12),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.open_in_new_rounded),
+                  label: Text(AppLocale.snackBarLabel.getString(context)),
+                  onPressed: () => _launchUrl(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _setProfile(ProfileType profile) {
     HapticFeedback.mediumImpact();
     ref.read(systemStateProvider.notifier).setProfile(profile);
   }
 
-  Future<void> _launchUrl(BuildContext context) async {
+  Future<void> _launchUrl() async {
     final uri = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
     try {
       await launchUrl(uri);
     } catch (_) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocale.downloadMess.getString(context))),
         );
       }
     }
   }
+}
 
-  IconData _getProfileIcon(ProfileType profile) {
-    switch (profile) {
-      case ProfileType.performance:
-        return Icons.speed;
-      case ProfileType.balanced:
-        return Icons.balance;
-      case ProfileType.powersave:
-        return Icons.battery_full;
-      case ProfileType.powersavePlus:
-        return Icons.battery_saver;
-    }
-  }
+// ── Hero status card ──────────────────────────────────────────────────────────
+class _CurrentProfileHeroCard extends StatelessWidget {
+  final SystemState state;
+  final bool isChanging;
 
-  Color _getProfileColor(ProfileType profile) {
-    switch (profile) {
-      case ProfileType.performance:
-        return Colors.orange;
-      case ProfileType.balanced:
-        return Colors.blue;
-      case ProfileType.powersave:
-        return Colors.green;
-      case ProfileType.powersavePlus:
-        return Colors.teal;
-    }
-  }
+  const _CurrentProfileHeroCard({
+    required this.state,
+    required this.isChanging,
+  });
 
-  String _getProfileDescriptionKey(ProfileType profile) {
-    switch (profile) {
-      case ProfileType.performance:
-        return AppLocale.performanceCard;
-      case ProfileType.balanced:
-        return AppLocale.balancedCard;
-      case ProfileType.powersave:
-        return AppLocale.powersaveCard;
-      case ProfileType.powersavePlus:
-        return AppLocale.powersavePlusCard;
-    }
+  @override
+  Widget build(BuildContext context) {
+    final profile = state.currentProfile;
+    final color = ProfileUtils.colorFor(profile);
+    final gradient = ProfileUtils.gradientFor(profile);
+    final icon = ProfileUtils.iconFor(profile);
+
+    return AnimatedContainer(
+      duration: AppConstants.animationNormal,
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.35),
+            blurRadius: 24,
+            spreadRadius: 0,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Decorative circles
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 20,
+            bottom: -30,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(AppConstants.spacing20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppConstants.spacing16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                  ),
+                  child: isChanging
+                      ? SizedBox(
+                          width: AppConstants.iconSizeXLarge,
+                          height: AppConstants.iconSizeXLarge,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: const AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        )
+                      : Icon(
+                          icon,
+                          size: AppConstants.iconSizeXLarge,
+                          color: Colors.white,
+                        ),
+                ),
+                const SizedBox(width: AppConstants.spacing16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocale.currentProfile.getString(context),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.75),
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                      const SizedBox(height: AppConstants.spacing4),
+                      AnimatedSwitcher(
+                        duration: AppConstants.animationNormal,
+                        child: Text(
+                          isChanging
+                              ? AppLocale.applying.getString(context)
+                              : profile.displayName,
+                          key: ValueKey(isChanging ? 'loading' : profile.value),
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

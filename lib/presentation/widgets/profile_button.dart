@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
+import 'package:manager/data/models/profile.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/config/app_constants.dart';
+import 'package:manager/presentation/widgets/profile_utils.dart';
 
 class ProfileButton extends StatefulWidget {
-  final String profile;
+  final ProfileType profile;
   final bool isSelected;
-  final IconData icon;
-  final Color color;
   final VoidCallback onTap;
 
   const ProfileButton({
     super.key,
     required this.profile,
     required this.isSelected,
-    required this.icon,
-    required this.color,
     required this.onTap,
   });
 
@@ -27,9 +25,7 @@ class ProfileButton extends StatefulWidget {
 class _ProfileButtonState extends State<ProfileButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _opacityAnimation;
+  late Animation<double> _fillAnimation;
 
   @override
   void initState() {
@@ -37,34 +33,19 @@ class _ProfileButtonState extends State<ProfileButton>
     _controller = AnimationController(
       duration: AppConstants.animationNormal,
       vsync: this,
+      value: widget.isSelected ? 1.0 : 0.0,
     );
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _fillAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
     );
-
-    _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-
-    if (widget.isSelected) {
-      _controller.value = 1.0;
-    }
   }
 
   @override
-  void didUpdateWidget(ProfileButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isSelected != oldWidget.isSelected) {
-      if (widget.isSelected) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
+  void didUpdateWidget(ProfileButton old) {
+    super.didUpdateWidget(old);
+    if (widget.isSelected != old.isSelected) {
+      widget.isSelected ? _controller.forward() : _controller.reverse();
     }
   }
 
@@ -76,194 +57,134 @@ class _ProfileButtonState extends State<ProfileButton>
 
   @override
   Widget build(BuildContext context) {
+    final color = ProfileUtils.colorFor(widget.profile);
+    final icon = ProfileUtils.iconFor(widget.profile);
     final theme = Theme.of(context);
 
     return Semantics(
       button: true,
-      enabled: !widget.isSelected,
       selected: widget.isSelected,
-      label: '${AppLocale.getValue(widget.profile).getString(context)} profile',
-      child: Focus(
-        child: Builder(
-          builder: (context) {
-            final isFocused = Focus.of(context).hasFocus;
+      label: '${widget.profile.displayName} profile',
+      child: AnimatedBuilder(
+        animation: _fillAnimation,
+        builder: (context, child) {
+          final t = _fillAnimation.value;
+          final borderColor = Color.lerp(
+            theme.colorScheme.outlineVariant,
+            color,
+            t,
+          )!;
+          final bgColor = Color.lerp(
+            theme.colorScheme.surface,
+            color.withValues(alpha: 0.08),
+            t,
+          )!;
 
-            return AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) => Transform.scale(
-                scale: _scaleAnimation.value,
-                child: child,
-              ),
-              child: GestureDetector(
-                onTapDown: (_) => _handleTapDown(),
-                onTapUp: (_) => _handleTapUp(),
-                onTapCancel: _handleTapCancel,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: AppConstants.spacing8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.radiusXLarge,
-                    ),
-                    border: Border.all(
-                      color: _getBorderColor(isFocused, theme),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.color.medium,
-                        blurRadius: widget.isSelected ? 12 : 4,
-                        spreadRadius: widget.isSelected ? 2 : 0,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: _buildContent(theme),
+          return Material(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
+            child: InkWell(
+              onTap: widget.isSelected
+                  ? null
+                  : () {
+                      HapticFeedback.mediumImpact();
+                      widget.onTap();
+                    },
+              borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
+              splashColor: color.withValues(alpha: 0.15),
+              highlightColor: color.withValues(alpha: 0.08),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacing20,
+                  vertical: AppConstants.spacing16,
                 ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent(ThemeData theme) {
-    return Stack(
-      children: [
-        if (widget.isSelected)
-          Positioned.fill(
-            child: _buildSelectedBackground(),
-          ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppConstants.spacing20,
-            vertical: AppConstants.spacing16 + 2,
-          ),
-          child: Row(
-            children: [
-              _buildIcon(),
-              const SizedBox(width: AppConstants.spacing16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.radiusXLarge),
+                  border: Border.all(color: borderColor, width: 1.5),
+                  boxShadow: t > 0
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.15 * t),
+                            blurRadius: 16 * t,
+                            spreadRadius: 2 * t,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
                   children: [
-                    _buildTitle(theme),
-                    const SizedBox(height: AppConstants.spacing6),
-                    _buildDescription(theme),
+                    // Icon container
+                    AnimatedContainer(
+                      duration: AppConstants.animationNormal,
+                      padding: const EdgeInsets.all(AppConstants.spacing12),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1 + 0.08 * t),
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusMedium),
+                      ),
+                      child: Icon(icon, color: color, size: AppConstants.iconSizeLarge),
+                    ),
+                    const SizedBox(width: AppConstants.spacing16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedDefaultTextStyle(
+                            duration: AppConstants.animationFast,
+                            style: theme.textTheme.titleMedium!.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Color.lerp(
+                                theme.colorScheme.onSurface,
+                                color,
+                                t,
+                              ),
+                            ),
+                            child: Text(widget.profile.displayName),
+                          ),
+                          const SizedBox(height: AppConstants.spacing4),
+                          Text(
+                            _descriptionFor(context),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Checkmark
+                    AnimatedOpacity(
+                      duration: AppConstants.animationFast,
+                      opacity: _fillAnimation.value,
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        color: color,
+                        size: AppConstants.iconSizeNormal,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              _buildCheckmark(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSelectedBackground() {
-    return AnimatedBuilder(
-      animation: _slideAnimation,
-      builder: (context, child) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: widget.color.light,
-          borderRadius: BorderRadius.circular(AppConstants.radiusLarge + 2),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildIcon() {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.spacing12),
-      decoration: BoxDecoration(
-        color: widget.color.light,
-        borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
-      ),
-      child: Icon(
-        widget.icon,
-        color: widget.color,
-        size: AppConstants.iconSizeNormal,
-      ),
-    );
-  }
-
-  Widget _buildTitle(ThemeData theme) {
-    return Text(
-      AppLocale.getValue(widget.profile).getString(context),
-      style: theme.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: widget.isSelected ? widget.color : theme.colorScheme.onSurface,
-      ),
-    );
-  }
-
-  Widget _buildDescription(ThemeData theme) {
-    return Text(
-      _getProfileDescription(),
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: theme.colorScheme.onSurface.subtle,
-      ),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  Widget _buildCheckmark() {
-    return AnimatedBuilder(
-      animation: _opacityAnimation,
-      builder: (context, child) => Opacity(
-        opacity: _opacityAnimation.value,
-        child: Icon(
-          Icons.check_circle,
-          color: widget.color,
-          size: AppConstants.iconSizeNormal,
-        ),
-      ),
-    );
-  }
-
-  Color _getBorderColor(bool isFocused, ThemeData theme) {
-    if (widget.isSelected) return widget.color;
-    if (isFocused) return theme.colorScheme.primary.withValues(alpha: 0.6);
-    return theme.colorScheme.onSurface.light;
-  }
-
-  String _getProfileDescription() {
+  String _descriptionFor(BuildContext context) {
     switch (widget.profile) {
-      case 'performance':
+      case ProfileType.performance:
         return AppLocale.performanceDesc.getString(context);
-      case 'balanced':
+      case ProfileType.balanced:
         return AppLocale.balancedDesc.getString(context);
-      case 'powersave':
+      case ProfileType.powersave:
         return AppLocale.powersaveDesc.getString(context);
-      case 'powersave+':
+      case ProfileType.powersavePlus:
         return AppLocale.powersavePlusDesc.getString(context);
-      default:
-        return '';
-    }
-  }
-
-  void _handleTapDown() {
-    if (!widget.isSelected) {
-      _controller.forward();
-      HapticFeedback.lightImpact();
-    }
-  }
-
-  void _handleTapUp() {
-    if (!widget.isSelected) {
-      _controller.reverse();
-      widget.onTap();
-    }
-  }
-
-  void _handleTapCancel() {
-    if (!widget.isSelected) {
-      _controller.reverse();
     }
   }
 }

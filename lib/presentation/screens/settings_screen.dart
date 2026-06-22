@@ -106,10 +106,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Widget _buildSettingsCard(BuildContext context, {required List<Widget> children}) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         border: Border.all(
-          color: Theme.of(context).dividerColor.light,
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
         ),
         boxShadow: [
           BoxShadow(

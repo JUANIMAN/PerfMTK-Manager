@@ -7,9 +7,11 @@ import 'package:manager/data/models/profile.dart';
 abstract class ConfigRepository {
   Future<bool> configExists();
   Future<ConfigData> loadConfig();
-  Future<void> saveAppProfiles(
+  Future<void> saveConfig(
       Map<String, ProfileType> profiles,
       ProfileType defaultProfile,
+      ProfileType screenOffProfile,
+      int appDebounceMs,
       );
   Future<void> deleteConfig();
 }
@@ -17,11 +19,15 @@ abstract class ConfigRepository {
 class ConfigData {
   final Map<String, ProfileType> appProfiles;
   final ProfileType defaultProfile;
+  final ProfileType screenOffProfile;
+  final int appDebounceMs;
   final bool existsOnDisk;
 
   const ConfigData({
     required this.appProfiles,
     required this.defaultProfile,
+    required this.screenOffProfile,
+    required this.appDebounceMs,
     this.existsOnDisk = false,
   });
 
@@ -29,6 +35,8 @@ class ConfigData {
     return const ConfigData(
       appProfiles: {},
       defaultProfile: ProfileType.balanced,
+      screenOffProfile: ProfileType.powersave,
+      appDebounceMs: 3000,
       existsOnDisk: false,
     );
   }
@@ -68,19 +76,27 @@ class ConfigRepositoryImpl implements ConfigRepository {
   ConfigData _parseConfig(String content) {
     final appProfiles = <String, ProfileType>{};
     ProfileType defaultProfile = ProfileType.balanced;
+    ProfileType screenOffProfile = ProfileType.powersave;
+    int appDebounceMs = 3000;
 
     for (final rawLine in content.split('\n')) {
       final line = rawLine.trim();
       if (line.isEmpty || line.startsWith('#')) continue;
 
-      final parts = line.split('=');
-      if (parts.length != 2) continue;
+      // Use indexOf so that values containing '=' are handled correctly
+      final eqIndex = line.indexOf('=');
+      if (eqIndex < 1) continue;
 
-      final key = parts[0].trim();
-      final value = parts[1].trim();
+      final key = line.substring(0, eqIndex).trim();
+      final value = line.substring(eqIndex + 1).trim();
 
       if (key == 'DEFAULT_PROFILE') {
         defaultProfile = ProfileType.fromString(value);
+      } else if (key == 'SCREEN_OFF_PROFILE') {
+        screenOffProfile = ProfileType.fromString(value);
+      } else if (key == 'APP_DEBOUNCE_MS') {
+        final parsed = int.tryParse(value);
+        if (parsed != null) appDebounceMs = parsed.clamp(500, 10000);
       } else {
         appProfiles[key] = ProfileType.fromString(value);
       }
@@ -89,14 +105,18 @@ class ConfigRepositoryImpl implements ConfigRepository {
     return ConfigData(
       appProfiles: appProfiles,
       defaultProfile: defaultProfile,
+      screenOffProfile: screenOffProfile,
+      appDebounceMs: appDebounceMs,
       existsOnDisk: true,
     );
   }
 
   @override
-  Future<void> saveAppProfiles(
+  Future<void> saveConfig(
       Map<String, ProfileType> profiles,
       ProfileType defaultProfile,
+      ProfileType screenOffProfile,
+      int appDebounceMs,
       ) async {
     final tempDir = await getTemporaryDirectory();
     final tempFile = File('${tempDir.path}/app_profiles.conf');
@@ -108,6 +128,8 @@ class ConfigRepositoryImpl implements ConfigRepository {
         ..writeln()
         ..writeln('# Default global profile when no application from the list is in the foreground')
         ..writeln('DEFAULT_PROFILE=${defaultProfile.value}')
+        ..writeln('SCREEN_OFF_PROFILE=${screenOffProfile.value}')
+        ..writeln('APP_DEBOUNCE_MS=$appDebounceMs')
         ..writeln();
 
       profiles.forEach((packageName, profile) {

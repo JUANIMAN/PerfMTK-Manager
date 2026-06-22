@@ -69,6 +69,14 @@ mixin AppLocale {
   static const String includeSystemApps = 'includeSystemApps';
   static const String includeSystemAppsDesc = 'includeSystemAppsDesc';
 
+  // Daemon settings
+  static const String daemonSettings = 'daemonSettings';
+  static const String screenOffProfile = 'screenOffProfile';
+  static const String screenOffProfileDesc = 'screenOffProfileDesc';
+  static const String appDebounceMs = 'appDebounceMs';
+  static const String appDebounceMsDesc = 'appDebounceMsDesc';
+  static const String milliseconds = 'milliseconds';
+
   // Theme descriptions
   static const themeSystemDesc = 'themeSystemDesc';
   static const themeLightDesc = 'themeLightDesc';
@@ -152,6 +160,13 @@ mixin AppLocale {
     includeSystemApps: 'Include system apps',
     includeSystemAppsDesc: 'Show system applications',
 
+    daemonSettings: 'Daemon Settings',
+    screenOffProfile: 'Screen-off profile',
+    screenOffProfileDesc: 'Profile applied when the screen turns off',
+    appDebounceMs: 'App switch delay',
+    appDebounceMsDesc: 'Wait time before switching profiles when changing apps',
+    milliseconds: 'ms',
+
     themeSystemDesc: 'Use system settings',
     themeLightDesc: 'Light theme',
     themeDarkDesc: 'Dark theme',
@@ -233,6 +248,13 @@ mixin AppLocale {
     applying: 'Aplicando...',
     includeSystemApps: 'Incluir aplicaciones del sistema',
     includeSystemAppsDesc: 'Mostrar aplicaciones críticas del sistema',
+
+    daemonSettings: 'Ajustes del Daemon',
+    screenOffProfile: 'Perfil con pantalla apagada',
+    screenOffProfileDesc: 'Perfil que se aplica cuando la pantalla se apaga',
+    appDebounceMs: 'Retardo al cambiar de app',
+    appDebounceMsDesc: 'Tiempo de espera antes de cambiar el perfil al cambiar de aplicación',
+    milliseconds: 'ms',
 
     themeSystemDesc: 'Usar configuración del sistema',
     themeLightDesc: 'Tema claro',

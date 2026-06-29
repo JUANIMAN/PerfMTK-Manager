@@ -210,7 +210,7 @@ class SectionHeader extends StatelessWidget {
 }
 
 /// Mixin para animaciones de entrada
-mixin EntryAnimationMixin<T extends StatefulWidget> on State<T>, SingleTickerProviderStateMixin<T> {
+mixin EntryAnimationMixin<T extends StatefulWidget> on State<T>, TickerProvider {
   late AnimationController animationController;
   late Animation<double> fadeAnimation;
   late Animation<double> scaleAnimation;

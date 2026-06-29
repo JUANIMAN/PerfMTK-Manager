@@ -6,6 +6,7 @@ import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/providers/app_profile_visibility_provider.dart';
 import 'package:manager/presentation/screens/app_profiles_screen.dart';
+import 'package:manager/presentation/screens/perf_config_screen.dart';
 import 'package:manager/presentation/screens/profiles_screen.dart';
 import 'package:manager/presentation/screens/settings_screen.dart';
 import 'package:manager/presentation/screens/thermal_screen.dart';
@@ -13,7 +14,7 @@ import 'package:manager/core/utils/update_checker.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-enum NavScreens { profiles, appProfiles, thermal }
+enum NavScreens { profiles, appProfiles, perfConfig, thermal }
 
 class AppNavigator extends ConsumerStatefulWidget {
   const AppNavigator({super.key});
@@ -47,21 +48,25 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
     }
   }
 
+  /// Ordered list of screens currently visible in the nav bar.
+  List<NavScreens> _screenList(bool showAppProfiles) => [
+        NavScreens.profiles,
+        if (showAppProfiles) NavScreens.appProfiles,
+        NavScreens.perfConfig,
+        NavScreens.thermal,
+      ];
+
   int _resolvedIndex(bool showAppProfiles) {
-    if (!showAppProfiles && _currentScreen == NavScreens.appProfiles) {
+    final list = _screenList(showAppProfiles);
+    if (!list.contains(_currentScreen)) {
       _currentScreen = NavScreens.profiles;
     }
-    if (!showAppProfiles) {
-      return _currentScreen == NavScreens.profiles ? 0 : 1;
-    }
-    return _currentScreen.index;
+    return list.indexOf(_currentScreen);
   }
 
   NavScreens _screenFromIndex(int index, bool showAppProfiles) {
-    if (!showAppProfiles) {
-      return index == 0 ? NavScreens.profiles : NavScreens.thermal;
-    }
-    return NavScreens.values[index];
+    final list = _screenList(showAppProfiles);
+    return list[index.clamp(0, list.length - 1)];
   }
 
   @override
@@ -98,6 +103,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
     final screens = [
       const ProfilesScreen(),
       if (showAppProfiles) const AppProfilesScreen(),
+      const PerfConfigScreen(),
       const ThermalScreen(),
     ];
 
@@ -128,6 +134,11 @@ class _AppNavigatorState extends ConsumerState<AppNavigator> {
           Icons.apps_outlined,
           AppLocale.appProfiles,
         ),
+      _navDest(
+        Icons.speed_rounded,
+        Icons.speed_outlined,
+        AppLocale.perfConfig,
+      ),
       _navDest(
         Icons.thermostat_rounded,
         Icons.thermostat_outlined,

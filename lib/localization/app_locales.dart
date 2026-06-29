@@ -77,6 +77,16 @@ mixin AppLocale {
   static const String appDebounceMsDesc = 'appDebounceMsDesc';
   static const String milliseconds = 'milliseconds';
 
+  // Perf config screen
+  static const String perfConfig = 'perfConfig';
+  static const String titlePerfConfig = 'titlePerfConfig';
+  static const String perfConfigDescription = 'perfConfigDescription';
+  static const String saveChanges = 'saveChanges';
+  static const String configSaved = 'configSaved';
+  static const String configSaveError = 'configSaveError';
+  static const String savingConfig = 'savingConfig';
+  static const String perfConfigError = 'perfConfigError';
+
   // Theme descriptions
   static const themeSystemDesc = 'themeSystemDesc';
   static const themeLightDesc = 'themeLightDesc';
@@ -167,6 +177,16 @@ mixin AppLocale {
     appDebounceMsDesc: 'Wait time before switching profiles when changing apps',
     milliseconds: 'ms',
 
+    // Perf config
+    perfConfig: 'Config',
+    titlePerfConfig: 'Profile Editor',
+    perfConfigDescription: 'Edit performance profile configuration files',
+    saveChanges: 'Save',
+    configSaved: 'Configuration saved successfully',
+    configSaveError: 'Failed to save configuration',
+    savingConfig: 'Saving...',
+    perfConfigError: 'Could not load config files. Is the PerfMTK module installed?',
+
     themeSystemDesc: 'Use system settings',
     themeLightDesc: 'Light theme',
     themeDarkDesc: 'Dark theme',
@@ -255,6 +275,16 @@ mixin AppLocale {
     appDebounceMs: 'Retardo al cambiar de app',
     appDebounceMsDesc: 'Tiempo de espera antes de cambiar el perfil al cambiar de aplicación',
     milliseconds: 'ms',
+
+    // Perf config
+    perfConfig: 'Config',
+    titlePerfConfig: 'Editor de Perfiles',
+    perfConfigDescription: 'Editar archivos de configuración de perfiles de rendimiento',
+    saveChanges: 'Guardar',
+    configSaved: 'Configuración guardada correctamente',
+    configSaveError: 'Error al guardar la configuración',
+    savingConfig: 'Guardando...',
+    perfConfigError: '¿El módulo PerfMTK está instalado? No se pudo cargar la configuración.',
 
     themeSystemDesc: 'Usar configuración del sistema',
     themeLightDesc: 'Tema claro',

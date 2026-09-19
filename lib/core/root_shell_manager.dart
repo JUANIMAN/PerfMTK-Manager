@@ -1,85 +1,98 @@
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
-/// Gestor de shell root — singleton
-class RootShellManager {
+abstract interface class ShellCommandExecutor {
+  Future<String> executeCommand(
+    String command, {
+    Duration timeout = const Duration(seconds: 5),
+  });
+  Future<void> initialize();
+}
+
+/// Long-lived, serialized root shell used by all repositories.
+class RootShellManager implements ShellCommandExecutor {
   static final RootShellManager _instance = RootShellManager._internal();
   factory RootShellManager() => _instance;
   RootShellManager._internal();
 
   Process? _rootShell;
   bool _isActive = false;
-  Completer<void>? _initCompleter;
+  Future<void>? _initialization;
+  StreamSubscription<String>? _stdoutSubscription;
+  StreamSubscription<String>? _stderrSubscription;
 
-  // Cola para serializar comandos
   Future<void> _commandQueue = Future.value();
 
-  // Stream broadcast del stdout de la shell
   final StreamController<String> _lineController =
-  StreamController<String>.broadcast();
+      StreamController<String>.broadcast();
 
-  /// Inicia la shell root
+  /// Starts and verifies the root shell. Concurrent callers share one attempt.
+  @override
   Future<void> initialize() async {
+    final pendingInitialization = _initialization;
+    if (pendingInitialization != null) return pendingInitialization;
     if (_isActive) return;
 
-    if (_initCompleter != null) {
-      return _initCompleter!.future;
-    }
-
-    _initCompleter = Completer<void>();
-
+    final initialization = _startShell();
+    _initialization = initialization;
     try {
-      _rootShell = await Process.start('su', []);
-
-      _rootShell!.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(
-        _lineController.add,
-        onError: _lineController.addError,
-        onDone: () {
-          _isActive = false;
-          _rootShell = null;
-        },
-      );
-
-      _rootShell!.stderr
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen((line) => _lineController.addError(line));
-
-      _isActive = true;
-
-      // Verificar que la shell responde
-      final result = await _sendAndCollect(
-        'echo "shell_ready"',
-        const Duration(seconds: 5),
-      );
-      if (!result.contains('shell_ready')) {
-        throw RootShellException('Shell verification failed');
-      }
-
-      _initCompleter!.complete();
-    } catch (e) {
-      await _cleanup();
-      _initCompleter!.completeError(e);
-      rethrow;
+      await initialization;
     } finally {
-      _initCompleter = null;
+      if (identical(_initialization, initialization)) {
+        _initialization = null;
+      }
     }
   }
 
-  /// Ejecutar comando en la shell root y esperar la respuesta
-  ///
-  /// [command] - El comando a ejecutar
-  /// [timeout] - Tiempo máximo de espera (por defecto 5 segundos)
-  ///
-  /// Lanza [RootShellException] si el comando falla o timeout
+  Future<void> _startShell() async {
+    try {
+      final process = await Process.start('su', []);
+      _rootShell = process;
+
+      _stdoutSubscription = process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(
+            _lineController.add,
+            onError: _lineController.addError,
+            onDone: () {
+              if (identical(_rootShell, process)) {
+                _isActive = false;
+                _rootShell = null;
+                _lineController.addError(
+                  const RootShellException('Root shell exited unexpectedly'),
+                );
+              }
+            },
+          );
+
+      _stderrSubscription = process.stderr
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(_lineController.addError);
+
+      _isActive = true;
+      final result = await _sendAndCollect(
+        'echo "shell_ready"',
+        const Duration(seconds: 5),
+        restartOnTimeout: false,
+      );
+      if (result.trim() != 'shell_ready') {
+        throw const RootShellException('Shell verification failed');
+      }
+    } catch (_) {
+      await _cleanup();
+      rethrow;
+    }
+  }
+
+  /// Runs one command at a time and throws when it times out or exits non-zero.
+  @override
   Future<String> executeCommand(
-      String command, {
-        Duration timeout = const Duration(seconds: 5),
-      }) {
+    String command, {
+    Duration timeout = const Duration(seconds: 5),
+  }) {
     final result = _commandQueue.then((_) async {
       if (!_isActive) await initialize();
       return _sendAndCollect(command, timeout);
@@ -89,55 +102,96 @@ class RootShellManager {
     return result;
   }
 
-  Future<String> _sendAndCollect(String command, Duration timeout) async {
-    if (_rootShell == null) {
-      throw RootShellException('Shell process is not running');
+  Future<String> _sendAndCollect(
+    String command,
+    Duration timeout, {
+    bool restartOnTimeout = true,
+  }) async {
+    final process = _rootShell;
+    if (process == null || !_isActive) {
+      throw const RootShellException('Shell process is not running');
     }
 
     final marker = 'CMD_${DateTime.now().microsecondsSinceEpoch}_END';
-    final completer = Completer<List<String>>();
+    final completer = Completer<({int exitCode, List<String> lines})>();
     final output = <String>[];
 
-    late StreamSubscription<String> sub;
-    sub = _lineController.stream.listen(
-          (line) {
-        if (line.contains(marker)) {
-          sub.cancel();
-          if (!completer.isCompleted) completer.complete(List.unmodifiable(output));
-        } else {
+    late StreamSubscription<String> commandSubscription;
+    commandSubscription = _lineController.stream.listen(
+      (line) {
+        if (!line.startsWith('$marker:')) {
           output.add(line);
+          return;
+        }
+
+        commandSubscription.cancel();
+        final exitCode = int.tryParse(line.substring(marker.length + 1));
+        if (exitCode == null) {
+          if (!completer.isCompleted) {
+            completer.completeError(
+              const RootShellException('Invalid shell response'),
+            );
+          }
+          return;
+        }
+
+        // The protocol writes a leading newline before its marker so command
+        // output that does not end with one can still be parsed safely.
+        if (output.isNotEmpty && output.last.isEmpty) output.removeLast();
+        if (!completer.isCompleted) {
+          completer.complete((
+            exitCode: exitCode,
+            lines: List<String>.unmodifiable(output),
+          ));
         }
       },
       onError: (Object error) {
-        sub.cancel();
+        commandSubscription.cancel();
         if (!completer.isCompleted) completer.completeError(error);
       },
     );
 
     try {
-      _rootShell!.stdin.writeln('$command; echo "$marker"');
+      process.stdin.writeln(
+        '($command) 2>&1; printf \'\\n$marker:%s\\n\' "\$?"',
+      );
 
-      final lines = await completer.future.timeout(
+      final result = await completer.future.timeout(
         timeout,
         onTimeout: () {
-          sub.cancel();
+          commandSubscription.cancel();
           throw TimeoutException('Command execution timeout', timeout);
         },
       );
 
-      return lines.join('\n');
-    } catch (e) {
-      sub.cancel();
-      if (e is TimeoutException) {
-        // La shell puede estar en estado inconsistente — reiniciar.
-        await restart();
+      final commandOutput = result.lines.join('\n');
+      if (result.exitCode != 0) {
+        final details = commandOutput.trim();
+        throw RootShellException(
+          details.isEmpty
+              ? 'Command failed with exit code ${result.exitCode}'
+              : 'Command failed with exit code ${result.exitCode}: $details',
+        );
+      }
+
+      return commandOutput;
+    } catch (error) {
+      commandSubscription.cancel();
+      if (error is TimeoutException) {
+        if (restartOnTimeout) {
+          try {
+            await restart();
+          } catch (_) {
+            // Keep the timeout as the actionable error for the caller.
+          }
+        }
         throw RootShellException('Command timeout: $command');
       }
-      throw RootShellException('Command execution failed: $e');
+      if (error is RootShellException) rethrow;
+      throw RootShellException('Command execution failed: $error');
     }
   }
 
-  /// Devuelve `true` si la shell root está disponible.
   Future<bool> hasRootAccess() async {
     try {
       await initialize();
@@ -147,32 +201,33 @@ class RootShellManager {
     }
   }
 
-  /// Cierra la shell y libera recursos sin cerrar el broadcast controller,
-  Future<void> dispose() async {
-    await _cleanup();
-  }
+  Future<void> dispose() => _cleanup();
 
-  /// Reinicia la shell root.
   Future<void> restart() async {
     await _cleanup();
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     await initialize();
   }
 
   Future<void> _cleanup() async {
     _isActive = false;
 
+    await _stdoutSubscription?.cancel();
+    await _stderrSubscription?.cancel();
+    _stdoutSubscription = null;
+    _stderrSubscription = null;
+
+    final process = _rootShell;
+    _rootShell = null;
     try {
-      _rootShell?.stdin.writeln('exit');
-      await _rootShell?.stdin.close();
+      process?.stdin.writeln('exit');
+      await process?.stdin.close();
     } catch (_) {}
 
-    _rootShell?.kill();
-    _rootShell = null;
+    process?.kill();
   }
 }
 
-/// Excepción para errores de shell root.
 class RootShellException implements Exception {
   final String message;
   const RootShellException(this.message);

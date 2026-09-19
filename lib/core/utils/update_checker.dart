@@ -65,6 +65,9 @@ class UpdateChecker {
     }
   }
 
+  @visibleForTesting
+  Widget processChangelogForTesting(String changelog) => _processChangelog(changelog);
+
   Widget _processChangelog(String changelog) {
     final lines = const LineSplitter().convert(changelog);
     final expectedSection = currentLanguage.startsWith('en')

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
+import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/widgets/perf_config/freq_slider.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
@@ -54,7 +56,7 @@ class GpuCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Frequency Mode',
+                      AppLocale.freqMode.getString(context),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
@@ -62,7 +64,9 @@ class GpuCard extends StatelessWidget {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      isDvfs ? 'DVFS — Auto' : 'Fixed Frequency',
+                      isDvfs
+                          ? AppLocale.dvfsAuto.getString(context)
+                          : AppLocale.fixedFreq.getString(context),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: color,
                         fontWeight: FontWeight.w600,
@@ -98,7 +102,7 @@ class GpuCard extends StatelessWidget {
                     children: [
                       const SizedBox(height: AppConstants.spacing16),
                       FreqSlider(
-                        label: 'Fixed Frequency',
+                        label: AppLocale.fixedFreq.getString(context),
                         availableFreqs: availableFreqs,
                         currentFreq: gpuFreq,
                         color: color,
@@ -113,7 +117,7 @@ class GpuCard extends StatelessWidget {
           if (availableGovernors.isNotEmpty && hasGovernor) ...[
             const SizedBox(height: AppConstants.spacing16),
             GovernorDropdown(
-              label: 'Governor',
+              label: AppLocale.governor.getString(context),
               currentValue: gpuGovernor,
               governors: availableGovernors,
               color: color,

@@ -63,11 +63,12 @@ class FreqSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     if (availableFreqs.isEmpty) return const SizedBox.shrink();
 
-    // Work with ascending order internally
-    final ascending = availableFreqs.reversed.toList();
+    // Always sort ascending internally so left = min, right = max
+    final ascending = List<int>.from(availableFreqs)..sort();
     final maxIdx = ascending.length - 1;
 
     // Find the closest index for currentFreq
@@ -103,14 +104,35 @@ class FreqSlider extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            AnimatedSwitcher(
-              duration: AppConstants.animationFast,
-              child: Text(
-                currentLabel,
-                key: ValueKey(currentLabel),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: isDark ? 0.16 : 0.10),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: color.withValues(alpha: isDark ? 0.45 : 0.55),
+                  width: 1.0,
+                ),
+                boxShadow: isDark
+                    ? [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.15),
+                          blurRadius: 6,
+                          spreadRadius: 0.5,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: AnimatedSwitcher(
+                duration: AppConstants.animationFast,
+                child: Text(
+                  currentLabel,
+                  key: ValueKey(currentLabel),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
             ),
@@ -122,11 +144,11 @@ class FreqSlider extends StatelessWidget {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: color,
-            inactiveTrackColor: color.withValues(alpha: 0.15),
+            inactiveTrackColor: color.withValues(alpha: 0.16),
             thumbColor: color,
-            overlayColor: color.withValues(alpha: 0.15),
-            trackHeight: 3.5,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+            overlayColor: color.withValues(alpha: 0.20),
+            trackHeight: 4.0,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7.5),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
           ),
           child: Slider(

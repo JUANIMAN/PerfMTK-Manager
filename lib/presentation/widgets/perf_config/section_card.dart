@@ -61,19 +61,22 @@ class _SectionCardState extends State<SectionCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
-        color: cs.surfaceContainer,
+        color: isDark
+            ? cs.surfaceContainerHigh.withValues(alpha: 0.55)
+            : cs.surfaceContainer.withValues(alpha: 0.65),
         borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
         border: Border.all(
-          color: widget.color.withValues(alpha: 0.25),
-          width: 1,
+          color: widget.color.withValues(alpha: isDark ? 0.30 : 0.25),
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: widget.color.withValues(alpha: 0.07),
-            blurRadius: 12,
+            color: widget.color.withValues(alpha: isDark ? 0.08 : 0.05),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -93,11 +96,14 @@ class _SectionCardState extends State<SectionCard>
                 children: [
                   // Coloured icon badge
                   Container(
-                    padding: const EdgeInsets.all(AppConstants.spacing8),
+                    padding: const EdgeInsets.all(AppConstants.spacing10),
                     decoration: BoxDecoration(
-                      color: widget.color.withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.radiusSmall),
+                      color: widget.color.withValues(alpha: isDark ? 0.15 : 0.12),
+                      borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                      border: Border.all(
+                        color: widget.color.withValues(alpha: isDark ? 0.25 : 0.20),
+                        width: 0.8,
+                      ),
                     ),
                     child: Icon(
                       widget.icon,
@@ -112,6 +118,7 @@ class _SectionCardState extends State<SectionCard>
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: cs.onSurface,
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ),

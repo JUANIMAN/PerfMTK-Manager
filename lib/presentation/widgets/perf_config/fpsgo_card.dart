@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
+import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// FPSGO configuration card — FORCE_ONOFF segmented control + BOOST_TA toggle.
@@ -36,7 +38,7 @@ class FpsgoCard extends StatelessWidget {
         children: [
           // ── FORCE_ONOFF ──────────────────────────────────────────────────
           Text(
-            'FORCE_ONOFF',
+            AppLocale.forceOnOff.getString(context),
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w500,
@@ -44,10 +46,22 @@ class FpsgoCard extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacing8),
           _SegmentedOption(
-            options: const [
-              (value: 0, label: 'Off', icon: Icons.block_rounded),
-              (value: 1, label: 'On', icon: Icons.check_circle_rounded),
-              (value: 2, label: 'Free', icon: Icons.auto_mode_rounded),
+            options: [
+              (
+                value: 0,
+                label: AppLocale.offOption.getString(context),
+                icon: Icons.block_rounded,
+              ),
+              (
+                value: 1,
+                label: AppLocale.onOption.getString(context),
+                icon: Icons.check_circle_rounded,
+              ),
+              (
+                value: 2,
+                label: AppLocale.freeOption.getString(context),
+                icon: Icons.auto_mode_rounded,
+              ),
             ],
             selectedValue: forceOnOff,
             color: color,
@@ -64,14 +78,16 @@ class FpsgoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'BOOST_TA',
+                      AppLocale.taBoost.getString(context),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
-                      taOn ? 'TA boost enabled' : 'TA boost disabled',
+                      taOn
+                          ? AppLocale.taBoostEnabled.getString(context)
+                          : AppLocale.taBoostDisabled.getString(context),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: taOn ? color : cs.onSurfaceVariant,
                         fontWeight: FontWeight.w600,

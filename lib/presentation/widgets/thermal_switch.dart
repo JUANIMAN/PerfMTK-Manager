@@ -23,8 +23,6 @@ class _ThermalSwitchState extends State<ThermalSwitch>
   late AnimationController _ctrl;
   late Animation<double> _t;
 
-  static const _enabledColors = [Color(0xFF1DB954), Color(0xFF0A8F3C)];
-  static const _disabledColors = [Color(0xFFE53935), Color(0xFFB71C1C)];
 
   @override
   void initState() {
@@ -54,137 +52,103 @@ class _ThermalSwitchState extends State<ThermalSwitch>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final activeColor = widget.isEnabled
+        ? const Color(0xFF00E676)
+        : const Color(0xFFFF5252);
 
     return AnimatedBuilder(
       animation: _t,
       builder: (context, _) {
-        final t = _t.value;
-        final grad = [
-          Color.lerp(_disabledColors[0], _enabledColors[0], t)!,
-          Color.lerp(_disabledColors[1], _enabledColors[1], t)!,
-        ];
-
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            widget.onChanged(!widget.isEnabled);
-          },
-          child: Container(
-            padding: const EdgeInsets.all(AppConstants.spacing20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: grad,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
-              boxShadow: [
-                BoxShadow(
-                  color: grad[0].withValues(alpha: 0.35),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+        return Container(
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
+            border: Border.all(
+              color: widget.isEnabled
+                  ? activeColor.withValues(alpha: 0.35)
+                  : cs.outlineVariant.withValues(alpha: 0.25),
+              width: 1,
             ),
-            child: Row(
-              children: [
-                // Icon container
-                Container(
-                  padding: const EdgeInsets.all(AppConstants.spacing14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-                  ),
-                  child: AnimatedSwitcher(
-                    duration: AppConstants.animationFast,
-                    child: Icon(
-                      widget.isEnabled
-                          ? Icons.thermostat_auto_rounded
-                          : Icons.thermostat_rounded,
-                      key: ValueKey(widget.isEnabled),
-                      color: Colors.white,
-                      size: AppConstants.iconSizeXLarge,
+          ),
+          padding: const EdgeInsets.all(AppConstants.spacing20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header Row ───────────────────────────────────────────
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppConstants.spacing12),
+                    decoration: BoxDecoration(
+                      color: activeColor.withValues(alpha: 0.15),
+                      borderRadius:
+                          BorderRadius.circular(AppConstants.radiusLarge),
                     ),
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacing16),
-
-                // State text
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocale.thermalControl.getString(context),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.75),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: AppConstants.spacing4),
-                      AnimatedSwitcher(
-                        duration: AppConstants.animationFast,
-                        child: Text(
-                          widget.isEnabled
-                              ? AppLocale.enabled.getString(context)
-                              : AppLocale.disabled.getString(context),
-                          key: ValueKey(widget.isEnabled),
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppConstants.spacing4),
-                      Text(
+                    child: AnimatedSwitcher(
+                      duration: AppConstants.animationFast,
+                      child: Icon(
                         widget.isEnabled
-                            ? AppLocale.disableDsc.getString(context)
-                            : AppLocale.enableDsc.getString(context),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.65),
-                        ),
-                        maxLines: 4,
-                        overflow: TextOverflow.ellipsis,
+                            ? Icons.thermostat_auto_rounded
+                            : Icons.thermostat_rounded,
+                        key: ValueKey(widget.isEnabled),
+                        color: activeColor,
+                        size: AppConstants.iconSizeLarge,
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacing16),
-
-                // Animated toggle pill
-                AnimatedContainer(
-                  duration: AppConstants.animationNormal,
-                  width: 52,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      width: 1.5,
                     ),
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      AnimatedPositioned(
-                        duration: AppConstants.animationNormal,
-                        curve: Curves.easeOutCubic,
-                        left: widget.isEnabled ? 26 : 2,
-                        child: Container(
-                          width: 22,
-                          height: 22,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                  const SizedBox(width: AppConstants.spacing16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocale.thermalControl.getString(context),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: AppConstants.spacing4),
+                        AnimatedSwitcher(
+                          duration: AppConstants.animationFast,
+                          child: Text(
+                            widget.isEnabled
+                                ? AppLocale.enabled.getString(context)
+                                : AppLocale.disabled.getString(context),
+                            key: ValueKey(widget.isEnabled),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: activeColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: AppConstants.spacing8),
+                  Switch(
+                    value: widget.isEnabled,
+                    activeThumbColor: activeColor,
+                    onChanged: (val) {
+                      HapticFeedback.mediumImpact();
+                      widget.onChanged(val);
+                    },
+                  ),
+                ],
+              ),
+
+              // ── Description ───────────────────────────────────────────
+              const SizedBox(height: AppConstants.spacing12),
+              Text(
+                widget.isEnabled
+                    ? AppLocale.disableDsc.getString(context)
+                    : AppLocale.enableDsc.getString(context),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: cs.onSurfaceVariant,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/device_config.dart';
+import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/widgets/perf_config/freq_slider.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// Returns a distinct accent colour for each CPU cluster.
-Color _clusterColor(int policyIndex) {
-  const colors = [
-    Color(0xFF5BA4FF), // Little — blue
-    Color(0xFFFF6B35), // Mid — orange
-    Color(0xFFB98EFF), // Prime — purple
+Color _clusterColor(int policyIndex, {bool isDark = true}) {
+  const darkColors = [
+    Color(0xFF38BDF8), // Little — sky blue
+    Color(0xFF60A5FA), // Mid — royal blue
+    Color(0xFF818CF8), // Prime — tech indigo
   ];
+  const lightColors = [
+    Color(0xFF0284C7), // Little — sky blue 600
+    Color(0xFF2563EB), // Mid — royal blue 600
+    Color(0xFF4F46E5), // Prime — indigo 600
+  ];
+  final colors = isDark ? darkColors : lightColors;
   return colors[policyIndex.clamp(0, colors.length - 1)];
 }
 
@@ -65,7 +73,8 @@ class CpuPolicyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _clusterColor(policyIndex);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = _clusterColor(policyIndex, isDark: isDark);
     final icon = _clusterIcon(policyIndex);
 
     return SectionCard(
@@ -77,7 +86,7 @@ class CpuPolicyCard extends StatelessWidget {
         children: [
           // ── Frequency sliders ────────────────────────────────────────────
           FreqSlider(
-            label: 'Min Frequency',
+            label: AppLocale.minFreq.getString(context),
             availableFreqs: policy.freqs,
             currentFreq: currentMinFreq,
             color: color,
@@ -85,7 +94,7 @@ class CpuPolicyCard extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacing16),
           FreqSlider(
-            label: 'Max Frequency',
+            label: AppLocale.maxFreq.getString(context),
             availableFreqs: policy.freqs,
             currentFreq: currentMaxFreq,
             color: color,
@@ -96,7 +105,7 @@ class CpuPolicyCard extends StatelessWidget {
           // ── Governor ─────────────────────────────────────────────────────
           if (policy.governors.isNotEmpty)
             GovernorDropdown(
-              label: 'Governor',
+              label: AppLocale.governor.getString(context),
               currentValue: currentGovernor,
               governors: policy.governors,
               color: color,
@@ -107,7 +116,7 @@ class CpuPolicyCard extends StatelessWidget {
 
           // ── Online cores stepper ─────────────────────────────────────────
           _CoresStepper(
-            label: 'Online Cores',
+            label: AppLocale.onlineCores.getString(context),
             totalCores: totalCores,
             currentOnline: onlineCores,
             color: color,
@@ -154,6 +163,7 @@ class _CoresStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Row(
       children: [
@@ -169,35 +179,61 @@ class _CoresStepper extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppConstants.spacing4),
-              // Core dots
+              // Core silicon cells
               Row(
                 children: List.generate(totalCores, (i) {
                   final active = i < currentOnline;
-                  return AnimatedContainer(
-                    duration: AppConstants.animationFast,
-                    margin:
-                        const EdgeInsets.only(right: AppConstants.spacing6),
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? color
-                          : color.withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.spacing4),
-                      border: Border.all(
+                  return GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      if (currentOnline == i + 1) {
+                        onChanged(i);
+                      } else {
+                        onChanged(i + 1);
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: AppConstants.animationFast,
+                      margin: const EdgeInsets.only(right: 7),
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
                         color: active
-                            ? color
-                            : color.withValues(alpha: 0.3),
+                            ? color.withValues(alpha: isDark ? 0.22 : 0.16)
+                            : (isDark
+                                ? Colors.white.withValues(alpha: 0.04)
+                                : Colors.black.withValues(alpha: 0.05)),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: active
+                              ? color.withValues(alpha: isDark ? 0.75 : 0.85)
+                              : (isDark
+                                  ? Colors.white.withValues(alpha: 0.12)
+                                  : Colors.black.withValues(alpha: 0.12)),
+                          width: active ? 1.2 : 0.8,
+                        ),
+                        boxShadow: active
+                            ? [
+                                BoxShadow(
+                                  color: color.withValues(alpha: isDark ? 0.30 : 0.15),
+                                  blurRadius: 6,
+                                  spreadRadius: 0.5,
+                                ),
+                              ]
+                            : null,
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${i + 1}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: active ? Colors.white : color,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
+                      child: Center(
+                        child: Text(
+                          '${i + 1}',
+                          style: TextStyle(
+                            color: active
+                                ? color
+                                : (isDark
+                                    ? cs.onSurfaceVariant.withValues(alpha: 0.40)
+                                    : cs.onSurface.withValues(alpha: 0.45)),
+                            fontWeight: active ? FontWeight.w900 : FontWeight.w600,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ),
@@ -218,14 +254,27 @@ class _CoresStepper extends StatelessWidget {
           },
         ),
         const SizedBox(width: AppConstants.spacing8),
-        AnimatedSwitcher(
-          duration: AppConstants.animationFast,
-          child: Text(
-            '$currentOnline/$totalCores',
-            key: ValueKey(currentOnline),
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: isDark ? 0.15 : 0.12),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: color.withValues(alpha: isDark ? 0.40 : 0.50),
+              width: 0.9,
+            ),
+          ),
+          child: AnimatedSwitcher(
+            duration: AppConstants.animationFast,
+            child: Text(
+              '$currentOnline/$totalCores',
+              key: ValueKey(currentOnline),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+                letterSpacing: 0.3,
+              ),
             ),
           ),
         ),
@@ -259,20 +308,26 @@ class _StepButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedOpacity(
       duration: AppConstants.animationFast,
       opacity: enabled ? 1.0 : AppConstants.opacityDisabled,
       child: Material(
-        color: color.withValues(alpha: 0.1),
-        borderRadius:
-            BorderRadius.circular(AppConstants.spacing8),
+        color: color.withValues(alpha: isDark ? 0.12 : 0.08),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: enabled ? onTap : null,
-          borderRadius:
-              BorderRadius.circular(AppConstants.spacing8),
-          child: Padding(
-            padding: const EdgeInsets.all(AppConstants.spacing6),
-            child: Icon(icon, color: color, size: 18),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.30 : 0.40),
+                width: 0.8,
+              ),
+            ),
+            child: Icon(icon, color: color, size: 17),
           ),
         ),
       ),

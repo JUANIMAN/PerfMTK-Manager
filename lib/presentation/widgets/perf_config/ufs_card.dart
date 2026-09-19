@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
+import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
@@ -38,7 +40,7 @@ class UfsCard extends StatelessWidget {
         children: [
           if (availableGovernors.isNotEmpty)
             GovernorDropdown(
-              label: 'Governor',
+              label: AppLocale.governor.getString(context),
               currentValue: ufsGovernor,
               governors: availableGovernors,
               color: color,
@@ -54,14 +56,16 @@ class UfsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'UFS_CLK_ENABLE',
+                      AppLocale.ufsClkEnable.getString(context),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
-                      clkOn ? 'Clock enabled' : 'Clock disabled',
+                      clkOn
+                          ? AppLocale.clockEnabled.getString(context)
+                          : AppLocale.clockDisabled.getString(context),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: clkOn
                             ? color

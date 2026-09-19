@@ -86,27 +86,22 @@ class AppTheme {
     scaffoldBackgroundColor: _lightBg,
     textTheme: _buildTextTheme(const Color(0xFF1A1C22)),
 
-    // App Bar — distinct primary-tinted header
+    // App Bar — modern seamless header matching scaffold background
     appBarTheme: AppBarTheme(
-      backgroundColor: _primary,
-      foregroundColor: Colors.white,
+      backgroundColor: _lightBg,
+      foregroundColor: const Color(0xFF111827),
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
       titleTextStyle: GoogleFonts.inter(
-        fontSize: 20,
+        fontSize: 19,
         fontWeight: FontWeight.w700,
-        color: Colors.white,
+        color: const Color(0xFF111827),
         letterSpacing: -0.3,
       ),
-      iconTheme: const IconThemeData(color: Colors.white),
-      actionsIconTheme: const IconThemeData(color: Colors.white),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(AppConstants.radiusMedium),
-        ),
-      ),
+      iconTheme: const IconThemeData(color: Color(0xFF1F2937)),
+      actionsIconTheme: const IconThemeData(color: Color(0xFF1F2937)),
     ),
 
     // Navigation Bar
@@ -355,14 +350,14 @@ class AppTheme {
 
     // App Bar — dark variant with a slightly lighter primary shade
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF0F2744),
+      backgroundColor: _darkSurface,
       foregroundColor: Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
       titleTextStyle: GoogleFonts.inter(
-        fontSize: 20,
+        fontSize: 19,
         fontWeight: FontWeight.w700,
         color: Colors.white,
         letterSpacing: -0.3,
@@ -371,7 +366,7 @@ class AppTheme {
       actionsIconTheme: const IconThemeData(color: Colors.white),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(AppConstants.radiusMedium),
+          bottom: Radius.circular(AppConstants.radiusXLarge),
         ),
       ),
     ),

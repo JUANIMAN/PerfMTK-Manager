@@ -1,44 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-// Provider para SharedPreferences
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('SharedPreferences must be overridden in main.dart');
-});
+import 'package:manager/core/providers/shared_preferences_provider.dart';
 
 // Provider principal del ThemeMode
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  return ThemeModeNotifier(ref.read(sharedPreferencesProvider));
-});
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
+  ThemeModeNotifier.new,
+);
 
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+class ThemeModeNotifier extends Notifier<ThemeMode> {
   static const String _themeModeKey = 'themeMode';
-  final SharedPreferences _prefs;
 
-  ThemeModeNotifier(this._prefs) : super(ThemeMode.system) {
-    _loadThemePreference();
-  }
+  @override
+  ThemeMode build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final savedThemeMode = prefs.getString(_themeModeKey);
 
-  Future<void> _loadThemePreference() async {
-    final savedThemeMode = _prefs.getString(_themeModeKey);
-
-    state = savedThemeMode != null
+    final initialMode = savedThemeMode != null
         ? ThemeMode.values.firstWhere(
-          (e) => e.toString() == savedThemeMode,
-      orElse: () => ThemeMode.system,
-    )
+            (e) => e.toString() == savedThemeMode,
+            orElse: () => ThemeMode.system,
+          )
         : ThemeMode.system;
 
-    _updateSystemUIOverlayStyle();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateSystemUIOverlayStyle();
+    });
+
+    return initialMode;
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     if (state != mode) {
       state = mode;
-      await _prefs.setString(_themeModeKey, mode.toString());
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setString(_themeModeKey, mode.toString());
       _updateSystemUIOverlayStyle();
     }
   }
@@ -49,8 +45,10 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 
   void _updateSystemUIOverlayStyle() {
-    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    final isDark = state == ThemeMode.dark ||
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final isDark =
+        state == ThemeMode.dark ||
         (state == ThemeMode.system && brightness == Brightness.dark);
 
     SystemChrome.setSystemUIOverlayStyle(
@@ -62,7 +60,8 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 // Provider derivado para obtener si está en modo oscuro
 final isDarkModeProvider = Provider<bool>((ref) {
   final themeMode = ref.watch(themeModeProvider);
-  final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  final brightness =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
   return themeMode == ThemeMode.dark ||
       (themeMode == ThemeMode.system && brightness == Brightness.dark);

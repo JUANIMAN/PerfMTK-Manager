@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -8,6 +7,7 @@ import 'package:manager/data/models/system_state.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
 import 'package:manager/presentation/widgets/profile_button.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
+import 'package:manager/presentation/widgets/hardware_telemetry_card.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,7 +20,6 @@ class ProfilesScreen extends ConsumerStatefulWidget {
 
 class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
     with SingleTickerProviderStateMixin, EntryAnimationMixin {
-
   @override
   void initState() {
     super.initState();
@@ -63,71 +62,125 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
               AppConstants.spacing16,
               AppConstants.spacing16,
               AppConstants.spacing16,
-              0,
+              AppConstants.spacing24,
             ),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    AppLocale.titleProfiles.getString(context),
-                    style: Theme.of(context).textTheme.titleLarge,
+                  // 1. Banner de Estado Activo
+                  _ActiveProfileBanner(state: state, isChanging: isChanging),
+                  const SizedBox(height: AppConstants.spacing20),
+
+                  // 2. Selector Táctil de Perfiles 2x2
+                  _buildSectionHeader(
+                    context,
+                    AppLocale.switchProfileHeader.getString(context),
                   ),
-                  const SizedBox(height: AppConstants.spacing16),
-                  _CurrentProfileHeroCard(
-                    state: state,
-                    isChanging: isChanging,
+                  const SizedBox(height: AppConstants.spacing8),
+                  _buildProfileGrid(state, isChanging),
+                  const SizedBox(height: AppConstants.spacing20),
+
+                  // 3. Monitor de Hardware en Vivo
+                  if (_hasTelemetry(state)) ...[
+                    _buildSectionHeader(
+                      context,
+                      AppLocale.hardwareMonitorHeader.getString(context),
+                    ),
+                    const SizedBox(height: AppConstants.spacing8),
+                    HardwareTelemetryCard(state: state),
+                  ],
+                  const SizedBox(
+                    height: AppConstants.spacing80 + AppConstants.spacing16,
                   ),
-                  const SizedBox(height: AppConstants.spacing24),
-                  Text(
-                    AppLocale.subtitleProfiles.getString(context),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: AppConstants.spacing12),
                 ],
               ),
             ),
-          ),
-
-          // ── Profile list ──────────────────────────────────────────────────
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.spacing16,
-            ),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final profile = ProfileType.values[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppConstants.spacing12),
-                    child: AbsorbPointer(
-                      absorbing: isChanging,
-                      child: AnimatedOpacity(
-                        duration: AppConstants.animationFast,
-                        opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
-                        child: ProfileButton(
-                          profile: profile,
-                          isSelected: state.currentProfile == profile,
-                          onTap: () => _setProfile(profile),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                childCount: ProfileType.values.length,
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(
-            child: SizedBox(height: AppConstants.spacing80 + AppConstants.spacing16),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.7,
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(
+                alpha: 0.8,
+              ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileGrid(SystemState state, bool isChanging) {
+    return AbsorbPointer(
+      absorbing: isChanging,
+      child: AnimatedOpacity(
+        duration: AppConstants.animationFast,
+        opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.performance,
+                    isSelected: state.currentProfile == ProfileType.performance,
+                    onTap: () => _setProfile(ProfileType.performance),
+                  ),
+                ),
+                const SizedBox(width: AppConstants.spacing10),
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.balanced,
+                    isSelected: state.currentProfile == ProfileType.balanced,
+                    onTap: () => _setProfile(ProfileType.balanced),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppConstants.spacing10),
+            Row(
+              children: [
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.powersave,
+                    isSelected: state.currentProfile == ProfileType.powersave,
+                    onTap: () => _setProfile(ProfileType.powersave),
+                  ),
+                ),
+                const SizedBox(width: AppConstants.spacing10),
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.powersavePlus,
+                    isSelected:
+                        state.currentProfile == ProfileType.powersavePlus,
+                    onTap: () => _setProfile(ProfileType.powersavePlus),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _hasTelemetry(SystemState s) =>
+      s.cpuClusters.isNotEmpty ||
+      s.gpuFreq.isNotEmpty ||
+      s.dramFreq.isNotEmpty ||
+      s.socTempC != null ||
+      s.batteryTempC != null ||
+      s.chargeBypass ||
+      s.batteryCapacityPct != null;
 
   Widget _buildErrorView(Object error) {
     return Center(
@@ -158,8 +211,8 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
             Text(
               error.toString(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -170,7 +223,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
               children: [
                 FilledButton.icon(
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Retry'),
+                  label: Text(AppLocale.retry.getString(context)),
                   onPressed: () => ref.refresh(systemStateProvider),
                 ),
                 const SizedBox(width: AppConstants.spacing12),
@@ -187,13 +240,41 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
     );
   }
 
-  void _setProfile(ProfileType profile) {
-    HapticFeedback.mediumImpact();
-    ref.read(systemStateProvider.notifier).setProfile(profile);
+  Future<void> _setProfile(ProfileType profile) async {
+    try {
+      await ref.read(systemStateProvider.notifier).setProfile(profile);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocale.profileApplied
+                  .getString(context)
+                  .replaceAll(
+                    '{profile}',
+                    ProfileUtils.nameFor(context, profile),
+                  ),
+            ),
+          ),
+        );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(AppLocale.snackBarText.getString(context)),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+    }
   }
 
   Future<void> _launchUrl() async {
-    final uri = Uri.parse('https://github.com/JUANIMAN/PerfMTK/releases/latest');
+    final uri = Uri.parse(
+      'https://github.com/JUANIMAN/PerfMTK/releases/latest',
+    );
     try {
       await launchUrl(uri);
     } catch (_) {
@@ -206,12 +287,12 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
   }
 }
 
-// ── Hero status card ──────────────────────────────────────────────────────────
-class _CurrentProfileHeroCard extends StatelessWidget {
+// ── Active Profile Banner ───────────────────────────────────────────────────
+class _ActiveProfileBanner extends StatelessWidget {
   final SystemState state;
   final bool isChanging;
 
-  const _CurrentProfileHeroCard({
+  const _ActiveProfileBanner({
     required this.state,
     required this.isChanging,
   });
@@ -219,109 +300,113 @@ class _CurrentProfileHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profile = state.currentProfile;
-    final color = ProfileUtils.colorFor(profile);
-    final gradient = ProfileUtils.gradientFor(profile);
+    final color = ProfileUtils.colorForContext(context, profile);
     final icon = ProfileUtils.iconFor(profile);
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
 
-    return AnimatedContainer(
-      duration: AppConstants.animationNormal,
-      curve: Curves.easeOutCubic,
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacing16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
+        border: Border.all(
+          color: color.withValues(alpha: 0.40),
+          width: 1.0,
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.35),
-            blurRadius: 24,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
+            color: color.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Stack(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Decorative circles
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
+          Container(
+            padding: const EdgeInsets.all(AppConstants.spacing12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
             ),
+            child: isChanging
+                ? SizedBox(
+                    width: AppConstants.iconSizeLarge,
+                    height: AppConstants.iconSizeLarge,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation(color),
+                    ),
+                  )
+                : Icon(icon, color: color, size: AppConstants.iconSizeLarge),
           ),
-          Positioned(
-            right: 20,
-            bottom: -30,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.06),
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.spacing20),
-            child: Row(
+          const SizedBox(width: AppConstants.spacing16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(AppConstants.spacing16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                Text(
+                  AppLocale.currentProfile.getString(context).toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                    color: color,
                   ),
-                  child: isChanging
-                      ? SizedBox(
-                          width: AppConstants.iconSizeXLarge,
-                          height: AppConstants.iconSizeXLarge,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: const AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
-                      : Icon(
-                          icon,
-                          size: AppConstants.iconSizeXLarge,
-                          color: Colors.white,
-                        ),
                 ),
-                const SizedBox(width: AppConstants.spacing16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocale.currentProfile.getString(context),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.75),
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                      const SizedBox(height: AppConstants.spacing4),
-                      AnimatedSwitcher(
-                        duration: AppConstants.animationNormal,
-                        child: Text(
-                          isChanging
-                              ? AppLocale.applying.getString(context)
-                              : profile.displayName,
-                          key: ValueKey(isChanging ? 'loading' : profile.value),
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 3),
+                AnimatedSwitcher(
+                  duration: AppConstants.animationNormal,
+                  child: Text(
+                    isChanging
+                        ? AppLocale.applying.getString(context)
+                        : ProfileUtils.nameFor(context, profile),
+                    key: ValueKey(isChanging ? 'loading' : profile.value),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // App Context Tag
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: color.withValues(alpha: 0.25),
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _isGlobalApp(state.currentApp)
+                      ? Icons.public_rounded
+                      : Icons.sports_esports_rounded,
+                  size: 13,
+                  color: color,
+                ),
+                const SizedBox(width: 5),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 110),
+                  child: Text(
+                    _displayAppName(context, state.currentApp),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -330,5 +415,13 @@ class _CurrentProfileHeroCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool _isGlobalApp(String app) =>
+      app.isEmpty || app == 'com.perfmtk.manager';
+
+  String _displayAppName(BuildContext context, String app) {
+    if (_isGlobalApp(app)) return AppLocale.modeGlobal.getString(context);
+    return app;
   }
 }

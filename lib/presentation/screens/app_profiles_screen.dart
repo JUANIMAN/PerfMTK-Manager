@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localization/flutter_localization.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manager/config/app_constants.dart';
+import 'package:manager/core/utils/app_icon_cache.dart';
+import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
 import 'package:manager/presentation/widgets/app_profile_item.dart';
+import 'package:manager/presentation/widgets/app_profiles/app_filter_chips_bar.dart';
+import 'package:manager/presentation/widgets/app_profiles/app_search_bar.dart';
+import 'package:manager/presentation/widgets/app_profiles/daemon_settings_card.dart';
+import 'package:manager/presentation/widgets/app_profiles/screen_off_profile_sheet.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
-import 'package:manager/config/app_constants.dart';
-import 'package:manager/presentation/widgets/custom_selection_tile.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+/// Screen for managing per-application performance profiles and daemon behavior.
 class AppProfilesScreen extends ConsumerStatefulWidget {
   const AppProfilesScreen({super.key});
 
@@ -22,12 +28,10 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
     with SingleTickerProviderStateMixin, EntryAnimationMixin {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<bool> _showBackToTopButton = ValueNotifier<bool>(false);
 
   String _searchQuery = '';
   AppFilterType _selectedFilter = AppFilterType.all;
-  bool _showBackToTopButton = false;
-
-  // Daemon settings collapsed by default
   bool _daemonSettingsExpanded = false;
 
   @override
@@ -42,13 +46,14 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
     disposeEntryAnimation();
     _searchController.dispose();
     _scrollController.dispose();
+    _showBackToTopButton.dispose();
     super.dispose();
   }
 
   void _handleScroll() {
     final shouldShow = _scrollController.offset >= 300;
-    if (shouldShow != _showBackToTopButton) {
-      setState(() => _showBackToTopButton = shouldShow);
+    if (_showBackToTopButton.value != shouldShow) {
+      _showBackToTopButton.value = shouldShow;
     }
   }
 
@@ -73,7 +78,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
             appProfileAsync.when(
               data: (state) => _buildFixedTop(state),
               loading: () => _buildFixedTop(null),
-              error: (_, _s) => _buildFixedTop(null),
+              error: (_, _) => _buildFixedTop(null),
             ),
 
             // ── Scrollable app list ───────────────────────────────────────────
@@ -87,81 +92,128 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
           ],
         ),
       ),
-      floatingActionButton: _showBackToTopButton
-          ? Padding(
-        padding: const EdgeInsets.only(bottom: 70),
-        child: FloatingActionButton.small(
-          heroTag: 'app_profiles_top',
-          onPressed: _scrollToTop,
-          child: const Icon(Icons.arrow_upward_rounded),
-        ),
-      )
-          : null,
+      floatingActionButton: ValueListenableBuilder<bool>(
+        valueListenable: _showBackToTopButton,
+        builder: (context, show, child) {
+          if (!show) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 70),
+            child: FloatingActionButton.small(
+              heroTag: 'app_profiles_top',
+              onPressed: _scrollToTop,
+              child: const Icon(Icons.arrow_upward_rounded),
+            ),
+          );
+        },
+      ),
     );
   }
 
-  // ── Fixed top: title + daemon settings chip + search + filters ────────────
   Widget _buildFixedTop(AppProfileState? state) {
+    final isConfigured = state?.configExists ?? false;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: theme.scaffoldBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Title row + daemon settings icon
+          // ── Title & daemon settings expand toggle ───────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppConstants.spacing16,
               AppConstants.spacing16,
-              AppConstants.spacing8,
-              AppConstants.spacing8,
+              AppConstants.spacing16,
+              AppConstants.spacing4,
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        AppLocale.titleAppProfiles.getString(context),
-                        style: Theme.of(context).textTheme.titleLarge,
+                        AppLocale.appProfiles.getString(context),
+                        style: theme.textTheme.titleLarge,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         AppLocale.appProfilesDescription.getString(context),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                // Daemon settings icon button
-                if (state != null)
-                  Tooltip(
-                    message: AppLocale.daemonSettings.getString(context),
+                if (isConfigured)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
                     child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                      color: _daemonSettingsExpanded
+                          ? cs.primary.withValues(alpha: 0.16)
+                          : (isDark
+                              ? cs.surfaceContainerHigh.withValues(alpha: 0.40)
+                              : cs.surfaceContainerHighest.withValues(alpha: 0.50)),
+                      borderRadius: BorderRadius.circular(12),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                        borderRadius: BorderRadius.circular(12),
                         onTap: () {
+                          setState(() {
+                            _daemonSettingsExpanded = !_daemonSettingsExpanded;
+                          });
                           HapticFeedback.lightImpact();
-                          setState(() =>
-                              _daemonSettingsExpanded = !_daemonSettingsExpanded);
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppConstants.spacing8),
-                          child: AnimatedRotation(
-                            duration: AppConstants.animationNormal,
-                            turns: _daemonSettingsExpanded ? 0.5 : 0,
-                            child: Icon(
-                              Icons.tune_rounded,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
                               color: _daemonSettingsExpanded
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ? cs.primary.withValues(alpha: 0.50)
+                                  : cs.outlineVariant.withValues(alpha: 0.25),
+                              width: 1.0,
                             ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.tune_rounded,
+                                size: 14,
+                                color: _daemonSettingsExpanded
+                                    ? cs.primary
+                                    : cs.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Daemon',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: _daemonSettingsExpanded
+                                      ? cs.primary
+                                      : cs.onSurfaceVariant,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              AnimatedRotation(
+                                turns: _daemonSettingsExpanded ? 0.5 : 0.0,
+                                duration: AppConstants.animationFast,
+                                child: Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 16,
+                                  color: _daemonSettingsExpanded
+                                      ? cs.primary
+                                      : cs.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -177,7 +229,17 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
               duration: AppConstants.animationNormal,
               curve: Curves.easeOutCubic,
               child: _daemonSettingsExpanded
-                  ? _buildDaemonSettingsCard(state)
+                  ? DaemonSettingsCard(
+                      state: state,
+                      onPickScreenOffProfile: () {
+                        ScreenOffProfileSheet.show(
+                          context,
+                          currentProfile: state.screenOffProfile,
+                          onProfileSelected: _setScreenOffProfile,
+                        );
+                      },
+                      onCommitDebounce: _commitDebounce,
+                    )
                   : const SizedBox.shrink(),
             ),
 
@@ -189,392 +251,44 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
               AppConstants.spacing16,
               AppConstants.spacing8,
             ),
-            child: _buildSearchField(),
+            child: AppSearchBar(
+              controller: _searchController,
+              searchQuery: _searchQuery,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              onClear: () => setState(() => _searchQuery = ''),
+            ),
           ),
 
           // ── Filter chips ───────────────────────────────────────────────────
-          if (state != null) _buildFilterRow(state),
-
-          const Divider(height: 1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        hintText: AppLocale.searchApps.getString(context),
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: _searchQuery.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() => _searchQuery = '');
-                  HapticFeedback.lightImpact();
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: theme.brightness == Brightness.light
-            ? cs.surfaceContainerHighest
-            : cs.surfaceContainerLow,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing16,
-          vertical: AppConstants.spacing10,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-          borderSide: BorderSide(
-            color: cs.primary,
-            width: 1.5,
-          ),
-        ),
-      ),
-      onChanged: (value) => setState(() => _searchQuery = value),
-      style: theme.textTheme.bodyLarge,
-    );
-  }
-
-  Widget _buildFilterRow(AppProfileState state) {
-    final isLoading = ref.watch(appProfileProvider).isLoading;
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppConstants.spacing16,
-        AppConstants.spacing4,
-        AppConstants.spacing16,
-        AppConstants.spacing8,
-      ),
-      child: Row(
-        children: [
-          // Filter chips
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip(
-                    AppFilterType.all,
-                    AppLocale.allApps.getString(context),
-                    Icons.apps_rounded,
-                  ),
-                  const SizedBox(width: AppConstants.spacing6),
-                  _buildFilterChip(
-                    AppFilterType.configured,
-                    AppLocale.configuredApps.getString(context),
-                    Icons.check_circle_outline_rounded,
-                  ),
-                  const SizedBox(width: AppConstants.spacing6),
-                  _buildFilterChip(
-                    AppFilterType.notConfigured,
-                    AppLocale.notConfiguredApps.getString(context),
-                    Icons.pending_outlined,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(width: AppConstants.spacing8),
-
-          // System apps toggle — compact icon button
-          Tooltip(
-            message: AppLocale.includeSystemApps.getString(context),
-            child: AnimatedContainer(
-              duration: AppConstants.animationFast,
-              decoration: BoxDecoration(
-                color: state.includeSystemApps
-                    ? theme.colorScheme.primary.withValues(alpha: 0.12)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                border: Border.all(
-                  color: state.includeSystemApps
-                      ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                      : theme.colorScheme.outlineVariant,
-                ),
-              ),
-              child: IgnorePointer(
-                ignoring: isLoading,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    ref
-                        .read(appProfileProvider.notifier)
-                        .toggleSystemApps(!state.includeSystemApps);
+          if (state != null) ...[
+            Builder(
+              builder: (context) {
+                final totalCount = state.appProfiles.length;
+                final configuredCount =
+                    state.appProfiles.where((a) => a.isConfigured).length;
+                final notConfiguredCount = totalCount - configuredCount;
+                return AppFilterChipsBar(
+                  selectedFilter: _selectedFilter,
+                  includeSystemApps: state.includeSystemApps,
+                  isLoading: ref.watch(appProfileProvider).isLoading,
+                  totalCount: totalCount,
+                  configuredCount: configuredCount,
+                  notConfiguredCount: notConfiguredCount,
+                  onFilterSelected: (f) => setState(() => _selectedFilter = f),
+                  onToggleSystemApps: (inc) {
+                    ref.read(appProfileProvider.notifier).toggleSystemApps(inc);
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.spacing6),
-                    child: Icon(
-                      Icons.security_rounded,
-                      size: AppConstants.iconSizeMedium,
-                      color: state.includeSystemApps
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(AppFilterType filterType, String label, IconData icon) {
-    final isSelected = _selectedFilter == filterType;
-    final theme = Theme.of(context);
-    final color = theme.colorScheme.primary;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() => _selectedFilter = filterType);
-        HapticFeedback.selectionClick();
-      },
-      child: AnimatedContainer(
-        duration: AppConstants.animationFast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing10,
-          vertical: AppConstants.spacing6,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-          border: Border.all(
-            color: isSelected
-                ? color.withValues(alpha: 0.5)
-                : theme.colorScheme.outlineVariant,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 14,
-              color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: AppConstants.spacing4),
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: isSelected ? color : theme.colorScheme.onSurfaceVariant,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Daemon Settings card (compact, collapsible) ───────────────────────────
-  Widget _buildDaemonSettingsCard(AppProfileState state) {
-    final isConfigured = state.configExists;
-    final cs = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppConstants.spacing16,
-        0,
-        AppConstants.spacing16,
-        AppConstants.spacing8,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
-          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6)),
-        ),
-        child: IgnorePointer(
-          ignoring: !isConfigured,
-          child: AnimatedOpacity(
-            duration: AppConstants.animationFast,
-            opacity: isConfigured ? 1.0 : AppConstants.opacityDisabled,
-            child: Column(
-              children: [
-                _buildScreenOffRow(state),
-                Divider(
-                  height: 1,
-                  indent: AppConstants.spacing16,
-                  endIndent: AppConstants.spacing16,
-                  color: cs.outlineVariant.withValues(alpha: 0.5),
-                ),
-                _buildDebounceRow(state),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScreenOffRow(AppProfileState state) {
-    final cs = Theme.of(context).colorScheme;
-    final color = ProfileUtils.colorFor(state.screenOffProfile);
-    final icon = ProfileUtils.iconFor(state.screenOffProfile);
-
-    return InkWell(
-      onTap: state.configExists
-          ? () {
-              HapticFeedback.lightImpact();
-              _showScreenOffProfileSheet(state.screenOffProfile);
-            }
-          : null,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppConstants.radiusXLarge),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppConstants.spacing16,
-          vertical: AppConstants.spacing12,
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.bedtime_rounded, size: AppConstants.iconSizeMedium, color: cs.primary),
-            const SizedBox(width: AppConstants.spacing12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocale.screenOffProfile.getString(context),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                  Text(
-                    AppLocale.screenOffProfileDesc.getString(context),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.spacing8,
-                vertical: 3,
-              ),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
-                border: Border.all(color: color.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 12, color: color),
-                  const SizedBox(width: 4),
-                  Text(
-                    state.screenOffProfile.displayName,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: AppConstants.spacing4),
-            Icon(Icons.chevron_right_rounded,
-                color: cs.onSurfaceVariant, size: AppConstants.iconSizeMedium),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDebounceRow(AppProfileState state) {
-    final cs = Theme.of(context).colorScheme;
-    final debounce = state.appDebounceMs;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppConstants.spacing16,
-        AppConstants.spacing10,
-        AppConstants.spacing16,
-        AppConstants.spacing4,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.timer_outlined,
-                  size: AppConstants.iconSizeMedium, color: cs.primary),
-              const SizedBox(width: AppConstants.spacing12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocale.appDebounceMs.getString(context),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                    ),
-                    Text(
-                      AppLocale.appDebounceMsDesc.getString(context),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                '${debounce}ms',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: cs.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
-          ),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 3,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-            ),
-            child: Slider(
-              value: debounce.toDouble(),
-              min: 500,
-              max: 10000,
-              divisions: 38,
-              onChanged: (value) {
-                final snapped = (value / 250).round() * 250;
-                ref.read(appProfileProvider.notifier).setDebounceMs(snapped);
+                );
               },
-              onChangeEnd: (_) => HapticFeedback.selectionClick(),
             ),
-          ),
+          ],
+
+          Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.18)),
         ],
       ),
     );
   }
 
-  // ── Scrollable app list ───────────────────────────────────────────────────
   Widget _buildAppList(AppProfileState state) {
     var filteredApps = state.appProfiles;
 
@@ -596,135 +310,51 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
       return _buildEmptyState();
     }
 
+    // Warm up the top visible apps so their icons are ready smoothly
+    if (filteredApps.isNotEmpty) {
+      AppIconCache.instance.warmup(
+        filteredApps.take(25).map((a) => a.appInfo.packageName),
+      );
+    }
+
     return RefreshIndicator(
-      onRefresh: () => ref.read(appProfileProvider.notifier).reloadInstalledApps(),
-      child: AnimationLimiter(
-        child: ListView.builder(
-          controller: _scrollController,
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          padding: const EdgeInsets.fromLTRB(
-            AppConstants.spacing16,
-            AppConstants.spacing12,
-            AppConstants.spacing16,
-            AppConstants.spacing80 + AppConstants.spacing16,
-          ),
-          itemCount: filteredApps.length,
-          itemBuilder: (context, index) {
-            final appProfile = filteredApps[index];
-            return AnimationConfiguration.staggeredList(
-              position: index,
-              duration: const Duration(milliseconds: 300),
-              child: SlideAnimation(
-                verticalOffset: 30,
-                child: FadeInAnimation(
-                  child: AppProfileItem(
-                    key: ValueKey(appProfile.appInfo.packageName),
-                    app: appProfile.appInfo,
-                    currentProfile: appProfile.assignedProfile,
-                    isSystemApp: appProfile.appInfo.isSystemApp,
-                    onProfileSelected: (profile) {
-                      ref
-                          .read(appProfileProvider.notifier)
-                          .setAppProfile(
-                            appProfile.appInfo.packageName,
-                            profile,
-                          );
-                      _showProfileChangedSnackbar(
-                        appProfile.appInfo.name,
-                        profile,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-          },
+      onRefresh: () async {
+        AppIconCache.instance.clear();
+        await ref.read(appProfileProvider.notifier).reloadInstalledApps();
+      },
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
+        padding: const EdgeInsets.fromLTRB(
+          AppConstants.spacing16,
+          AppConstants.spacing12,
+          AppConstants.spacing16,
+          AppConstants.spacing80 + AppConstants.spacing16,
+        ),
+        scrollCacheExtent: const ScrollCacheExtent.pixels(600),
+        itemCount: filteredApps.length,
+        itemBuilder: (context, index) {
+          final appProfile = filteredApps[index];
+          return AppProfileItem(
+            key: ValueKey(appProfile.appInfo.packageName),
+            app: appProfile.appInfo,
+            currentProfile: appProfile.assignedProfile,
+            currentDirectives: appProfile.directives,
+            isSystemApp: appProfile.appInfo.isSystemApp,
+            onProfileSelected: (profile, directives) => _setAppProfile(
+              appProfile.appInfo.packageName,
+              appProfile.appInfo.name,
+              profile,
+              directives: directives,
+            ),
+          );
+        },
       ),
     );
   }
 
-  // ── Screen-off profile picker ─────────────────────────────────────────────
-  void _showScreenOffProfileSheet(ProfileType current) {
-    final profiles = ProfileType.values;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        final theme = Theme.of(ctx);
-        return Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppConstants.radiusXLarge),
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: AppConstants.spacing12),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: AppConstants.spacing16),
-                Padding(
-                  padding: AppConstants.paddingHorizontal,
-                  child: Row(
-                    children: [
-                      Icon(Icons.bedtime_rounded,
-                          color: theme.colorScheme.primary),
-                      const SizedBox(width: AppConstants.spacing12),
-                      Text(
-                        AppLocale.screenOffProfile.getString(context),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppConstants.spacing12),
-                Divider(height: 1, color: theme.colorScheme.outlineVariant),
-                const SizedBox(height: AppConstants.spacing8),
-                ...profiles.map((profile) {
-                  final isSelected = profile == current;
-                  final color = ProfileUtils.colorFor(profile);
-                  final icon = ProfileUtils.iconFor(profile);
-
-                  return SelectionTile(
-                    icon: icon,
-                    iconColor: color,
-                    title: profile.displayName,
-                    isSelected: isSelected,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      ref
-                          .read(appProfileProvider.notifier)
-                          .setScreenOffProfile(profile);
-                      Navigator.of(ctx).pop();
-                    },
-                  );
-                }),
-                const SizedBox(height: AppConstants.spacing16),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // ── Empty / Error states ──────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -792,7 +422,50 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
     );
   }
 
-  // ── Snackbar ──────────────────────────────────────────────────────────────
+  Future<void> _commitDebounce(int value) async {
+    try {
+      await ref.read(appProfileProvider.notifier).setDebounceMs(value);
+    } catch (_) {
+      _showSaveError();
+    }
+  }
+
+  Future<void> _setAppProfile(
+    String packageName,
+    String appName,
+    ProfileType? profile, {
+    AppDirectives? directives,
+  }) async {
+    try {
+      await ref
+          .read(appProfileProvider.notifier)
+          .setAppProfile(packageName, profile, directives: directives);
+      if (mounted) _showProfileChangedSnackbar(appName, profile);
+    } catch (_) {
+      _showSaveError();
+    }
+  }
+
+  Future<void> _setScreenOffProfile(ProfileType profile) async {
+    try {
+      await ref.read(appProfileProvider.notifier).setScreenOffProfile(profile);
+    } catch (_) {
+      _showSaveError();
+    }
+  }
+
+  void _showSaveError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(AppLocale.configSaveError.getString(context)),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+  }
+
   void _showProfileChangedSnackbar(String appName, ProfileType? newProfile) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -800,12 +473,15 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
         content: Text(
           newProfile == null
               ? AppLocale.profileReset
-                  .getString(context)
-                  .replaceAll('{app}', appName)
+                    .getString(context)
+                    .replaceAll('{app}', appName)
               : AppLocale.profileSet
-                  .getString(context)
-                  .replaceAll('{app}', appName)
-                  .replaceAll('{profile}', newProfile.displayName),
+                    .getString(context)
+                    .replaceAll('{app}', appName)
+                    .replaceAll(
+                      '{profile}',
+                      ProfileUtils.nameFor(context, newProfile),
+                    ),
         ),
         duration: const Duration(seconds: 3),
       ),

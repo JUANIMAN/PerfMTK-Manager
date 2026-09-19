@@ -47,7 +47,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             HapticFeedback.lightImpact();
             Navigator.of(context).pop();
           },
-          tooltip: 'Back',
+          tooltip: AppLocale.back.getString(context),
         ),
       ),
       body: buildWithEntryAnimation(

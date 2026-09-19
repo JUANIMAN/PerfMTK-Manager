@@ -34,6 +34,28 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Quick Settings Tiles -->
+        <service
+            android:name=".ProfileTileService"
+            android:label="PerfMTK Profile"
+            android:icon="@drawable/ic_qs_profile"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".ChargeBypassTileService"
+            android:label="PerfMTK Bypass"
+            android:icon="@drawable/ic_qs_bypass"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

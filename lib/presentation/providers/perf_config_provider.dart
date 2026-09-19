@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:manager/core/providers/shell_provider.dart';
 import 'package:manager/data/models/device_config.dart';
 import 'package:manager/data/models/profile_config.dart';
 import 'package:manager/data/models/profile.dart';
@@ -7,23 +7,27 @@ import 'package:manager/data/repositories/perf_config_repository.dart';
 
 // ── Repository provider ───────────────────────────────────────────────────────
 
-final perfConfigRepositoryProvider = Provider<PerfConfigRepository>((_) {
-  return PerfConfigRepository();
+final perfConfigRepositoryProvider = Provider<PerfConfigRepository>((ref) {
+  return PerfConfigRepository(
+    shellManager: ref.watch(shellExecutorProvider),
+  );
 });
 
 // ── Device config ─────────────────────────────────────────────────────────────
 
-final deviceConfigProvider =
-    FutureProvider<DeviceConfig>((ref) async {
+final deviceConfigProvider = FutureProvider<DeviceConfig>((ref) async {
   return ref.read(perfConfigRepositoryProvider).loadDeviceConfig();
 });
 
 // ── Profile config (loaded from disk) ────────────────────────────────────────
 
-final profileConfigProvider =
-    FutureProvider.family<ProfileConfig, ProfileType>((ref, profile) async {
-  return ref.read(perfConfigRepositoryProvider).loadProfileConfig(profile);
-});
+final profileConfigProvider = FutureProvider.family<ProfileConfig, ProfileType>(
+  (ref, profile) async {
+    // Profile parsing depends on GPU units and driver type from device.conf.
+    await ref.watch(deviceConfigProvider.future);
+    return ref.read(perfConfigRepositoryProvider).loadProfileConfig(profile);
+  },
+);
 
 // ── Editor state ──────────────────────────────────────────────────────────────
 
@@ -56,12 +60,14 @@ class ProfileEditorState {
   }
 }
 
-class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
+class ProfileEditorNotifier extends Notifier<ProfileEditorState> {
   final ProfileType profile;
-  final Ref _ref;
+  ProfileEditorNotifier(this.profile);
 
-  ProfileEditorNotifier(this.profile, this._ref)
-      : super(const ProfileEditorState());
+  @override
+  ProfileEditorState build() {
+    return const ProfileEditorState();
+  }
 
   /// Called once when the profile is first loaded from disk.
   void initialize(ProfileConfig config) {
@@ -82,12 +88,12 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
 
     state = state.copyWith(isSaving: true, clearError: true);
     try {
-      await _ref
+      await ref
           .read(perfConfigRepositoryProvider)
           .saveProfileConfig(profile, config);
       state = state.copyWith(isSaving: false, isDirty: false);
       // Invalidate so the next read picks up the fresh file.
-      _ref.invalidate(profileConfigProvider(profile));
+      ref.invalidate(profileConfigProvider(profile));
       return true;
     } catch (e) {
       state = state.copyWith(isSaving: false, errorMessage: e.toString());
@@ -101,7 +107,9 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
   }
 }
 
-final profileEditorProvider = StateNotifierProvider.family<
-    ProfileEditorNotifier, ProfileEditorState, ProfileType>(
-  (ref, profile) => ProfileEditorNotifier(profile, ref),
-);
+final profileEditorProvider =
+    NotifierProvider.family<
+      ProfileEditorNotifier,
+      ProfileEditorState,
+      ProfileType
+    >((profile) => ProfileEditorNotifier(profile));

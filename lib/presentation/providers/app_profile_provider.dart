@@ -4,11 +4,7 @@ import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/repositories/config_repository.dart';
 import 'package:manager/presentation/providers/app_profile_visibility_provider.dart';
-
-// Provider del repositorio
-final configRepositoryProvider = Provider<ConfigRepository>((ref) {
-  return ConfigRepositoryImpl();
-});
+import 'package:manager/presentation/providers/config_repository_provider.dart';
 
 class AppProfileState {
   final List<AppProfile> appProfiles;
@@ -63,22 +59,31 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
     final configExists = config.existsOnDisk;
 
     if (configExists) {
-      // Notificar al provider de visibilidad
-      ref.read(appProfileVisibilityProvider.notifier).show();
+      try {
+        await ref.read(appProfileVisibilityProvider.notifier).show();
+      } catch (_) {
+        // Loading profiles should not fail because a preference write failed.
+      }
     }
 
     final installedApps = await InstalledApps.getInstalledApps(
-      withIcon: true,
+      withIcon: false,
       excludeSystemApps: !includeSystemApps,
     );
 
-    final appProfiles = installedApps.map((app) {
-      return AppProfile(
-        appInfo: app,
-        assignedProfile: config.appProfiles[app.packageName],
-      );
-    }).toList()
-      ..sort((a, b) => a.appInfo.name.compareTo(b.appInfo.name));
+    final appProfiles =
+        installedApps.map((app) {
+          final entry = config.entries[app.packageName];
+          return AppProfile(
+            appInfo: app,
+            assignedProfile: entry?.profile,
+            directives: entry?.directives,
+          );
+        }).toList()..sort(
+          (a, b) => a.appInfo.name.toLowerCase().compareTo(
+            b.appInfo.name.toLowerCase(),
+          ),
+        );
 
     return AppProfileState(
       appProfiles: appProfiles,
@@ -91,75 +96,48 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
   }
 
   /// Actualiza el perfil de una app específica (optimistic update)
-  Future<void> setAppProfile(String packageName, ProfileType? profile) async {
+  Future<void> setAppProfile(
+    String packageName,
+    ProfileType? profile, {
+    AppDirectives? directives,
+  }) async {
     final current = state.requireValue;
 
     // Optimistic update: update in-memory list immediately
     final updatedList = current.appProfiles.map((app) {
       if (app.appInfo.packageName == packageName) {
         return profile == null
-            ? app.copyWith(clearProfile: true)
-            : app.copyWith(assignedProfile: profile);
+            ? app.copyWith(clearProfile: true, clearDirectives: true)
+            : app.copyWith(
+                assignedProfile: profile,
+                directives: directives ?? app.directives,
+              );
       }
       return app;
     }).toList();
 
-    state = AsyncData(current.copyWith(appProfiles: updatedList));
-
-    // Build the canonical profiles map from the optimistically-updated list
-    final updatedProfiles = <String, ProfileType>{};
-    for (final app in updatedList) {
-      if (app.assignedProfile != null) {
-        updatedProfiles[app.appInfo.packageName] = app.assignedProfile!;
-      }
-    }
-
-    await _repository.saveConfig(
-      updatedProfiles,
-      current.defaultProfile,
-      current.screenOffProfile,
-      current.appDebounceMs,
+    await _persistOptimistic(
+      current.copyWith(appProfiles: updatedList, configExists: true),
+      previous: current,
+      ensureVisible: !current.configExists,
     );
-    await ref.read(appProfileVisibilityProvider.notifier).show();
   }
 
   /// Actualiza el perfil por defecto
   Future<void> setDefaultProfile(ProfileType profile) async {
     final current = state.requireValue;
-
-    state = AsyncData(current.copyWith(defaultProfile: profile));
-
-    final profilesMap = {
-      for (final app in current.appProfiles)
-        if (app.assignedProfile != null)
-          app.appInfo.packageName: app.assignedProfile!,
-    };
-
-    await _repository.saveConfig(
-      profilesMap,
-      profile,
-      current.screenOffProfile,
-      current.appDebounceMs,
+    await _persistOptimistic(
+      current.copyWith(defaultProfile: profile),
+      previous: current,
     );
   }
 
   /// Actualiza el perfil de pantalla apagada
   Future<void> setScreenOffProfile(ProfileType profile) async {
     final current = state.requireValue;
-
-    state = AsyncData(current.copyWith(screenOffProfile: profile));
-
-    final profilesMap = {
-      for (final app in current.appProfiles)
-        if (app.assignedProfile != null)
-          app.appInfo.packageName: app.assignedProfile!,
-    };
-
-    await _repository.saveConfig(
-      profilesMap,
-      current.defaultProfile,
-      profile,
-      current.appDebounceMs,
+    await _persistOptimistic(
+      current.copyWith(screenOffProfile: profile),
+      previous: current,
     );
   }
 
@@ -167,29 +145,54 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
   Future<void> setDebounceMs(int ms) async {
     final current = state.requireValue;
     final clamped = ms.clamp(500, 10000);
-
-    state = AsyncData(current.copyWith(appDebounceMs: clamped));
-
-    final profilesMap = {
-      for (final app in current.appProfiles)
-        if (app.assignedProfile != null)
-          app.appInfo.packageName: app.assignedProfile!,
-    };
-
-    await _repository.saveConfig(
-      profilesMap,
-      current.defaultProfile,
-      current.screenOffProfile,
-      clamped,
+    await _persistOptimistic(
+      current.copyWith(appDebounceMs: clamped),
+      previous: current,
     );
   }
+
+  Future<void> _persistOptimistic(
+    AppProfileState next, {
+    required AppProfileState previous,
+    bool ensureVisible = false,
+  }) async {
+    state = AsyncData(next);
+
+    try {
+      await _repository.saveConfig(
+        _entriesFor(next),
+        next.defaultProfile,
+        next.screenOffProfile,
+        next.appDebounceMs,
+      );
+    } catch (error, stackTrace) {
+      // Do not roll back a newer optimistic update that is already queued.
+      if (identical(state.value, next)) state = AsyncData(previous);
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+
+    if (ensureVisible) {
+      try {
+        await ref.read(appProfileVisibilityProvider.notifier).show();
+      } catch (_) {
+        // The on-disk config remains authoritative for visibility on restart.
+      }
+    }
+  }
+
+  Map<String, AppProfileEntryData> _entriesFor(AppProfileState source) => {
+    for (final app in source.appProfiles)
+      if (app.assignedProfile != null)
+        app.appInfo.packageName: AppProfileEntryData(
+          profile: app.assignedProfile!,
+          directives: app.directives ?? const AppDirectives(),
+        ),
+  };
 
   /// Cambia si se muestran apps del sistema y recarga la lista
   Future<void> toggleSystemApps(bool include) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(
-          () => _load(includeSystemApps: include),
-    );
+    state = await AsyncValue.guard(() => _load(includeSystemApps: include));
   }
 
   /// Recarga la lista de apps instaladas
@@ -211,8 +214,4 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
   bool get hasConfig => state.value?.configExists ?? false;
 }
 
-enum AppFilterType {
-  all,
-  configured,
-  notConfigured,
-}
+enum AppFilterType { all, configured, notConfigured }

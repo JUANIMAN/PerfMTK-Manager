@@ -80,6 +80,14 @@ class DeviceConfig {
   final List<String> ufsGovernors;
   final bool ufsAvailable;
 
+  /// Hardware feature capabilities detected by daemon/CLI
+  final bool hasEas;
+  final bool hasUclamp;
+  final bool hasGbe;
+  final bool hasFpsgo;
+  final bool hasChargeBypass;
+  final bool hasBatteryCare;
+
   const DeviceConfig({
     required this.socName,
     required this.archType,
@@ -95,7 +103,109 @@ class DeviceConfig {
     required this.ufsFreqs,
     required this.ufsGovernors,
     this.ufsAvailable = true,
+    this.hasEas = true,
+    this.hasUclamp = true,
+    this.hasGbe = false,
+    this.hasFpsgo = false,
+    this.hasChargeBypass = false,
+    this.hasBatteryCare = false,
   });
+
+  /// Creates a [DeviceConfig] directly from the JSON returned by
+  /// `perfmtk --caps --json` (CAPABILITIES_JSON endpoint).
+  factory DeviceConfig.fromJson(Map<String, dynamic> json) {
+    final soc = json['soc'] as Map<String, dynamic>? ?? {};
+    final features = json['features'] as Map<String, dynamic>? ?? {};
+    final gpu = json['gpu'] as Map<String, dynamic>? ?? {};
+    final dram = json['dram'] as Map<String, dynamic>? ?? {};
+    final ufs = json['ufs'] as Map<String, dynamic>? ?? {};
+    final policiesList = json['cpu_policies'] as List<dynamic>? ?? [];
+
+    final policies = <CpuPolicy>[];
+    for (var i = 0; i < policiesList.length; i++) {
+      final p = policiesList[i] as Map<String, dynamic>;
+      final cpus = (p['cpus'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          [];
+      final freqs = (p['available_freqs'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          [];
+      final govs = (p['available_governors'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [];
+      policies.add(
+        CpuPolicy(
+          index: (p['id'] as num?)?.toInt() ?? i,
+          path: p['path']?.toString() ?? '',
+          cpus: cpus,
+          freqs: freqs,
+          governors: govs,
+          maxFreq: (p['max_freq'] as num?)?.toInt() ??
+              (freqs.isNotEmpty ? freqs.first : 0),
+          minFreq: (p['min_freq'] as num?)?.toInt() ??
+              (freqs.isNotEmpty ? freqs.last : 0),
+        ),
+      );
+    }
+
+    final gpuFreqs = (gpu['available_freqs'] as List<dynamic>?)
+            ?.map((e) => (e as num).toInt())
+            .toList() ??
+        [];
+    final gpuGovs = (gpu['available_governors'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
+    final dramFreqs = (dram['available_freqs'] as List<dynamic>?)
+            ?.map((e) => (e as num).toInt())
+            .toList() ??
+        [];
+    final dramGovs = (dram['available_governors'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
+    final ufsFreqs = (ufs['available_freqs'] as List<dynamic>?)
+            ?.map((e) => (e as num).toInt())
+            .toList() ??
+        [];
+    final ufsGovs = (ufs['available_governors'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
+    return DeviceConfig(
+      socName: soc['name']?.toString() ?? 'Unknown',
+      archType: soc['arch']?.toString() ?? 'Unknown',
+      gpuType:
+          gpu['type']?.toString() ?? soc['gpu_type']?.toString() ?? 'Unknown',
+      totalPolicies:
+          (json['total_policies'] as num?)?.toInt() ?? policies.length,
+      policies: policies,
+      gpuFreqs: gpuFreqs,
+      gpuGovernors: gpuGovs,
+      gpuFreqInKHz: true,
+      dvfFreqs: dramFreqs,
+      dvfGovernors: dramGovs,
+      dvfAvailable:
+          dram['available'] as bool? ??
+          (features['dram_dvfs'] as bool? ?? true),
+      ufsFreqs: ufsFreqs,
+      ufsGovernors: ufsGovs,
+      ufsAvailable:
+          ufs['available'] as bool? ?? (features['ufs'] as bool? ?? true),
+      hasEas: features['eas'] as bool? ?? true,
+      hasUclamp: features['uclamp'] as bool? ?? true,
+      hasGbe: features['gbe'] as bool? ?? false,
+      hasFpsgo: features['fpsgo'] as bool? ?? false,
+      hasChargeBypass: features['charge_bypass'] as bool? ?? false,
+      hasBatteryCare: features['battery_care'] as bool? ?? false,
+    );
+  }
 
   /// Fallback config used when device.conf cannot be read.
   factory DeviceConfig.empty() {
@@ -106,14 +216,35 @@ class DeviceConfig {
       totalPolicies: 0,
       policies: [],
       gpuFreqs: [],
-      gpuGovernors: ['userspace', 'performance', 'powersave', 'simple_ondemand'],
+      gpuGovernors: [
+        'userspace',
+        'performance',
+        'powersave',
+        'simple_ondemand',
+      ],
       gpuFreqInKHz: true,
       dvfFreqs: [],
-      dvfGovernors: ['userspace', 'performance', 'powersave', 'simple_ondemand'],
+      dvfGovernors: [
+        'userspace',
+        'performance',
+        'powersave',
+        'simple_ondemand',
+      ],
       dvfAvailable: true,
       ufsFreqs: [],
-      ufsGovernors: ['simple_ondemand', 'userspace', 'performance', 'powersave'],
+      ufsGovernors: [
+        'simple_ondemand',
+        'userspace',
+        'performance',
+        'powersave',
+      ],
       ufsAvailable: true,
+      hasEas: true,
+      hasUclamp: true,
+      hasGbe: false,
+      hasFpsgo: false,
+      hasChargeBypass: false,
+      hasBatteryCare: false,
     );
   }
 

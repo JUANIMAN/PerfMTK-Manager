@@ -60,6 +60,7 @@ GBE_THRM_HDRM=25
 
 [THERMAL_CHARGE]
 BYPASS_CHARGE_THROTTLE=true
+HARDWARE_CHARGE_BYPASS=true
 GENTLE_CHARGE_MA=500
 UNLOCK_FPS_THERMAL=true
 BATTERY_TEMP_LIMIT=46
@@ -126,6 +127,7 @@ THP_SMOOTH=true
 
       // THERMAL & DISPLAY
       expect(config.chargeThermal.bypassChargeThrottle, isTrue);
+      expect(config.chargeThermal.hardwareChargeBypass, isTrue);
       expect(config.chargeThermal.gentleChargeMa, equals(500));
       expect(config.chargeThermal.unlockFpsThermal, isTrue);
       expect(config.chargeThermal.batteryTempLimit, equals(46));
@@ -164,18 +166,61 @@ THP_SMOOTH=true
       expect(reloaded.touch.thpSmooth, equals(config.touch.thpSmooth));
     });
 
-    test('handles DVFS sentinel (-1) correctly', () {
+    test('handles DVFS sentinel (-1) correctly for gpufreqv2', () {
       const dvfsConf = '''
 [GPU]
 GPU_FREQ=-1
-GPU_OPP_INDEX=28
+GPU_MIN_FREQ=650000
+GPU_MAX_FREQ=1400000
+GPU_GOVERNOR="simple_ondemand"
 ''';
-      final config = ProfileConfParser.parse(dvfsConf);
+      final config = ProfileConfParser.parse(dvfsConf, gpuType: 'gpufreqv2');
       expect(config.gpu.gpuFreq, equals(-1));
+      expect(config.gpu.gpuMinFreq, equals(650000));
+      expect(config.gpu.gpuMaxFreq, equals(1400000));
+      expect(config.gpu.gpuGovernor, equals('simple_ondemand'));
 
-      final serialized = ProfileConfParser.serialize(ProfileType.performance, config);
+      final serialized = ProfileConfParser.serialize(
+        ProfileType.performance,
+        config,
+        gpuType: 'gpufreqv2',
+      );
       expect(serialized.contains('GPU_FREQ=-1'), isTrue);
-      expect(serialized.contains('GPU_OPP_INDEX'), isFalse);
+      expect(serialized.contains('GPU_MIN_FREQ=650000'), isTrue);
+      expect(serialized.contains('GPU_MAX_FREQ=1400000'), isTrue);
+      expect(serialized.contains('GPU_GOVERNOR="simple_ondemand"'), isTrue);
+    });
+
+    test('handles legacy gpufreq correctly (DVFS 0 sentinel, no min/max)', () {
+      const legacyConf = '''
+[GPU]
+GPU_FREQ=0
+GPU_GOVERNOR="none"
+''';
+      final config = ProfileConfParser.parse(legacyConf, gpuType: 'gpufreq');
+      // In-memory representation should normalize DVFS to -1
+      expect(config.gpu.gpuFreq, equals(-1));
+      expect(config.gpu.gpuMinFreq, isNull);
+      expect(config.gpu.gpuMaxFreq, isNull);
+
+      final serialized = ProfileConfParser.serialize(
+        ProfileType.performance,
+        config.copyWith(
+          gpu: config.gpu.copyWith(
+            gpuMinFreq: 500000, // Even if set in memory, must NOT serialize on legacy
+            gpuMaxFreq: 800000,
+          ),
+        ),
+        gpuType: 'gpufreq',
+      );
+      // Must serialize GPU_FREQ=0 for legacy DVFS
+      expect(serialized.contains('GPU_FREQ=0'), isTrue);
+      expect(serialized.contains('GPU_FREQ=-1'), isFalse);
+      // Must always force GPU_GOVERNOR="none" on legacy gpufreq
+      expect(serialized.contains('GPU_GOVERNOR="none"'), isTrue);
+      // Must NOT contain GPU_MIN_FREQ or GPU_MAX_FREQ
+      expect(serialized.contains('GPU_MIN_FREQ'), isFalse);
+      expect(serialized.contains('GPU_MAX_FREQ'), isFalse);
     });
   });
 }

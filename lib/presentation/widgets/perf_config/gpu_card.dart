@@ -6,13 +6,15 @@ import 'package:manager/presentation/widgets/perf_config/freq_slider.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
-/// GPU configuration card — frequency slider (or DVFS toggle) + governor.
+/// GPU configuration card — frequency sliders (DVFS min/max or fixed toggle) + governor.
 class GpuCard extends StatelessWidget {
   /// −1 internally means "re-enable DVFS" (written as -1 for gpufreqv2
   /// or 0 for legacy gpufreq by the repository). Any other value is a
   /// fixed frequency in **KHz**.
   final int gpuFreq;
   final String gpuGovernor;
+  final int? gpuMinFreq;
+  final int? gpuMaxFreq;
 
   /// Available GPU frequencies in KHz, sorted descending.
   final List<int> availableFreqs;
@@ -20,17 +22,29 @@ class GpuCard extends StatelessWidget {
 
   /// False on legacy gpufreq devices where GPU_GOVERNOR="none".
   final bool hasGovernor;
+
+  /// False on legacy gpufreq devices where min/max frequency tuneables are not supported.
+  final bool supportsMinMaxFreq;
+
   final Color color;
 
-  final void Function(int gpuFreq, String gpuGovernor) onChanged;
+  final void Function({
+    int? freq,
+    String? governor,
+    int? minFreq,
+    int? maxFreq,
+  }) onChanged;
 
   const GpuCard({
     super.key,
     required this.gpuFreq,
     required this.gpuGovernor,
+    this.gpuMinFreq,
+    this.gpuMaxFreq,
     required this.availableFreqs,
     required this.availableGovernors,
     this.hasGovernor = true,
+    this.supportsMinMaxFreq = true,
     required this.color,
     required this.onChanged,
   });
@@ -40,6 +54,13 @@ class GpuCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDvfs = gpuFreq == -1;
+
+    final effectiveMin = (gpuMinFreq != null && gpuMinFreq! > 0)
+        ? gpuMinFreq!
+        : (availableFreqs.isNotEmpty ? availableFreqs.last : 0);
+    final effectiveMax = (gpuMaxFreq != null && gpuMaxFreq! > 0)
+        ? gpuMaxFreq!
+        : (availableFreqs.isNotEmpty ? availableFreqs.first : 0);
 
     return SectionCard(
       title: 'GPU',
@@ -84,16 +105,26 @@ class GpuCard extends StatelessWidget {
                     final defaultFreq = availableFreqs.isNotEmpty
                         ? availableFreqs.first
                         : 0;
-                    onChanged(defaultFreq, gpuGovernor);
+                    onChanged(
+                      freq: defaultFreq,
+                      governor: gpuGovernor,
+                      minFreq: gpuMinFreq,
+                      maxFreq: gpuMaxFreq,
+                    );
                   } else {
-                    onChanged(-1, gpuGovernor);
+                    onChanged(
+                      freq: -1,
+                      governor: gpuGovernor,
+                      minFreq: gpuMinFreq,
+                      maxFreq: gpuMaxFreq,
+                    );
                   }
                 },
               ),
             ],
           ),
 
-          // ── Frequency slider (only when in fixed mode) ───────────────────
+          // ── Frequency controls (Fixed or DVFS Min/Max) ───────────────────
           AnimatedSize(
             duration: AppConstants.animationNormal,
             curve: Curves.easeOutCubic,
@@ -107,11 +138,57 @@ class GpuCard extends StatelessWidget {
                         currentFreq: gpuFreq,
                         color: color,
                         isKHz: true,
-                        onChanged: (v) => onChanged(v, gpuGovernor),
+                        onChanged: (v) => onChanged(
+                          freq: v,
+                          governor: gpuGovernor,
+                          minFreq: gpuMinFreq,
+                          maxFreq: gpuMaxFreq,
+                        ),
                       ),
                     ],
                   )
-                : const SizedBox.shrink(),
+                : (isDvfs && supportsMinMaxFreq && availableFreqs.isNotEmpty)
+                    ? Column(
+                        children: [
+                          const SizedBox(height: AppConstants.spacing16),
+                          FreqSlider(
+                            label: AppLocale.minFreq.getString(context),
+                            availableFreqs: availableFreqs,
+                            currentFreq: effectiveMin,
+                            color: color,
+                            isKHz: true,
+                            onChanged: (v) {
+                              final newMax =
+                                  (effectiveMax < v) ? v : effectiveMax;
+                              onChanged(
+                                freq: -1,
+                                governor: gpuGovernor,
+                                minFreq: v,
+                                maxFreq: newMax,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: AppConstants.spacing16),
+                          FreqSlider(
+                            label: AppLocale.maxFreq.getString(context),
+                            availableFreqs: availableFreqs,
+                            currentFreq: effectiveMax,
+                            color: color,
+                            isKHz: true,
+                            onChanged: (v) {
+                              final newMin =
+                                  (effectiveMin > v) ? v : effectiveMin;
+                              onChanged(
+                                freq: -1,
+                                governor: gpuGovernor,
+                                minFreq: newMin,
+                                maxFreq: v,
+                              );
+                            },
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
           ),
 
           if (availableGovernors.isNotEmpty && hasGovernor) ...[
@@ -121,7 +198,12 @@ class GpuCard extends StatelessWidget {
               currentValue: gpuGovernor,
               governors: availableGovernors,
               color: color,
-              onChanged: (v) => onChanged(gpuFreq, v),
+              onChanged: (v) => onChanged(
+                freq: gpuFreq,
+                governor: v,
+                minFreq: gpuMinFreq,
+                maxFreq: gpuMaxFreq,
+              ),
             ),
           ],
         ],

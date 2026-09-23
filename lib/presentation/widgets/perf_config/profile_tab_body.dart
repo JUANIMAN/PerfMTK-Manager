@@ -279,16 +279,21 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
       GpuCard(
         gpuFreq: config.gpu.gpuFreq,
         gpuGovernor: config.gpu.gpuGovernor,
+        gpuMinFreq: config.gpu.gpuMinFreq,
+        gpuMaxFreq: config.gpu.gpuMaxFreq,
         availableFreqs: device.gpuFreqs,
         availableGovernors: device.gpuGovernors,
         hasGovernor: device.gpuHasGovernor,
+        supportsMinMaxFreq: device.gpuSupportsMinMaxFreq,
         color: profileColor,
-        onChanged: (freq, gov) {
+        onChanged: ({freq, governor, minFreq, maxFreq}) {
           notifier.update(
             config.copyWith(
               gpu: config.gpu.copyWith(
-                gpuFreq: freq,
-                gpuGovernor: gov,
+                gpuFreq: freq ?? config.gpu.gpuFreq,
+                gpuGovernor: governor ?? config.gpu.gpuGovernor,
+                gpuMinFreq: minFreq ?? config.gpu.gpuMinFreq,
+                gpuMaxFreq: maxFreq ?? config.gpu.gpuMaxFreq,
               ),
             ),
           );
@@ -414,6 +419,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
             config.copyWith(
               chargeThermal: config.chargeThermal.copyWith(
                 bypassChargeThrottle: bypassChargeThrottle,
+                hardwareChargeBypass: bypassChargeThrottle,
                 unlockFpsThermal: unlockFpsThermal,
                 batteryTempLimit: batteryTempLimit,
               ),

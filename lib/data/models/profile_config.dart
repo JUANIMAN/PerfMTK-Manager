@@ -337,6 +337,7 @@ class GbeConfig {
 
 class ChargeThermalConfig {
   final bool bypassChargeThrottle;
+  final bool hardwareChargeBypass;
   final bool unlockFpsThermal;
   final int batteryTempLimit;
   final int bypassMinBattPct;
@@ -355,6 +356,7 @@ class ChargeThermalConfig {
 
   const ChargeThermalConfig({
     this.bypassChargeThrottle = false,
+    this.hardwareChargeBypass = false,
     this.unlockFpsThermal = false,
     this.batteryTempLimit = 48,
     this.bypassMinBattPct = 20,
@@ -366,6 +368,7 @@ class ChargeThermalConfig {
 
   ChargeThermalConfig copyWith({
     bool? bypassChargeThrottle,
+    bool? hardwareChargeBypass,
     bool? unlockFpsThermal,
     int? batteryTempLimit,
     int? bypassMinBattPct,
@@ -376,6 +379,7 @@ class ChargeThermalConfig {
   }) {
     return ChargeThermalConfig(
       bypassChargeThrottle: bypassChargeThrottle ?? this.bypassChargeThrottle,
+      hardwareChargeBypass: hardwareChargeBypass ?? this.hardwareChargeBypass,
       unlockFpsThermal: unlockFpsThermal ?? this.unlockFpsThermal,
       batteryTempLimit: batteryTempLimit ?? this.batteryTempLimit,
       bypassMinBattPct: bypassMinBattPct ?? this.bypassMinBattPct,

@@ -57,9 +57,9 @@ class ProfileConfParser {
     final downList = parseIntList(cpu['DOWN_RATE_LIMIT_US']);
     final upList = parseIntList(cpu['UP_RATE_LIMIT_US']);
 
-    final gpuDvfsSentinel = gpuType == 'gpufreqv2' ? -1 : 0;
+    final gpuDvfsSentinel = (gpuType == 'gpufreq') ? 0 : -1;
     int rawGpuFreq = int.tryParse(gpu['GPU_FREQ'] ?? '') ?? gpuDvfsSentinel;
-    if (rawGpuFreq == gpuDvfsSentinel) {
+    if (rawGpuFreq == gpuDvfsSentinel || rawGpuFreq <= 0) {
       rawGpuFreq = -1;
     } else if (!gpuFreqInKHz) {
       rawGpuFreq = rawGpuFreq ~/ 1000;
@@ -68,6 +68,9 @@ class ProfileConfParser {
     final bypassCharge =
         chargeThermal['BYPASS_CHARGE_THROTTLE']?.toLowerCase() == 'true' ||
         chargeThermal['BYPASS_CHARGE_THROTTLE'] == '1';
+    final hwChargeBypass =
+        chargeThermal['HARDWARE_CHARGE_BYPASS']?.toLowerCase() == 'true' ||
+        chargeThermal['HARDWARE_CHARGE_BYPASS'] == '1';
     final unlockFps =
         chargeThermal['UNLOCK_FPS_THERMAL']?.toLowerCase() == 'true' ||
         chargeThermal['UNLOCK_FPS_THERMAL'] == '1';
@@ -148,6 +151,7 @@ class ProfileConfParser {
       ),
       chargeThermal: ChargeThermalConfig(
         bypassChargeThrottle: bypassCharge,
+        hardwareChargeBypass: hwChargeBypass,
         unlockFpsThermal: unlockFps,
         batteryTempLimit:
             int.tryParse(chargeThermal['BATTERY_TEMP_LIMIT'] ?? '') ?? 48,
@@ -179,7 +183,7 @@ class ProfileConfParser {
   }) {
     final title = profileTitle(profile);
     final desc = profileDesc(profile);
-    final gpuDvfsSentinel = gpuType == 'gpufreqv2' ? -1 : 0;
+    final gpuDvfsSentinel = (gpuType == 'gpufreq') ? 0 : -1;
 
     final gpuFreqStr = c.gpu.gpuFreq == -1
         ? gpuDvfsSentinel.toString()
@@ -187,9 +191,9 @@ class ProfileConfParser {
               ? c.gpu.gpuFreq.toString()
               : (c.gpu.gpuFreq * 1000).toString());
 
-    final gpuGovernorStr = gpuType == 'gpufreqv2'
-        ? c.gpu.gpuGovernor
-        : 'none';
+    final gpuGovernorStr = (gpuType == 'gpufreq')
+        ? 'none'
+        : c.gpu.gpuGovernor;
 
     final gpuComment = gpuFreqInKHz
         ? '# GPU_FREQ: [265000 - 1400000]=(Fix GPU Frequency), $gpuDvfsSentinel=(re-enable GPU DVFS)'
@@ -238,10 +242,10 @@ class ProfileConfParser {
       ..writeln(gpuComment)
       ..writeln('GPU_FREQ=$gpuFreqStr');
 
-    if (c.gpu.gpuMinFreq != null && c.gpu.gpuMinFreq! > 0) {
+    if (gpuType != 'gpufreq' && c.gpu.gpuMinFreq != null && c.gpu.gpuMinFreq! > 0) {
       b.writeln('GPU_MIN_FREQ=${c.gpu.gpuMinFreq}');
     }
-    if (c.gpu.gpuMaxFreq != null && c.gpu.gpuMaxFreq! > 0) {
+    if (gpuType != 'gpufreq' && c.gpu.gpuMaxFreq != null && c.gpu.gpuMaxFreq! > 0) {
       b.writeln('GPU_MAX_FREQ=${c.gpu.gpuMaxFreq}');
     }
 
@@ -318,7 +322,8 @@ class ProfileConfParser {
       ..writeln('GBE_THRM_HDRM=${c.gbe.gbeThrmHdrm}')
       ..writeln()
       ..writeln('[THERMAL_CHARGE]')
-      ..writeln('BYPASS_CHARGE_THROTTLE=${c.chargeThermal.bypassChargeThrottle}');
+      ..writeln('BYPASS_CHARGE_THROTTLE=${c.chargeThermal.bypassChargeThrottle}')
+      ..writeln('HARDWARE_CHARGE_BYPASS=${c.chargeThermal.hardwareChargeBypass}');
 
     if (c.chargeThermal.gentleChargeMa > 0) {
       b.writeln('GENTLE_CHARGE_MA=${c.chargeThermal.gentleChargeMa}');

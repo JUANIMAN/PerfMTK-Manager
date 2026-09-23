@@ -20,6 +20,7 @@ void main() {
         'gpu_freq': '1400MHz',
         'dram_freq': '2133MHz',
         'display_fps': 120,
+        'game_fps': 59,
         'charge': {
           'bypass': true,
           'mode': 'gentle',
@@ -45,6 +46,8 @@ void main() {
       expect(state.version, '16.1');
       expect(state.currentProfile, ProfileType.performance);
       expect(state.currentApp, 'com.tencent.ig');
+      expect(state.displayFps, 120);
+      expect(state.gameFps, 59);
       expect(state.chargeBypass, true);
       expect(state.chargeMode, 'gentle');
       expect(state.gentleChargeMa, 500);

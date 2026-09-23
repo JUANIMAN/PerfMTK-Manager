@@ -251,13 +251,17 @@ class DeviceConfig {
   // ── Computed helpers ───────────────────────────────────────────────────────
 
   /// The GPU_FREQ value that means "re-enable DVFS" in profile .conf files.
-  ///   • gpufreqv2 driver → **-1**
+  ///   • gpufreqv2 / devfreq driver → **-1**
   ///   • legacy gpufreq driver → **0**
-  int get gpuDvfsSentinel => gpuType == 'gpufreqv2' ? -1 : 0;
+  int get gpuDvfsSentinel => (gpuType == 'gpufreq') ? 0 : -1;
 
   /// True when this device exposes a configurable GPU governor.
   /// Legacy gpufreq devices write `GPU_GOVERNOR="none"`.
   bool get gpuHasGovernor => gpuGovernors.isNotEmpty &&
       !(gpuGovernors.length == 1 && gpuGovernors.first == 'none');
+
+  /// True when the GPU driver supports dynamic DVFS min/max frequency clamping
+  /// (gpufreqv2 / devfreq). False on legacy gpufreq which does not have min/max tuneables.
+  bool get gpuSupportsMinMaxFreq => gpuType != 'gpufreq' && gpuType != 'none';
 }
 

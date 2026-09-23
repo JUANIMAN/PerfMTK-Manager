@@ -35,6 +35,7 @@ class SystemState {
   final String uclamp;
   final int driversActive;
   final int? displayFps;
+  final int? gameFps;
   final int? batteryCapacityPct;
   final bool batteryCareEnabled;
   final int batteryCareLimitPct;
@@ -67,6 +68,7 @@ class SystemState {
     this.uclamp = '',
     this.driversActive = 0,
     this.displayFps,
+    this.gameFps,
     this.batteryCapacityPct,
     this.batteryCareEnabled = false,
     this.batteryCareLimitPct = 80,
@@ -110,6 +112,7 @@ class SystemState {
 
     final int? battCap = (charge?['battery_capacity'] as num?)?.toInt();
     final int? dispFps = (json['display_fps'] as num?)?.toInt();
+    final int? gFps = (json['game_fps'] as num?)?.toInt();
 
     final batteryCare =
         json['battery_care'] is Map
@@ -155,6 +158,7 @@ class SystemState {
       uclamp: json['uclamp'] as String? ?? '',
       driversActive: (json['drivers_active'] as num?)?.toInt() ?? 0,
       displayFps: dispFps,
+      gameFps: (gFps != null && gFps > 0) ? gFps : null,
       batteryCapacityPct: battCap,
       batteryCareEnabled: careEnabled,
       batteryCareLimitPct: careLimit,
@@ -189,6 +193,7 @@ class SystemState {
     String? uclamp,
     int? driversActive,
     int? displayFps,
+    int? gameFps,
     int? batteryCapacityPct,
     bool? batteryCareEnabled,
     int? batteryCareLimitPct,
@@ -221,6 +226,7 @@ class SystemState {
       uclamp: uclamp ?? this.uclamp,
       driversActive: driversActive ?? this.driversActive,
       displayFps: displayFps ?? this.displayFps,
+      gameFps: gameFps ?? this.gameFps,
       batteryCapacityPct: batteryCapacityPct ?? this.batteryCapacityPct,
       batteryCareEnabled: batteryCareEnabled ?? this.batteryCareEnabled,
       batteryCareLimitPct: batteryCareLimitPct ?? this.batteryCareLimitPct,

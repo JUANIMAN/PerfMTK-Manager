@@ -1,5 +1,21 @@
 # Changelog
 
+## v8.1.0
+
+## English
+- Dual GPU DVFS Min/Max Sliders: independent control of minimum and maximum GPU frequencies when DVFS is enabled, allowing precise frequency floor and ceiling configuration.
+- Legacy MediaTek `gpufreq` Support: auto-detection of older Helio SoCs (e.g. Helio G80/G85/G90), using `0` sentinel for DVFS and cleanly hiding unsupported min/max frequency tuneables.
+- Real-time Kernel Game FPS Telemetry: added live game frame rate display (`gameFps`) sourced directly from MediaTek kernel FPSGO (`/sys/kernel/fpsgo/fstb/fpsgo_status`).
+- Profile Configuration & Serialization: enhanced parser robustness for GPU configuration round-trips and profile synchronization.
+- Unit Testing: comprehensive test coverage for legacy vs modern GPU configurations and telemetry models (37/37 passing).
+
+## Español
+- Sliders Duales de GPU DVFS Min/Max: control independiente de frecuencias mínima y máxima cuando DVFS está activo, permitiendo definir pisos y techos de frecuencia exactos.
+- Soporte para MediaTek `gpufreq` Legacy: autodetección de SoCs Helio antiguos (ej. Helio G80/G85/G90), utilizando el centinela `0` para DVFS y ocultando opciones no soportadas.
+- Telemetría de FPS Reales de Juegos del Kernel: visualización en vivo de la tasa de cuadros (`gameFps`) leída directamente desde MediaTek FPSGO en el kernel.
+- Configuración y Serialización de Perfiles: mayor robustez en el guardado y sincronización de configuraciones de GPU.
+- Pruebas Unitarias: suite completa de pruebas para configuraciones legacy vs modernas y modelos de telemetría (37/37 pruebas aprobadas).
+
 ## v8.0.0
 
 ## English

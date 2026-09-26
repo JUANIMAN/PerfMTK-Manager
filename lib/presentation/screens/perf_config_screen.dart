@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/widgets/perf_config/profile_tab_bar.dart';
 import 'package:manager/presentation/widgets/perf_config/profile_tab_body.dart';
 
@@ -46,32 +44,7 @@ class _PerfConfigScreenState extends ConsumerState<PerfConfigScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Header ─────────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppConstants.spacing16,
-                AppConstants.spacing16,
-                AppConstants.spacing16,
-                AppConstants.spacing8,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocale.titlePerfConfig.getString(context),
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    AppLocale.perfConfigDescription.getString(context),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
+            const SizedBox(height: AppConstants.spacing12),
             // ── Tab bar ────────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(

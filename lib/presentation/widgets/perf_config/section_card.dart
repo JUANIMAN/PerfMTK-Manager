@@ -73,13 +73,6 @@ class _SectionCardState extends State<SectionCard>
           color: widget.color.withValues(alpha: isDark ? 0.30 : 0.25),
           width: 1.0,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: widget.color.withValues(alpha: isDark ? 0.08 : 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         children: [

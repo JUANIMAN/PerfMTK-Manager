@@ -34,6 +34,76 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
   @override
   bool get wantKeepAlive => true;
 
+  static ProfileConfig _normalizeWithDevice(
+    ProfileConfig config,
+    DeviceConfig device,
+  ) {
+    final policies = device.policies;
+    if (policies.isEmpty) return config;
+
+    final needsMin = config.cpu.minFreqs.length != policies.length ||
+        config.cpu.minFreqs.any((f) => f <= 0);
+    final needsMax = config.cpu.maxFreqs.length != policies.length ||
+        config.cpu.maxFreqs.any((f) => f <= 0);
+    final needsGovs = config.cpu.governors.length != policies.length ||
+        config.cpu.governors.any((g) => g.isEmpty);
+    final needsCore = config.cpu.coreConfig.length != policies.length ||
+        config.cpu.coreConfig.any((c) => !c.cpuId.startsWith('cpu'));
+
+    if (!needsMin && !needsMax && !needsGovs && !needsCore) {
+      return config;
+    }
+
+    final normalizedMin = List<int>.generate(policies.length, (idx) {
+      if (idx < config.cpu.minFreqs.length && config.cpu.minFreqs[idx] > 0) {
+        return config.cpu.minFreqs[idx];
+      }
+      return policies[idx].minFreq;
+    });
+
+    final normalizedMax = List<int>.generate(policies.length, (idx) {
+      if (idx < config.cpu.maxFreqs.length && config.cpu.maxFreqs[idx] > 0) {
+        return config.cpu.maxFreqs[idx];
+      }
+      return policies[idx].maxFreq;
+    });
+
+    final normalizedGovs = List<String>.generate(policies.length, (idx) {
+      if (idx < config.cpu.governors.length &&
+          config.cpu.governors[idx].isNotEmpty) {
+        return config.cpu.governors[idx];
+      }
+      return policies[idx].governors.isNotEmpty
+          ? policies[idx].governors.first
+          : 'schedutil';
+    });
+
+    final normalizedCore = List<CoreClusterConfig>.generate(policies.length, (idx) {
+      final pol = policies[idx];
+      final cpuId = pol.cpus.isNotEmpty ? 'cpu${pol.cpus.first}' : 'cpu$idx';
+      final totCores = pol.cpus.length;
+      if (idx < config.cpu.coreConfig.length &&
+          config.cpu.coreConfig[idx].cpuId.startsWith('cpu') &&
+          config.cpu.coreConfig[idx].totalCores == totCores) {
+        return config.cpu.coreConfig[idx];
+      }
+      return CoreClusterConfig(
+        cpuId: cpuId,
+        totalCores: totCores,
+        onlineCores: totCores,
+      );
+    });
+
+    return config.copyWith(
+      cpu: config.cpu.copyWith(
+        minFreqs: normalizedMin,
+        maxFreqs: normalizedMax,
+        governors: normalizedGovs,
+        coreConfig: normalizedCore,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -45,18 +115,19 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
     return deviceAsync.when(
       data: (device) => configAsync.when(
         data: (loadedConfig) {
+          final normalizedSaved = _normalizeWithDevice(loadedConfig, device);
           // One-shot initialization of the editor state
           if (editorState.config == null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               ref
                   .read(profileEditorProvider(widget.profile).notifier)
-                  .initialize(loadedConfig);
+                  .initialize(normalizedSaved);
             });
             return const Center(child: CircularProgressIndicator());
           }
 
-          return _buildContent(context, ref, device, editorState, loadedConfig);
+          return _buildContent(context, ref, device, editorState, normalizedSaved);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _buildError(context, ref, e),
@@ -85,11 +156,11 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
         RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(deviceConfigProvider);
-            await ref.read(deviceConfigProvider.future);
+            final dev = await ref.read(deviceConfigProvider.future);
             ref.invalidate(profileConfigProvider(profile));
             final saved = await ref.read(profileConfigProvider(profile).future);
             final latestEditor = ref.read(profileEditorProvider(profile));
-            if (!latestEditor.isDirty) notifier.revert(saved);
+            if (!latestEditor.isDirty) notifier.revert(_normalizeWithDevice(saved, dev));
           },
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(
@@ -162,27 +233,31 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
 
     // ── CPU cluster cards ────────────────────────────────────────────────
     for (final (i, policy) in device.policies.indexed) {
+      final currentMin = (i < config.cpu.minFreqs.length && config.cpu.minFreqs[i] > 0)
+          ? config.cpu.minFreqs[i]
+          : policy.minFreq;
+      final currentMax = (i < config.cpu.maxFreqs.length && config.cpu.maxFreqs[i] > 0)
+          ? config.cpu.maxFreqs[i]
+          : policy.maxFreq;
+      final currentGov = (i < config.cpu.governors.length && config.cpu.governors[i].isNotEmpty)
+          ? config.cpu.governors[i]
+          : (policy.governors.isNotEmpty ? policy.governors.first : 'schedutil');
+      final currentOnline = (i < config.cpu.coreConfig.length && config.cpu.coreConfig[i].cpuId.startsWith('cpu'))
+          ? config.cpu.coreConfig[i].onlineCores
+          : policy.cpus.length;
+      final currentTotal = (i < config.cpu.coreConfig.length && config.cpu.coreConfig[i].cpuId.startsWith('cpu'))
+          ? config.cpu.coreConfig[i].totalCores
+          : policy.cpus.length;
+
       sections.add(
         CpuPolicyCard(
           policy: policy,
           policyIndex: i,
-          currentMinFreq: i < config.cpu.minFreqs.length
-              ? config.cpu.minFreqs[i]
-              : policy.minFreq,
-          currentMaxFreq: i < config.cpu.maxFreqs.length
-              ? config.cpu.maxFreqs[i]
-              : policy.maxFreq,
-          currentGovernor: i < config.cpu.governors.length
-              ? config.cpu.governors[i]
-              : (policy.governors.isNotEmpty
-                    ? policy.governors.first
-                    : 'schedutil'),
-          onlineCores: i < config.cpu.coreConfig.length
-              ? config.cpu.coreConfig[i].onlineCores
-              : policy.cpus.length,
-          totalCores: i < config.cpu.coreConfig.length
-              ? config.cpu.coreConfig[i].totalCores
-              : policy.cpus.length,
+          currentMinFreq: currentMin,
+          currentMaxFreq: currentMax,
+          currentGovernor: currentGov,
+          onlineCores: currentOnline,
+          totalCores: currentTotal,
           onChanged:
               ({
                 required int minFreq,
@@ -190,19 +265,54 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
                 required String governor,
                 required int onlineCores,
               }) {
-                final newMin = List<int>.from(config.cpu.minFreqs);
-                final newMax = List<int>.from(config.cpu.maxFreqs);
-                final newGovs = List<String>.from(config.cpu.governors);
-                final newCore = List<CoreClusterConfig>.from(
-                  config.cpu.coreConfig,
-                );
+                final newMin = List<int>.generate(device.policies.length, (idx) {
+                  if (idx == i) return minFreq;
+                  if (idx < config.cpu.minFreqs.length && config.cpu.minFreqs[idx] > 0) {
+                    return config.cpu.minFreqs[idx];
+                  }
+                  return device.policies[idx].minFreq;
+                });
 
-                if (i < newMin.length) newMin[i] = minFreq;
-                if (i < newMax.length) newMax[i] = maxFreq;
-                if (i < newGovs.length) newGovs[i] = governor;
-                if (i < newCore.length) {
-                  newCore[i] = newCore[i].copyWith(onlineCores: onlineCores);
-                }
+                final newMax = List<int>.generate(device.policies.length, (idx) {
+                  if (idx == i) return maxFreq;
+                  if (idx < config.cpu.maxFreqs.length && config.cpu.maxFreqs[idx] > 0) {
+                    return config.cpu.maxFreqs[idx];
+                  }
+                  return device.policies[idx].maxFreq;
+                });
+
+                final newGovs = List<String>.generate(device.policies.length, (idx) {
+                  if (idx == i) return governor;
+                  if (idx < config.cpu.governors.length && config.cpu.governors[idx].isNotEmpty) {
+                    return config.cpu.governors[idx];
+                  }
+                  return device.policies[idx].governors.isNotEmpty
+                      ? device.policies[idx].governors.first
+                      : 'schedutil';
+                });
+
+                final newCore = List<CoreClusterConfig>.generate(device.policies.length, (idx) {
+                  final pol = device.policies[idx];
+                  final cpuId = pol.cpus.isNotEmpty ? 'cpu${pol.cpus.first}' : 'cpu$idx';
+                  final totCores = pol.cpus.length;
+                  if (idx == i) {
+                    return CoreClusterConfig(
+                      cpuId: cpuId,
+                      totalCores: totCores,
+                      onlineCores: onlineCores.clamp(0, totCores),
+                    );
+                  }
+                  if (idx < config.cpu.coreConfig.length &&
+                      config.cpu.coreConfig[idx].cpuId.startsWith('cpu') &&
+                      config.cpu.coreConfig[idx].totalCores == totCores) {
+                    return config.cpu.coreConfig[idx];
+                  }
+                  return CoreClusterConfig(
+                    cpuId: cpuId,
+                    totalCores: totCores,
+                    onlineCores: totCores,
+                  );
+                });
 
                 notifier.update(
                   config.copyWith(
@@ -419,7 +529,8 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
             config.copyWith(
               chargeThermal: config.chargeThermal.copyWith(
                 bypassChargeThrottle: bypassChargeThrottle,
-                hardwareChargeBypass: bypassChargeThrottle,
+                hardwareChargeBypass:
+                    device.hasHardwareBypass ? bypassChargeThrottle : false,
                 unlockFpsThermal: unlockFpsThermal,
                 batteryTempLimit: batteryTempLimit,
               ),

@@ -34,6 +34,45 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
   AppFilterType _selectedFilter = AppFilterType.all;
   bool _daemonSettingsExpanded = false;
 
+  List<AppProfile>? _lastRawProfiles;
+  String? _lastSearchQuery;
+  AppFilterType? _lastSelectedFilter;
+  List<AppProfile> _cachedFilteredApps = const [];
+  int _cachedConfiguredCount = 0;
+
+  void _updateFilterCache(List<AppProfile> rawProfiles) {
+    if (identical(_lastRawProfiles, rawProfiles) &&
+        _lastSearchQuery == _searchQuery &&
+        _lastSelectedFilter == _selectedFilter) {
+      return;
+    }
+
+    if (!identical(_lastRawProfiles, rawProfiles)) {
+      _lastRawProfiles = rawProfiles;
+      _cachedConfiguredCount = rawProfiles.where((a) => a.isConfigured).length;
+    }
+
+    _lastSearchQuery = _searchQuery;
+    _lastSelectedFilter = _selectedFilter;
+
+    var result = rawProfiles;
+    if (_searchQuery.isNotEmpty) {
+      final lowerQuery = _searchQuery.toLowerCase();
+      result = result.where((app) {
+        return app.appInfo.name.toLowerCase().contains(lowerQuery) ||
+            app.appInfo.packageName.toLowerCase().contains(lowerQuery);
+      }).toList();
+    }
+
+    if (_selectedFilter == AppFilterType.configured) {
+      result = result.where((app) => app.isConfigured).toList();
+    } else if (_selectedFilter == AppFilterType.notConfigured) {
+      result = result.where((app) => !app.isConfigured).toList();
+    }
+
+    _cachedFilteredApps = result;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -125,34 +164,26 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppConstants.spacing16,
+              AppConstants.spacing8,
               AppConstants.spacing16,
-              AppConstants.spacing16,
-              AppConstants.spacing4,
+              AppConstants.spacing6,
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocale.appProfiles.getString(context),
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        AppLocale.appProfilesDescription.getString(context),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    AppLocale.appProfilesDescription.getString(context),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (isConfigured)
                   Padding(
-                    padding: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.only(left: 8),
                     child: Material(
                       color: _daemonSettingsExpanded
                           ? cs.primary.withValues(alpha: 0.16)
@@ -263,9 +294,9 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
           if (state != null) ...[
             Builder(
               builder: (context) {
+                _updateFilterCache(state.appProfiles);
                 final totalCount = state.appProfiles.length;
-                final configuredCount =
-                    state.appProfiles.where((a) => a.isConfigured).length;
+                final configuredCount = _cachedConfiguredCount;
                 final notConfiguredCount = totalCount - configuredCount;
                 return AppFilterChipsBar(
                   selectedFilter: _selectedFilter,
@@ -290,36 +321,16 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
   }
 
   Widget _buildAppList(AppProfileState state) {
-    var filteredApps = state.appProfiles;
-
-    if (_searchQuery.isNotEmpty) {
-      final lowerQuery = _searchQuery.toLowerCase();
-      filteredApps = filteredApps.where((app) {
-        return app.appInfo.name.toLowerCase().contains(lowerQuery) ||
-            app.appInfo.packageName.toLowerCase().contains(lowerQuery);
-      }).toList();
-    }
-
-    if (_selectedFilter == AppFilterType.configured) {
-      filteredApps = filteredApps.where((app) => app.isConfigured).toList();
-    } else if (_selectedFilter == AppFilterType.notConfigured) {
-      filteredApps = filteredApps.where((app) => !app.isConfigured).toList();
-    }
+    _updateFilterCache(state.appProfiles);
+    final filteredApps = _cachedFilteredApps;
 
     if (filteredApps.isEmpty) {
       return _buildEmptyState();
     }
 
-    // Warm up the top visible apps so their icons are ready smoothly
-    if (filteredApps.isNotEmpty) {
-      AppIconCache.instance.warmup(
-        filteredApps.take(25).map((a) => a.appInfo.packageName),
-      );
-    }
-
     return RefreshIndicator(
       onRefresh: () async {
-        AppIconCache.instance.clear();
+        await AppIconCache.instance.clear();
         await ref.read(appProfileProvider.notifier).reloadInstalledApps();
       },
       child: ListView.builder(

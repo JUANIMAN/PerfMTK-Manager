@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:installed_apps/installed_apps.dart';
+import 'package:manager/core/utils/app_icon_cache.dart';
 import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/repositories/config_repository.dart';
+import 'package:manager/data/services/app_native_service.dart';
 import 'package:manager/presentation/providers/app_profile_visibility_provider.dart';
 import 'package:manager/presentation/providers/config_repository_provider.dart';
 
@@ -66,9 +68,22 @@ class AppProfileNotifier extends AsyncNotifier<AppProfileState> {
       }
     }
 
-    final installedApps = await InstalledApps.getInstalledApps(
-      withIcon: false,
+    final installedApps = await AppNativeService.getInstalledApps(
       excludeSystemApps: !includeSystemApps,
+    );
+
+    // Seed the icon cache with preloaded icons from the initial viewport
+    for (final app in installedApps) {
+      if (app.icon != null) {
+        AppIconCache.instance.putCached(app.packageName, app.icon!);
+      }
+    }
+
+    // Warm up remaining icons smoothly in the background
+    unawaited(
+      AppIconCache.instance.preloadBatch(
+        installedApps.map((a) => a.packageName).toList(),
+      ),
     );
 
     final appProfiles =

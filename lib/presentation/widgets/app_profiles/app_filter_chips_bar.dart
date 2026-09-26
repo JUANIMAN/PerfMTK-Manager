@@ -45,6 +45,7 @@ class AppFilterChipsBar extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               child: Row(
                 children: [
                   _buildFilterChip(
@@ -149,8 +150,8 @@ class AppFilterChipsBar extends StatelessWidget {
       child: AnimatedContainer(
         duration: AppConstants.animationFast,
         padding: const EdgeInsets.symmetric(
-          horizontal: 11,
-          vertical: 6,
+          horizontal: 9,
+          vertical: 5.5,
         ),
         decoration: BoxDecoration(
           color: isSelected

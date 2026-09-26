@@ -71,15 +71,6 @@ class AppProfileItem extends StatelessWidget {
                   color: borderColor,
                   width: isConfigured ? 1.2 : 1.0,
                 ),
-                boxShadow: isConfigured
-                    ? [
-                        BoxShadow(
-                          color: color.withValues(alpha: 0.10),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
               ),
               child: Row(
                 children: [
@@ -182,53 +173,67 @@ class AppProfileItem extends StatelessWidget {
         ? ProfileUtils.nameFor(context, currentProfile!)
         : AppLocale.defaultProfile.getString(context);
 
+    final profileChip = Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: isConfigured
+            ? color.withValues(alpha: 0.15)
+            : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isConfigured
+              ? color.withValues(alpha: 0.45)
+              : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.30),
+          width: 0.9,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isConfigured ? icon : Icons.tune_rounded,
+            size: 11,
+            color: isConfigured
+                ? color
+                : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: isConfigured
+                  ? color
+                  : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
+              fontWeight: isConfigured ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 10.5,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final dirs = currentDirectives;
+    final hasExtraChips = dirs != null &&
+        (dirs.gbe == 1 ||
+            dirs.chargeBypass == true ||
+            dirs.disableThermal == true ||
+            dirs.fps != null ||
+            dirs.touchGameMode == true);
+
+    if (!hasExtraChips) {
+      return profileChip;
+    }
+
     return Wrap(
       spacing: AppConstants.spacing6,
       runSpacing: 4,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 3,
-          ),
-          decoration: BoxDecoration(
-            color: isConfigured
-                ? color.withValues(alpha: 0.15)
-                : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isConfigured
-                  ? color.withValues(alpha: 0.45)
-                  : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.30),
-              width: 0.9,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isConfigured ? icon : Icons.tune_rounded,
-                size: 11,
-                color: isConfigured
-                    ? color
-                    : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: isConfigured
-                      ? color
-                      : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
-                  fontWeight: isConfigured ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: 10.5,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
+        profileChip,
         if (currentDirectives?.gbe == 1)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
@@ -444,18 +449,20 @@ class _AppIconImageState extends State<AppIconImage> {
   void didUpdateWidget(AppIconImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.packageName != widget.packageName) {
+      _isLoading = false;
       _resolveIcon();
     }
   }
 
   void _resolveIcon() {
+    final pkg = widget.packageName;
     _iconBytes =
         widget.initialIcon ??
-        AppIconCache.instance.getCached(widget.packageName);
+        AppIconCache.instance.getCached(pkg);
     if (_iconBytes == null && !_isLoading) {
       _isLoading = true;
-      AppIconCache.instance.loadIcon(widget.packageName).then((bytes) {
-        if (mounted) {
+      AppIconCache.instance.loadIcon(pkg).then((bytes) {
+        if (mounted && widget.packageName == pkg) {
           setState(() {
             _iconBytes = bytes;
             _isLoading = false;
@@ -473,7 +480,8 @@ class _AppIconImageState extends State<AppIconImage> {
         icon,
         width: widget.size,
         height: widget.size,
-        cacheWidth: 96,
+        cacheWidth: 72,
+        cacheHeight: 72,
         fit: BoxFit.cover,
         gaplessPlayback: true,
       );
@@ -482,7 +490,11 @@ class _AppIconImageState extends State<AppIconImage> {
     return SizedBox(
       width: widget.size,
       height: widget.size,
-      child: Icon(Icons.android_rounded, size: widget.size * 0.65),
+      child: Icon(
+        Icons.android_rounded,
+        size: widget.size * 0.65,
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
+      ),
     );
   }
 }

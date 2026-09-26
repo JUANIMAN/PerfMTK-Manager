@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:typed_data';
-import 'package:installed_apps/installed_apps.dart';
+import 'package:flutter/services.dart';
 
 class _IconRequest {
   final String packageName;
@@ -10,11 +9,13 @@ class _IconRequest {
   _IconRequest(this.packageName, this.completer);
 }
 
-/// High-performance in-memory cache for app icons with throttled concurrency
-/// and LIFO prioritization to ensure smooth 120Hz scrolling.
+/// Ultra-fast in-memory cache for app icons backed by native background loading.
+/// Eliminates UI-thread blocking and ZIP file scanning for smooth 120Hz scrolling.
 class AppIconCache {
   AppIconCache._();
   static final AppIconCache instance = AppIconCache._();
+
+  static const MethodChannel _channel = MethodChannel('com.perfmtk.manager/apps');
 
   static const int _maxConcurrent = 4;
   static const int _maxQueueSize = 40;
@@ -28,6 +29,46 @@ class AppIconCache {
 
   bool isCached(String packageName) => _cache.containsKey(packageName);
 
+  /// Seeds or updates the cache with a known icon (e.g. from initial preload).
+  void putCached(String packageName, Uint8List icon) {
+    _cache[packageName] = icon;
+    final c = _activeCompleters.remove(packageName);
+    if (c != null && !c.isCompleted) {
+      c.complete(icon);
+    }
+  }
+
+  /// Preloads a list of packages in chunks natively on background worker threads.
+  Future<void> preloadBatch(List<String> packageNames, {int chunkSize = 35}) async {
+    for (var i = 0; i < packageNames.length; i += chunkSize) {
+      final end = (i + chunkSize < packageNames.length) ? i + chunkSize : packageNames.length;
+      final chunk = packageNames.sublist(i, end);
+      final needed = chunk.where((p) => !_cache.containsKey(p)).toList();
+      if (needed.isEmpty) continue;
+
+      try {
+        final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+          'getAppIconsBatch',
+          {'packageNames': needed},
+        );
+        if (result != null) {
+          result.forEach((key, val) {
+            if (key is String && val is Uint8List) {
+              _cache[key] = val;
+              final c = _activeCompleters.remove(key);
+              if (c != null && !c.isCompleted) {
+                c.complete(val);
+              }
+            }
+          });
+        }
+      } catch (_) {
+        // Fallback gracefully
+      }
+    }
+  }
+
+  /// Loads an icon on-demand with LIFO prioritization during scrolling.
   Future<Uint8List?> loadIcon(String packageName) {
     if (_cache.containsKey(packageName)) {
       return Future.value(_cache[packageName]);
@@ -56,12 +97,11 @@ class AppIconCache {
     return completer.future;
   }
 
-  /// Warm up the icon cache for a subset of packages (e.g. first 20 items)
+  /// Warm up the icon cache for a subset of packages
   void warmup(Iterable<String> packageNames) {
-    for (final pkg in packageNames) {
-      if (!_cache.containsKey(pkg) && !_activeCompleters.containsKey(pkg)) {
-        loadIcon(pkg);
-      }
+    final needed = packageNames.where((p) => !_cache.containsKey(p) && !_activeCompleters.containsKey(p)).toList();
+    if (needed.isNotEmpty) {
+      preloadBatch(needed);
     }
   }
 
@@ -79,8 +119,7 @@ class AppIconCache {
       }
 
       _runningCount++;
-      InstalledApps.getAppInfo(pkg).then((info) {
-        final icon = info?.icon;
+      _fetchNativeIcon(pkg).then((icon) {
         _cache[pkg] = icon;
         if (!request.completer.isCompleted) {
           request.completer.complete(icon);
@@ -98,7 +137,19 @@ class AppIconCache {
     }
   }
 
-  void clear() {
+  Future<Uint8List?> _fetchNativeIcon(String packageName) async {
+    try {
+      final bytes = await _channel.invokeMethod<Uint8List>(
+        'getAppIcon',
+        {'packageName': packageName},
+      );
+      return bytes;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> clear() async {
     _cache.clear();
     for (final req in _queue) {
       if (!req.completer.isCompleted) {
@@ -108,5 +159,8 @@ class AppIconCache {
     _queue.clear();
     _activeCompleters.clear();
     _runningCount = 0;
+    try {
+      await _channel.invokeMethod('clearIconCache');
+    } catch (_) {}
   }
 }

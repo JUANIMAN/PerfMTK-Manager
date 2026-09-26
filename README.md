@@ -4,7 +4,7 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&style=flat-square)](https://flutter.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Riverpod%203-blue?style=flat-square)](https://riverpod.dev)
-[![Current Release](https://img.shields.io/badge/release-v8.1.0-success?style=flat-square)](https://github.com/JUANIMAN/PerfMTK-Manager/releases/latest)
+[![Current Release](https://img.shields.io/badge/release-v8.2.0-success?style=flat-square)](https://github.com/JUANIMAN/PerfMTK-Manager/releases/latest)
 [![GitHub Downloads](https://img.shields.io/github/downloads/JUANIMAN/PerfMTK-Manager/total?style=flat-square)](https://github.com/JUANIMAN/PerfMTK-Manager/releases)
 
 ---

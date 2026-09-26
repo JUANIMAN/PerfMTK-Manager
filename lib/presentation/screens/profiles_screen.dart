@@ -34,22 +34,27 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final systemState = ref.watch(systemStateProvider);
+    final isLoading = ref.watch(
+      systemStateProvider.select((s) => s.isLoading && !s.hasValue),
+    );
+    final error = ref.watch(
+      systemStateProvider.select(
+        (s) => s.hasError && !s.hasValue ? s.error : null,
+      ),
+    );
 
     return Scaffold(
       body: buildWithEntryAnimation(
-        systemState.when(
-          data: (state) => _buildContent(state),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => _buildErrorView(error),
-        ),
+        isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : error != null
+                ? _buildErrorView(error)
+                : _buildContent(),
       ),
     );
   }
 
-  Widget _buildContent(SystemState state) {
-    final isChanging = ref.watch(isChangingProfileProvider);
-
+  Widget _buildContent() {
     return RefreshIndicator(
       onRefresh: () => ref.read(systemStateProvider.notifier).refresh(),
       child: CustomScrollView(
@@ -69,7 +74,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. Banner de Estado Activo
-                  _ActiveProfileBanner(state: state, isChanging: isChanging),
+                  const _ActiveProfileBanner(),
                   const SizedBox(height: AppConstants.spacing20),
 
                   // 2. Selector Táctil de Perfiles 2x2
@@ -78,18 +83,11 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
                     AppLocale.switchProfileHeader.getString(context),
                   ),
                   const SizedBox(height: AppConstants.spacing8),
-                  _buildProfileGrid(state, isChanging),
+                  _ProfileGridSection(onSelectProfile: _setProfile),
                   const SizedBox(height: AppConstants.spacing20),
 
                   // 3. Monitor de Hardware en Vivo
-                  if (_hasTelemetry(state)) ...[
-                    _buildSectionHeader(
-                      context,
-                      AppLocale.hardwareMonitorHeader.getString(context),
-                    ),
-                    const SizedBox(height: AppConstants.spacing8),
-                    HardwareTelemetryCard(state: state),
-                  ],
+                  const _HardwareTelemetrySection(),
                   const SizedBox(
                     height: AppConstants.spacing80 + AppConstants.spacing16,
                   ),
@@ -101,86 +99,6 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
       ),
     );
   }
-
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.7,
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(
-                alpha: 0.8,
-              ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileGrid(SystemState state, bool isChanging) {
-    return AbsorbPointer(
-      absorbing: isChanging,
-      child: AnimatedOpacity(
-        duration: AppConstants.animationFast,
-        opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ProfileButton(
-                    profile: ProfileType.performance,
-                    isSelected: state.currentProfile == ProfileType.performance,
-                    onTap: () => _setProfile(ProfileType.performance),
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacing10),
-                Expanded(
-                  child: ProfileButton(
-                    profile: ProfileType.balanced,
-                    isSelected: state.currentProfile == ProfileType.balanced,
-                    onTap: () => _setProfile(ProfileType.balanced),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppConstants.spacing10),
-            Row(
-              children: [
-                Expanded(
-                  child: ProfileButton(
-                    profile: ProfileType.powersave,
-                    isSelected: state.currentProfile == ProfileType.powersave,
-                    onTap: () => _setProfile(ProfileType.powersave),
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacing10),
-                Expanded(
-                  child: ProfileButton(
-                    profile: ProfileType.powersavePlus,
-                    isSelected:
-                        state.currentProfile == ProfileType.powersavePlus,
-                    onTap: () => _setProfile(ProfileType.powersavePlus),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  bool _hasTelemetry(SystemState s) =>
-      s.cpuClusters.isNotEmpty ||
-      s.gpuFreq.isNotEmpty ||
-      s.dramFreq.isNotEmpty ||
-      s.socTempC != null ||
-      s.batteryTempC != null ||
-      s.chargeBypass ||
-      s.batteryCapacityPct != null;
 
   Widget _buildErrorView(Object error) {
     return Center(
@@ -287,19 +205,141 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
   }
 }
 
-// ── Active Profile Banner ───────────────────────────────────────────────────
-class _ActiveProfileBanner extends StatelessWidget {
-  final SystemState state;
-  final bool isChanging;
+Widget _buildSectionHeader(BuildContext context, String title) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 4),
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.7,
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(
+              alpha: 0.8,
+            ),
+      ),
+    ),
+  );
+}
 
-  const _ActiveProfileBanner({
-    required this.state,
-    required this.isChanging,
-  });
+// ── Profile Grid Section ────────────────────────────────────────────────────
+class _ProfileGridSection extends ConsumerWidget {
+  final Future<void> Function(ProfileType) onSelectProfile;
+
+  const _ProfileGridSection({required this.onSelectProfile});
 
   @override
-  Widget build(BuildContext context) {
-    final profile = state.currentProfile;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentProfile = ref.watch(
+      systemStateProvider.select(
+        (s) => s.value?.currentProfile ?? ProfileType.balanced,
+      ),
+    );
+    final isChanging = ref.watch(isChangingProfileProvider);
+
+    return AbsorbPointer(
+      absorbing: isChanging,
+      child: AnimatedOpacity(
+        duration: AppConstants.animationFast,
+        opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.performance,
+                    isSelected: currentProfile == ProfileType.performance,
+                    onTap: () => onSelectProfile(ProfileType.performance),
+                  ),
+                ),
+                const SizedBox(width: AppConstants.spacing10),
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.balanced,
+                    isSelected: currentProfile == ProfileType.balanced,
+                    onTap: () => onSelectProfile(ProfileType.balanced),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppConstants.spacing10),
+            Row(
+              children: [
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.powersave,
+                    isSelected: currentProfile == ProfileType.powersave,
+                    onTap: () => onSelectProfile(ProfileType.powersave),
+                  ),
+                ),
+                const SizedBox(width: AppConstants.spacing10),
+                Expanded(
+                  child: ProfileButton(
+                    profile: ProfileType.powersavePlus,
+                    isSelected: currentProfile == ProfileType.powersavePlus,
+                    onTap: () => onSelectProfile(ProfileType.powersavePlus),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Hardware Telemetry Section ──────────────────────────────────────────────
+class _HardwareTelemetrySection extends ConsumerWidget {
+  const _HardwareTelemetrySection();
+
+  static bool hasTelemetry(SystemState s) =>
+      s.cpuClusters.isNotEmpty ||
+      s.gpuFreq.isNotEmpty ||
+      s.dramFreq.isNotEmpty ||
+      s.socTempC != null ||
+      s.batteryTempC != null ||
+      s.chargeBypass ||
+      s.batteryCapacityPct != null;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(systemStateProvider).value;
+    if (state == null || !hasTelemetry(state)) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          AppLocale.hardwareMonitorHeader.getString(context),
+        ),
+        const SizedBox(height: AppConstants.spacing8),
+        HardwareTelemetryCard(state: state),
+      ],
+    );
+  }
+}
+
+// ── Active Profile Banner ───────────────────────────────────────────────────
+class _ActiveProfileBanner extends ConsumerWidget {
+  const _ActiveProfileBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(
+      systemStateProvider.select(
+        (s) => s.value?.currentProfile ?? ProfileType.balanced,
+      ),
+    );
+    final app = ref.watch(
+      systemStateProvider.select(
+        (s) => s.value?.currentApp ?? '',
+      ),
+    );
+    final isChanging = ref.watch(isChangingProfileProvider);
+
     final color = ProfileUtils.colorForContext(context, profile);
     final icon = ProfileUtils.iconFor(profile);
     final theme = Theme.of(context);
@@ -389,7 +429,7 @@ class _ActiveProfileBanner extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _isGlobalApp(state.currentApp)
+                  _isGlobalApp(app)
                       ? Icons.public_rounded
                       : Icons.sports_esports_rounded,
                   size: 13,
@@ -399,7 +439,7 @@ class _ActiveProfileBanner extends StatelessWidget {
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 110),
                   child: Text(
-                    _displayAppName(context, state.currentApp),
+                    _displayAppName(context, app),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,

@@ -86,6 +86,8 @@ class DeviceConfig {
   final bool hasGbe;
   final bool hasFpsgo;
   final bool hasChargeBypass;
+  final bool hasHardwareBypass;
+  final bool hasSmartFastCharge;
   final bool hasBatteryCare;
 
   const DeviceConfig({
@@ -108,6 +110,8 @@ class DeviceConfig {
     this.hasGbe = false,
     this.hasFpsgo = false,
     this.hasChargeBypass = false,
+    this.hasHardwareBypass = false,
+    this.hasSmartFastCharge = false,
     this.hasBatteryCare = false,
   });
 
@@ -202,7 +206,11 @@ class DeviceConfig {
       hasUclamp: features['uclamp'] as bool? ?? true,
       hasGbe: features['gbe'] as bool? ?? false,
       hasFpsgo: features['fpsgo'] as bool? ?? false,
-      hasChargeBypass: features['charge_bypass'] as bool? ?? false,
+      hasChargeBypass: (features['charge_bypass'] as bool? ?? false) ||
+          (features['smart_fast_charge'] as bool? ?? false) ||
+          (features['charge_suspend'] as bool? ?? false),
+      hasHardwareBypass: features['charge_bypass'] as bool? ?? false,
+      hasSmartFastCharge: features['smart_fast_charge'] as bool? ?? true,
       hasBatteryCare: features['battery_care'] as bool? ?? false,
     );
   }
@@ -244,6 +252,8 @@ class DeviceConfig {
       hasGbe: false,
       hasFpsgo: false,
       hasChargeBypass: false,
+      hasHardwareBypass: false,
+      hasSmartFastCharge: false,
       hasBatteryCare: false,
     );
   }

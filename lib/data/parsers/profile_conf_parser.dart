@@ -35,24 +35,28 @@ class ProfileConfParser {
       sections[currentSection]![key] = value;
     }
 
-    final cpu = sections['CPU'] ?? {};
-    final uclamp = sections['UCLAMP'] ?? {};
-    final gpu = sections['GPU'] ?? {};
-    final devfreq = sections['DEVFREQ'] ?? {};
-    final ufs = sections['UFS'] ?? {};
-    final fpsgo = sections['FPSGO'] ?? {};
-    final gbe = sections['GBE'] ?? {};
-    final chargeThermal = sections['THERMAL_CHARGE'] ?? {};
-    final display = sections['DISPLAY'] ?? {};
-    final touch = sections['TOUCH'] ?? {};
+    final cpu = sections.remove('CPU') ?? {};
+    final uclamp = sections.remove('UCLAMP') ?? {};
+    final gpu = sections.remove('GPU') ?? {};
+    final devfreq = sections.remove('DEVFREQ') ?? {};
+    final ufs = sections.remove('UFS') ?? {};
+    final fpsgo = sections.remove('FPSGO') ?? {};
+    final gbe = sections.remove('GBE') ?? {};
+    final chargeThermal = sections.remove('THERMAL_CHARGE') ?? {};
+    final display = sections.remove('DISPLAY') ?? {};
+    final touch = sections.remove('TOUCH') ?? {};
+    final guardian = sections.remove('THERMAL_GUARDIAN') ?? sections.remove('GUARDIAN') ?? {};
+    final vm = sections.remove('VM') ?? sections.remove('MEMORY') ?? {};
 
     // CORE_CONFIG: "cpu0:4:4|cpu4:3:2|cpu7:1:0"
-    final coreConfigStr = cpu['CORE_CONFIG'] ?? '';
-    final clusters = coreConfigStr
-        .split('|')
-        .where((s) => s.isNotEmpty)
-        .map(CoreClusterConfig.fromString)
-        .toList();
+    final coreConfigStr = (cpu['CORE_CONFIG'] ?? '').trim();
+    final clusters = (coreConfigStr.isEmpty || coreConfigStr == 'auto')
+        ? <CoreClusterConfig>[]
+        : coreConfigStr
+            .split('|')
+            .where((s) => s.isNotEmpty && s.trim() != 'auto')
+            .map(CoreClusterConfig.fromString)
+            .toList();
 
     final downList = parseIntList(cpu['DOWN_RATE_LIMIT_US']);
     final upList = parseIntList(cpu['UP_RATE_LIMIT_US']);
@@ -148,6 +152,9 @@ class ProfileConfParser {
       gbe: GbeConfig(
         gbeEnable: int.tryParse(gbe['GBE_ENABLE'] ?? '') ?? 1,
         gbeThrmHdrm: int.tryParse(gbe['GBE_THRM_HDRM'] ?? '') ?? 20,
+        magtCurrentAvg: int.tryParse(gbe['MAGT_CURRENT_AVG'] ?? '') ?? 0,
+        magtCurrentMax: int.tryParse(gbe['MAGT_CURRENT_MAX'] ?? '') ?? 0,
+        magtFpsdropThrs: int.tryParse(gbe['MAGT_FPSDROP_THRS'] ?? '') ?? 0,
       ),
       chargeThermal: ChargeThermalConfig(
         bypassChargeThrottle: bypassCharge,
@@ -165,12 +172,53 @@ class ProfileConfParser {
             chargeThermal['BATTERY_CARE_ENABLED'] == '1',
         batteryCareLimit:
             int.tryParse(chargeThermal['BATTERY_CARE_LIMIT'] ?? '') ?? 80,
+        disableThermalServices:
+            chargeThermal['DISABLE_THERMAL_SERVICES']?.toLowerCase() == 'true' ||
+            chargeThermal['DISABLE_THERMAL_SERVICES'] == '1',
       ),
       refreshRate: refreshRate,
       touch: TouchConfig(
         gameMode: touchGameMode,
         thpSmooth: touchThpSmooth,
+        touchDownThreshold: int.tryParse(
+          touch['TOUCH_DOWN_THRESHOLD'] ?? touch['TOUCH_DOWNTHD'] ?? '',
+        ) ?? 0,
+        touchMoveThreshold: int.tryParse(
+          touch['TOUCH_MOVE_THRESHOLD'] ?? touch['TOUCH_MOVETHD'] ?? '',
+        ) ?? 0,
       ),
+      vm: VmConfig(
+        swappiness: int.tryParse(vm['SWAPPINESS'] ?? '') ?? 100,
+        statInterval: int.tryParse(vm['STAT_INTERVAL'] ?? '') ?? 5,
+        watermarkScaleFactor: int.tryParse(
+          vm['WATERMARK_SCALE_FACTOR'] ?? vm['WMARK_SCALE'] ?? '',
+        ) ?? 100,
+        mglru: vm.containsKey('MGLRU')
+            ? (vm['MGLRU']?.toLowerCase() == 'true' || vm['MGLRU'] == '1')
+            : (vm['MGLRU_ENABLED']?.toLowerCase() == 'true' ||
+                vm['MGLRU_ENABLED'] == '1' ||
+                true),
+        mglruMinTtlMs: int.tryParse(vm['MGLRU_MIN_TTL_MS'] ?? '') ?? 0,
+        compactionProactiveness:
+            int.tryParse(vm['COMPACTION_PROACTIVENESS'] ?? '') ?? 0,
+        schedSchedstats: int.tryParse(vm['SCHED_SCHEDSTATS'] ?? '') ?? 0,
+        compactOnLaunch:
+            vm['COMPACT_ON_LAUNCH']?.toLowerCase() == 'true' ||
+            vm['COMPACT_ON_LAUNCH'] == '1',
+      ),
+      thermalGuardian: ThermalGuardianConfig(
+        enable: guardian['ENABLE']?.toLowerCase() == 'true' ||
+            guardian['ENABLED']?.toLowerCase() == 'true' ||
+            guardian['ENABLE'] == '1',
+        tempTarget: int.tryParse(
+          guardian['TEMP_TARGET'] ?? guardian['TARGET_TEMP'] ?? '',
+        ) ?? 45,
+        stepDownMax: int.tryParse(
+          guardian['STEP_DOWN_MAX'] ?? guardian['MAX_STEPS'] ?? '',
+        ) ?? 3,
+        uclampStepPct: int.tryParse(guardian['UCLAMP_STEP_PCT'] ?? '') ?? 10,
+      ),
+      extraSections: sections,
     );
   }
 
@@ -199,6 +247,10 @@ class ProfileConfParser {
         ? '# GPU_FREQ: [265000 - 1400000]=(Fix GPU Frequency), $gpuDvfsSentinel=(re-enable GPU DVFS)'
         : '# GPU_FREQ: [265000000 - 1400000000]=(Fix GPU Frequency), $gpuDvfsSentinel=(re-enable GPU DVFS)';
 
+    final coreStr = c.cpu.coreConfigString.isEmpty ? 'auto' : c.cpu.coreConfigString;
+    final maxStr = c.cpu.maxFreqString.isEmpty ? 'auto' : c.cpu.maxFreqString;
+    final minStr = c.cpu.minFreqString.isEmpty ? 'auto' : c.cpu.minFreqString;
+
     final b = StringBuffer()
       ..writeln('# $title Profile Configuration')
       ..writeln('# $desc')
@@ -213,9 +265,9 @@ class ProfileConfParser {
       )
       ..writeln('DOWN_RATE_LIMIT_US="${c.cpu.downRateLimitString}"')
       ..writeln('UP_RATE_LIMIT_US="${c.cpu.upRateLimitString}"')
-      ..writeln('CORE_CONFIG="${c.cpu.coreConfigString}"')
-      ..writeln('MAX_FREQS="${c.cpu.maxFreqString}"')
-      ..writeln('MIN_FREQS="${c.cpu.minFreqString}"');
+      ..writeln('CORE_CONFIG="$coreStr"')
+      ..writeln('MAX_FREQS="$maxStr"')
+      ..writeln('MIN_FREQS="$minStr"');
 
     if (c.cpu.schedEnergyAware != null) {
       b.writeln('SCHED_ENERGY_AWARE=${c.cpu.schedEnergyAware}');
@@ -319,7 +371,19 @@ class ProfileConfParser {
       ..writeln()
       ..writeln('[GBE]')
       ..writeln('GBE_ENABLE=${c.gbe.gbeEnable}')
-      ..writeln('GBE_THRM_HDRM=${c.gbe.gbeThrmHdrm}')
+      ..writeln('GBE_THRM_HDRM=${c.gbe.gbeThrmHdrm}');
+
+    if (c.gbe.magtCurrentAvg > 0) {
+      b.writeln('MAGT_CURRENT_AVG=${c.gbe.magtCurrentAvg}');
+    }
+    if (c.gbe.magtCurrentMax > 0) {
+      b.writeln('MAGT_CURRENT_MAX=${c.gbe.magtCurrentMax}');
+    }
+    if (c.gbe.magtFpsdropThrs > 0 || c.gbe.magtCurrentAvg > 0) {
+      b.writeln('MAGT_FPSDROP_THRS=${c.gbe.magtFpsdropThrs}');
+    }
+
+    b
       ..writeln()
       ..writeln('[THERMAL_CHARGE]')
       ..writeln('BYPASS_CHARGE_THROTTLE=${c.chargeThermal.bypassChargeThrottle}')
@@ -341,15 +405,62 @@ class ProfileConfParser {
       b.writeln('BATTERY_CARE_ENABLED=${c.chargeThermal.batteryCareEnabled}');
       b.writeln('BATTERY_CARE_LIMIT=${c.chargeThermal.batteryCareLimit}');
     }
+    if (c.chargeThermal.disableThermalServices) {
+      b.writeln('DISABLE_THERMAL_SERVICES=${c.chargeThermal.disableThermalServices}');
+    }
 
     b
       ..writeln()
       ..writeln('[DISPLAY]')
-      ..writeln('REFRESH_RATE=${c.refreshRate}')
+      ..writeln('REFRESH_RATE=${c.refreshRate}');
+
+    if (c.thermalGuardian.enable) {
+      b
+        ..writeln()
+        ..writeln('[THERMAL_GUARDIAN]')
+        ..writeln('ENABLE=${c.thermalGuardian.enable}')
+        ..writeln('TEMP_TARGET=${c.thermalGuardian.tempTarget}')
+        ..writeln('STEP_DOWN_MAX=${c.thermalGuardian.stepDownMax}')
+        ..writeln('UCLAMP_STEP_PCT=${c.thermalGuardian.uclampStepPct}');
+    }
+
+    b
+      ..writeln()
+      ..writeln('[VM]')
+      ..writeln('SWAPPINESS=${c.vm.swappiness}')
+      ..writeln('STAT_INTERVAL=${c.vm.statInterval}')
+      ..writeln('WATERMARK_SCALE_FACTOR=${c.vm.watermarkScaleFactor}')
+      ..writeln('MGLRU=${c.vm.mglru}');
+
+    if (c.vm.mglruMinTtlMs > 0) {
+      b.writeln('MGLRU_MIN_TTL_MS=${c.vm.mglruMinTtlMs}');
+    }
+    if (c.vm.compactionProactiveness > 0) {
+      b.writeln('COMPACTION_PROACTIVENESS=${c.vm.compactionProactiveness}');
+    }
+    if (c.vm.schedSchedstats > 0) {
+      b.writeln('SCHED_SCHEDSTATS=${c.vm.schedSchedstats}');
+    }
+    if (c.vm.compactOnLaunch) {
+      b.writeln('COMPACT_ON_LAUNCH=${c.vm.compactOnLaunch}');
+    }
+
+    b
       ..writeln()
       ..writeln('[TOUCH]')
       ..writeln('GAME_MODE=${c.touch.gameMode}')
-      ..writeln('THP_SMOOTH=${c.touch.thpSmooth}');
+      ..writeln('THP_SMOOTH=${c.touch.thpSmooth}')
+      ..writeln('TOUCH_DOWN_THRESHOLD=${c.touch.touchDownThreshold}')
+      ..writeln('TOUCH_MOVE_THRESHOLD=${c.touch.touchMoveThreshold}');
+
+    for (final entry in c.extraSections.entries) {
+      b
+        ..writeln()
+        ..writeln('[${entry.key}]');
+      for (final kv in entry.value.entries) {
+        b.writeln('${kv.key}=${kv.value}');
+      }
+    }
 
     return b.toString();
   }
@@ -381,12 +492,13 @@ class ProfileConfParser {
   }
 
   static List<int> parseIntList(String? s) {
-    if (s == null || s.isEmpty) return [];
+    if (s == null || s.isEmpty || s.trim() == 'auto') return [];
     return s
         .trim()
         .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
+        .where((e) => e.isNotEmpty && e.trim() != 'auto')
         .map((e) => int.tryParse(e) ?? 0)
+        .where((e) => e > 0)
         .toList();
   }
 

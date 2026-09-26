@@ -57,21 +57,41 @@ DOWN_THROTTLE=0
 [GBE]
 GBE_ENABLE=1
 GBE_THRM_HDRM=25
+MAGT_CURRENT_AVG=1000
+MAGT_CURRENT_MAX=1200
+MAGT_FPSDROP_THRS=1
 
 [THERMAL_CHARGE]
 BYPASS_CHARGE_THROTTLE=true
 HARDWARE_CHARGE_BYPASS=true
 GENTLE_CHARGE_MA=500
 UNLOCK_FPS_THERMAL=true
+DISABLE_THERMAL_SERVICES=true
 BATTERY_TEMP_LIMIT=46
 BYPASS_MIN_BATT_PCT=25
 
 [DISPLAY]
 REFRESH_RATE=120
 
+[THERMAL_GUARDIAN]
+ENABLE=true
+TEMP_TARGET=44
+STEP_DOWN_MAX=1
+UCLAMP_STEP_PCT=5
+
+[VM]
+SWAPPINESS=100
+STAT_INTERVAL=10
+WATERMARK_SCALE_FACTOR=150
+MGLRU=true
+MGLRU_MIN_TTL_MS=1000
+COMPACTION_PROACTIVENESS=20
+
 [TOUCH]
 GAME_MODE=true
 THP_SMOOTH=true
+TOUCH_DOWN_THRESHOLD=10
+TOUCH_MOVE_THRESHOLD=20
 ''';
 
     test('parses all sections of profile configuration correctly', () {
@@ -124,19 +144,37 @@ THP_SMOOTH=true
       expect(config.fpsgo.downThrottle, equals(0));
       expect(config.gbe.gbeEnable, equals(1));
       expect(config.gbe.gbeThrmHdrm, equals(25));
+      expect(config.gbe.magtCurrentAvg, equals(1000));
+      expect(config.gbe.magtCurrentMax, equals(1200));
+      expect(config.gbe.magtFpsdropThrs, equals(1));
 
       // THERMAL & DISPLAY
       expect(config.chargeThermal.bypassChargeThrottle, isTrue);
       expect(config.chargeThermal.hardwareChargeBypass, isTrue);
       expect(config.chargeThermal.gentleChargeMa, equals(500));
       expect(config.chargeThermal.unlockFpsThermal, isTrue);
+      expect(config.chargeThermal.disableThermalServices, isTrue);
       expect(config.chargeThermal.batteryTempLimit, equals(46));
       expect(config.chargeThermal.bypassMinBattPct, equals(25));
       expect(config.refreshRate, equals(120));
 
+      // THERMAL GUARDIAN & VM
+      expect(config.thermalGuardian.enable, isTrue);
+      expect(config.thermalGuardian.tempTarget, equals(44));
+      expect(config.thermalGuardian.stepDownMax, equals(1));
+      expect(config.thermalGuardian.uclampStepPct, equals(5));
+      expect(config.vm.swappiness, equals(100));
+      expect(config.vm.statInterval, equals(10));
+      expect(config.vm.watermarkScaleFactor, equals(150));
+      expect(config.vm.mglru, isTrue);
+      expect(config.vm.mglruMinTtlMs, equals(1000));
+      expect(config.vm.compactionProactiveness, equals(20));
+
       // TOUCH
       expect(config.touch.gameMode, isTrue);
       expect(config.touch.thpSmooth, isTrue);
+      expect(config.touch.touchDownThreshold, equals(10));
+      expect(config.touch.touchMoveThreshold, equals(20));
     });
 
     test('round-trip serialization preserves all values', () {
@@ -159,11 +197,21 @@ THP_SMOOTH=true
       expect(reloaded.fpsgo.ultraRescue, equals(config.fpsgo.ultraRescue));
       expect(reloaded.fpsgo.cpumaskHeavy, equals(config.fpsgo.cpumaskHeavy));
       expect(reloaded.gbe.gbeThrmHdrm, equals(config.gbe.gbeThrmHdrm));
+      expect(reloaded.gbe.magtCurrentAvg, equals(config.gbe.magtCurrentAvg));
+      expect(reloaded.gbe.magtCurrentMax, equals(config.gbe.magtCurrentMax));
+      expect(reloaded.gbe.magtFpsdropThrs, equals(config.gbe.magtFpsdropThrs));
       expect(reloaded.chargeThermal.batteryTempLimit, equals(config.chargeThermal.batteryTempLimit));
       expect(reloaded.chargeThermal.gentleChargeMa, equals(config.chargeThermal.gentleChargeMa));
+      expect(reloaded.chargeThermal.disableThermalServices, equals(config.chargeThermal.disableThermalServices));
       expect(reloaded.refreshRate, equals(config.refreshRate));
+      expect(reloaded.thermalGuardian.enable, equals(config.thermalGuardian.enable));
+      expect(reloaded.thermalGuardian.tempTarget, equals(config.thermalGuardian.tempTarget));
+      expect(reloaded.vm.swappiness, equals(config.vm.swappiness));
+      expect(reloaded.vm.mglruMinTtlMs, equals(config.vm.mglruMinTtlMs));
       expect(reloaded.touch.gameMode, equals(config.touch.gameMode));
       expect(reloaded.touch.thpSmooth, equals(config.touch.thpSmooth));
+      expect(reloaded.touch.touchDownThreshold, equals(config.touch.touchDownThreshold));
+      expect(reloaded.touch.touchMoveThreshold, equals(config.touch.touchMoveThreshold));
     });
 
     test('handles DVFS sentinel (-1) correctly for gpufreqv2', () {

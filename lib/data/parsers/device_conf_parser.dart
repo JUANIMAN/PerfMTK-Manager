@@ -68,9 +68,19 @@ class DeviceConfParser {
       hasEas: vars['EAS_SUPPORT']?.toLowerCase() == 'true',
       hasUclamp: vars['UCLAMP_SUPPORT']?.toLowerCase() != 'false',
       hasGbe: vars['GBE_PATH'] != null && vars['GBE_PATH'] != 'none' && vars['GBE_PATH']!.isNotEmpty,
-      hasFpsgo: vars['FPSGO_PATH'] != null && vars['FPSGO_PATH'] != 'none' && vars['FPSGO_PATH']!.isNotEmpty,
-      hasChargeBypass: vars['CHARGER_COOLING_DEV'] != null && vars['CHARGER_COOLING_DEV'] != 'none' && vars['CHARGER_COOLING_DEV']!.isNotEmpty,
-      hasBatteryCare: vars['CHARGER_COOLING_DEV'] != null && vars['CHARGER_COOLING_DEV'] != 'none' && vars['CHARGER_COOLING_DEV']!.isNotEmpty,
+      hasChargeBypass: (vars['CHARGER_COOLING_DEV'] != null &&
+              vars['CHARGER_COOLING_DEV'] != 'none' &&
+              vars['CHARGER_COOLING_DEV']!.isNotEmpty) ||
+          vars['HAS_CHARGE_BYPASS']?.toLowerCase() == 'true' ||
+          vars['HAS_CHARGE_SUSPEND']?.toLowerCase() == 'true',
+      hasHardwareBypass: vars['HAS_CHARGE_BYPASS']?.toLowerCase() == 'true',
+      hasSmartFastCharge: vars['CHARGER_COOLING_DEV'] != null &&
+          vars['CHARGER_COOLING_DEV'] != 'none' &&
+          vars['CHARGER_COOLING_DEV']!.isNotEmpty,
+      hasBatteryCare: (vars['CHARGER_COOLING_DEV'] != null &&
+              vars['CHARGER_COOLING_DEV'] != 'none' &&
+              vars['CHARGER_COOLING_DEV']!.isNotEmpty) ||
+          (vars['BATTERY_PS_PATH'] != null && vars['BATTERY_PS_PATH'] != 'none'),
     );
   }
 

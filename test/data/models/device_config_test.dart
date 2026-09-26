@@ -89,6 +89,8 @@ void main() {
       expect(config.hasGbe, isTrue);
       expect(config.hasFpsgo, isTrue);
       expect(config.hasChargeBypass, isTrue);
+      expect(config.hasHardwareBypass, isTrue);
+      expect(config.hasSmartFastCharge, isTrue);
       expect(config.hasBatteryCare, isTrue);
 
       // GPU
@@ -103,6 +105,27 @@ void main() {
       // UFS
       expect(config.ufsAvailable, isTrue);
       expect(config.ufsFreqs, equals([273000000, 458333313]));
+    });
+
+    test('handles daemon v16.4 smart_fast_charge and charge_suspend without hardware bypass', () {
+      const v164Json = {
+        'version': '16.4',
+        'soc': {'name': 'mt6897'},
+        'features': {
+          'eas': true,
+          'uclamp': true,
+          'charge_bypass': false,
+          'charge_suspend': true,
+          'smart_fast_charge': true,
+          'battery_care': true,
+        },
+      };
+
+      final config = DeviceConfig.fromJson(v164Json);
+      expect(config.hasChargeBypass, isTrue);
+      expect(config.hasHardwareBypass, isFalse);
+      expect(config.hasSmartFastCharge, isTrue);
+      expect(config.hasBatteryCare, isTrue);
     });
 
     test('handles missing or partial feature flags safely', () {
@@ -120,6 +143,7 @@ void main() {
       expect(config.hasEas, isFalse);
       expect(config.hasGbe, isFalse);
       expect(config.hasChargeBypass, isFalse);
+      expect(config.hasHardwareBypass, isFalse);
       expect(config.policies, isEmpty);
       expect(config.gpuFreqs, isEmpty);
     });

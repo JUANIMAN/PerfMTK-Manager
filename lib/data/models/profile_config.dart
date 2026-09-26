@@ -314,21 +314,36 @@ class FpsgoConfig {
   }
 }
 
-// ── GBE (Game Turbo) config ───────────────────────────────────────────────────
+// ── GBE (Game Turbo / MAGT) config ──────────────────────────────────────────
 
 class GbeConfig {
   final int gbeEnable;
   final int gbeThrmHdrm;
+  final int magtCurrentAvg;
+  final int magtCurrentMax;
+  final int magtFpsdropThrs;
 
   const GbeConfig({
     this.gbeEnable = 1,
     this.gbeThrmHdrm = 20,
+    this.magtCurrentAvg = 0,
+    this.magtCurrentMax = 0,
+    this.magtFpsdropThrs = 0,
   });
 
-  GbeConfig copyWith({int? gbeEnable, int? gbeThrmHdrm}) {
+  GbeConfig copyWith({
+    int? gbeEnable,
+    int? gbeThrmHdrm,
+    int? magtCurrentAvg,
+    int? magtCurrentMax,
+    int? magtFpsdropThrs,
+  }) {
     return GbeConfig(
       gbeEnable: gbeEnable ?? this.gbeEnable,
       gbeThrmHdrm: gbeThrmHdrm ?? this.gbeThrmHdrm,
+      magtCurrentAvg: magtCurrentAvg ?? this.magtCurrentAvg,
+      magtCurrentMax: magtCurrentMax ?? this.magtCurrentMax,
+      magtFpsdropThrs: magtFpsdropThrs ?? this.magtFpsdropThrs,
     );
   }
 }
@@ -354,6 +369,9 @@ class ChargeThermalConfig {
   /// Battery care charge limit percentage (e.g. 80).
   final int batteryCareLimit;
 
+  /// Temporarily disable OEM thermal throttling services for sustained performance.
+  final bool disableThermalServices;
+
   const ChargeThermalConfig({
     this.bypassChargeThrottle = false,
     this.hardwareChargeBypass = false,
@@ -364,6 +382,7 @@ class ChargeThermalConfig {
     this.maxChargeMa = 0,
     this.batteryCareEnabled = false,
     this.batteryCareLimit = 80,
+    this.disableThermalServices = false,
   });
 
   ChargeThermalConfig copyWith({
@@ -376,6 +395,7 @@ class ChargeThermalConfig {
     int? maxChargeMa,
     bool? batteryCareEnabled,
     int? batteryCareLimit,
+    bool? disableThermalServices,
   }) {
     return ChargeThermalConfig(
       bypassChargeThrottle: bypassChargeThrottle ?? this.bypassChargeThrottle,
@@ -387,6 +407,8 @@ class ChargeThermalConfig {
       maxChargeMa: maxChargeMa ?? this.maxChargeMa,
       batteryCareEnabled: batteryCareEnabled ?? this.batteryCareEnabled,
       batteryCareLimit: batteryCareLimit ?? this.batteryCareLimit,
+      disableThermalServices:
+          disableThermalServices ?? this.disableThermalServices,
     );
   }
 }
@@ -396,19 +418,104 @@ class ChargeThermalConfig {
 class TouchConfig {
   final bool gameMode;
   final bool thpSmooth;
+  final int touchDownThreshold;
+  final int touchMoveThreshold;
 
   const TouchConfig({
     this.gameMode = false,
     this.thpSmooth = false,
+    this.touchDownThreshold = 0,
+    this.touchMoveThreshold = 0,
   });
 
   TouchConfig copyWith({
     bool? gameMode,
     bool? thpSmooth,
+    int? touchDownThreshold,
+    int? touchMoveThreshold,
   }) {
     return TouchConfig(
       gameMode: gameMode ?? this.gameMode,
       thpSmooth: thpSmooth ?? this.thpSmooth,
+      touchDownThreshold: touchDownThreshold ?? this.touchDownThreshold,
+      touchMoveThreshold: touchMoveThreshold ?? this.touchMoveThreshold,
+    );
+  }
+}
+
+// ── VM (Virtual Memory / ZRAM / MGLRU) config ────────────────────────────────
+
+class VmConfig {
+  final int swappiness;
+  final int statInterval;
+  final int watermarkScaleFactor;
+  final bool mglru;
+  final int mglruMinTtlMs;
+  final int compactionProactiveness;
+  final int schedSchedstats;
+  final bool compactOnLaunch;
+
+  const VmConfig({
+    this.swappiness = 100,
+    this.statInterval = 5,
+    this.watermarkScaleFactor = 100,
+    this.mglru = true,
+    this.mglruMinTtlMs = 0,
+    this.compactionProactiveness = 0,
+    this.schedSchedstats = 0,
+    this.compactOnLaunch = false,
+  });
+
+  VmConfig copyWith({
+    int? swappiness,
+    int? statInterval,
+    int? watermarkScaleFactor,
+    bool? mglru,
+    int? mglruMinTtlMs,
+    int? compactionProactiveness,
+    int? schedSchedstats,
+    bool? compactOnLaunch,
+  }) {
+    return VmConfig(
+      swappiness: swappiness ?? this.swappiness,
+      statInterval: statInterval ?? this.statInterval,
+      watermarkScaleFactor: watermarkScaleFactor ?? this.watermarkScaleFactor,
+      mglru: mglru ?? this.mglru,
+      mglruMinTtlMs: mglruMinTtlMs ?? this.mglruMinTtlMs,
+      compactionProactiveness:
+          compactionProactiveness ?? this.compactionProactiveness,
+      schedSchedstats: schedSchedstats ?? this.schedSchedstats,
+      compactOnLaunch: compactOnLaunch ?? this.compactOnLaunch,
+    );
+  }
+}
+
+// ── THERMAL GUARDIAN config ──────────────────────────────────────────────────
+
+class ThermalGuardianConfig {
+  final bool enable;
+  final int tempTarget;
+  final int stepDownMax;
+  final int uclampStepPct;
+
+  const ThermalGuardianConfig({
+    this.enable = false,
+    this.tempTarget = 45,
+    this.stepDownMax = 3,
+    this.uclampStepPct = 10,
+  });
+
+  ThermalGuardianConfig copyWith({
+    bool? enable,
+    int? tempTarget,
+    int? stepDownMax,
+    int? uclampStepPct,
+  }) {
+    return ThermalGuardianConfig(
+      enable: enable ?? this.enable,
+      tempTarget: tempTarget ?? this.tempTarget,
+      stepDownMax: stepDownMax ?? this.stepDownMax,
+      uclampStepPct: uclampStepPct ?? this.uclampStepPct,
     );
   }
 }
@@ -426,6 +533,9 @@ class ProfileConfig {
   final ChargeThermalConfig chargeThermal;
   final int refreshRate;
   final TouchConfig touch;
+  final VmConfig vm;
+  final ThermalGuardianConfig thermalGuardian;
+  final Map<String, Map<String, String>> extraSections;
 
   const ProfileConfig({
     required this.cpu,
@@ -438,6 +548,9 @@ class ProfileConfig {
     this.chargeThermal = const ChargeThermalConfig(),
     this.refreshRate = 0,
     this.touch = const TouchConfig(),
+    this.vm = const VmConfig(),
+    this.thermalGuardian = const ThermalGuardianConfig(),
+    this.extraSections = const {},
   });
 
   ProfileConfig copyWith({
@@ -451,6 +564,9 @@ class ProfileConfig {
     ChargeThermalConfig? chargeThermal,
     int? refreshRate,
     TouchConfig? touch,
+    VmConfig? vm,
+    ThermalGuardianConfig? thermalGuardian,
+    Map<String, Map<String, String>>? extraSections,
   }) {
     return ProfileConfig(
       cpu: cpu ?? this.cpu,
@@ -463,6 +579,9 @@ class ProfileConfig {
       chargeThermal: chargeThermal ?? this.chargeThermal,
       refreshRate: refreshRate ?? this.refreshRate,
       touch: touch ?? this.touch,
+      vm: vm ?? this.vm,
+      thermalGuardian: thermalGuardian ?? this.thermalGuardian,
+      extraSections: extraSections ?? this.extraSections,
     );
   }
 }

@@ -260,6 +260,14 @@ class PerfConfigRepository {
           ? ufsGovs
           : const ['simple_ondemand', 'performance', 'powersave', 'userspace'],
       ufsAvailable: cfg.ufsAvailable,
+      hasEas: cfg.hasEas,
+      hasUclamp: cfg.hasUclamp,
+      hasGbe: cfg.hasGbe,
+      hasFpsgo: cfg.hasFpsgo,
+      hasChargeBypass: cfg.hasChargeBypass,
+      hasHardwareBypass: cfg.hasHardwareBypass,
+      hasSmartFastCharge: cfg.hasSmartFastCharge,
+      hasBatteryCare: cfg.hasBatteryCare,
     );
   }
 

@@ -108,7 +108,18 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: const Text('PerfMTK Manager'),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: Text(
+            switch (currentScreen) {
+              NavScreens.profiles => 'PerfMTK Manager',
+              NavScreens.appProfiles => AppLocale.appProfiles.getString(context),
+              NavScreens.perfConfig => AppLocale.perfConfig.getString(context),
+              NavScreens.thermal => AppLocale.thermal.getString(context),
+            },
+            key: ValueKey(currentScreen),
+          ),
+        ),
         actions: [
           if (systemState != null && systemState.fgEngine.isNotEmpty)
             Padding(
@@ -218,7 +229,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
               height: 62,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

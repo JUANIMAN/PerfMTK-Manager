@@ -63,24 +63,16 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
         ),
         slivers: [
           SliverPadding(
-            padding: AppConstants.paddingNormal,
+            padding: const EdgeInsets.fromLTRB(
+              AppConstants.spacing16,
+              AppConstants.spacing8,
+              AppConstants.spacing16,
+              AppConstants.spacing24,
+            ),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    AppLocale.titleThermal.getString(context),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppConstants.spacing8),
-                  Text(
-                    AppLocale.thermalControl.getString(context),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: AppConstants.spacing20),
-
                   // ── Realtime Continuous Thermal Telemetry Chart ─────────
                   RealtimeThermalChart(
                     socTempC: state.socTempC,
@@ -96,9 +88,7 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
                       opacity:
                           isChangingGuardian ? AppConstants.opacityDisabled : 1.0,
                       child: ThermalGuardianCard(
-                        key: ValueKey(
-                          '${state.thermalGuardianEnabled}-${state.thermalGuardianTargetC}-${state.thermalGuardianMaxSteps}-${state.thermalGuardianClampStep}-$isChangingGuardian',
-                        ),
+                        key: const ValueKey('thermal_guardian_card'),
                         isEnabled: state.thermalGuardianEnabled,
                         status: state.thermalGuardianStatus,
                         targetTempC: state.thermalGuardianTargetC,
@@ -129,7 +119,7 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
                       duration: AppConstants.animationFast,
                       opacity: isChanging ? AppConstants.opacityDisabled : 1.0,
                       child: ThermalSwitch(
-                        key: ValueKey(state.thermalState),
+                        key: const ValueKey('thermal_switch'),
                         isEnabled: isEnabled,
                         onChanged: (value) => _setThermalLimit(value),
                       ),
@@ -178,9 +168,7 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
                       opacity:
                           isChangingBypass ? AppConstants.opacityDisabled : 1.0,
                       child: ChargeBypassCard(
-                        key: ValueKey(
-                          '${state.chargeBypass}-$isChangingBypass',
-                        ),
+                        key: const ValueKey('charge_bypass_card'),
                         isEnabled: state.chargeBypass,
                         batteryTempC: state.batteryTempC,
                         isChanging: isChangingBypass,
@@ -199,9 +187,7 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
                       opacity:
                           isChangingCare ? AppConstants.opacityDisabled : 1.0,
                       child: BatteryCareCard(
-                        key: ValueKey(
-                          '${state.batteryCareEnabled}-${state.batteryCareLimitPct}-${state.batteryCareSuspended}-$isChangingCare',
-                        ),
+                        key: const ValueKey('battery_care_card'),
                         isEnabled: state.batteryCareEnabled,
                         limitPct: state.batteryCareLimitPct,
                         isSuspended: state.batteryCareSuspended,

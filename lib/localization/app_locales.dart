@@ -265,6 +265,58 @@ mixin AppLocale {
   static const String touchPinThreadsDesc = 'touchPinThreadsDesc';
   static const String touchBadge = 'touchBadge';
 
+  // Virtual Memory & MGLRU
+  static const String vmTitle = 'vmTitle';
+  static const String swappiness = 'swappiness';
+  static const String swappinessDesc = 'swappinessDesc';
+  static const String mglru = 'mglru';
+  static const String mglruDesc = 'mglruDesc';
+  static const String watermarkScale = 'watermarkScale';
+  static const String watermarkScaleDesc = 'watermarkScaleDesc';
+  static const String compactionProactiveness = 'compactionProactiveness';
+  static const String compactionProactivenessDesc = 'compactionProactivenessDesc';
+  static const String compactOnLaunch = 'compactOnLaunch';
+  static const String compactOnLaunchDesc = 'compactOnLaunchDesc';
+  static const String statInterval = 'statInterval';
+
+  // Display Refresh Rate
+  static const String displayTitle = 'displayTitle';
+  static const String displayRefreshDesc = 'displayRefreshDesc';
+  static const String refreshRateAuto = 'refreshRateAuto';
+  static const String refreshRate60 = 'refreshRate60';
+  static const String refreshRate90 = 'refreshRate90';
+  static const String refreshRate120 = 'refreshRate120';
+  static const String refreshRate144 = 'refreshRate144';
+
+  // DRAM DVFS Max
+  static const String maxFreqDram = 'maxFreqDram';
+  static const String uncapped = 'uncapped';
+
+  // Thermal & Charge Extended
+  static const String disableThermalServices = 'disableThermalServices';
+  static const String disableThermalServicesDesc = 'disableThermalServicesDesc';
+  static const String gentleCharge = 'gentleCharge';
+  static const String gentleChargeDesc = 'gentleChargeDesc';
+  static const String gentleChargeDisabled = 'gentleChargeDisabled';
+  static const String bypassMinBatt = 'bypassMinBatt';
+
+  // FPSGO Extended
+  static const String rescueEnable = 'rescueEnable';
+  static const String rescueEnableDesc = 'rescueEnableDesc';
+  static const String ultraRescue = 'ultraRescue';
+  static const String ultraRescueDesc = 'ultraRescueDesc';
+  static const String downThrottle = 'downThrottle';
+  static const String downThrottleDesc = 'downThrottleDesc';
+
+  // Thermal Guardian in profile
+  static const String tgProfileTitle = 'tgProfileTitle';
+  static const String tgProfileEnableDesc = 'tgProfileEnableDesc';
+  static const String tgUclampStep = 'tgUclampStep';
+
+  // Directives
+  static const String renderBoost = 'renderBoost';
+  static const String renderBoostDesc = 'renderBoostDesc';
+
   static const Map<String, dynamic> en = {
     profiles: 'Profiles',
     thermal: 'Thermal',
@@ -525,6 +577,44 @@ mixin AppLocale {
     touchPinThreads: 'Pin Touch Threads to Big Cores',
     touchPinThreadsDesc: 'Pins touch IRQ and InputReader/Dispatcher to Big Cores (Leave OFF for heavy games to prevent thread contention)',
     touchBadge: 'Touch',
+    vmTitle: 'Virtual Memory & Kernel',
+    swappiness: 'Swappiness',
+    swappinessDesc: 'Aggressiveness of memory page swapping (higher = more ZRAM usage)',
+    mglru: 'Multi-Gen LRU (MGLRU)',
+    mglruDesc: 'Modern kernel pagecache reclaim algorithm for smooth multitasking',
+    watermarkScale: 'Watermark Scale Factor',
+    watermarkScaleDesc: 'Memory pressure headroom before background kswapd wakeup',
+    compactionProactiveness: 'Proactive Compaction',
+    compactionProactivenessDesc: 'Proactively defragments system memory to prevent frame drops',
+    compactOnLaunch: 'Compact Memory on Game Launch',
+    compactOnLaunchDesc: 'Triggers proactive memory compaction when launching games',
+    statInterval: 'VM Stat Interval',
+    displayTitle: 'Display Refresh Rate',
+    displayRefreshDesc: 'Target panel refresh rate when this profile is active',
+    refreshRateAuto: 'Auto / Dynamic',
+    refreshRate60: '60 Hz',
+    refreshRate90: '90 Hz',
+    refreshRate120: '120 Hz',
+    refreshRate144: '144 Hz',
+    maxFreqDram: 'Max DRAM Frequency',
+    uncapped: 'Uncapped',
+    disableThermalServices: 'Disable OEM Thermal Services',
+    disableThermalServicesDesc: 'Eliminates OEM throttling services (e.g. mi_thermald) during gaming',
+    gentleCharge: 'Gentle Charging',
+    gentleChargeDesc: 'Restricts charging input to keep device cool while running games',
+    gentleChargeDisabled: 'Disabled (Full Speed)',
+    bypassMinBatt: 'Bypass Min Battery Level',
+    rescueEnable: 'Frame Drop Rescue (FBT)',
+    rescueEnableDesc: 'Instant frequency boost when a frame drop is forecasted',
+    ultraRescue: 'Ultra Rescue',
+    ultraRescueDesc: 'Aggressive CPU spike for heavy 3D rendering stutters',
+    downThrottle: 'Suppress Down-Throttle',
+    downThrottleDesc: 'Blocks CPU frequency reductions mid-frame render',
+    tgProfileTitle: 'Thermal Guardian (Profile)',
+    tgProfileEnableDesc: 'Proactive thermal headroom regulation for this profile',
+    tgUclampStep: 'Uclamp Reduction per Step',
+    renderBoost: 'RenderBooster',
+    renderBoostDesc: 'Pins and elevates UI and render threads to Big/Prime cores for stutter-free frames',
   };
 
   static const Map<String, dynamic> es = {
@@ -787,6 +877,44 @@ mixin AppLocale {
     touchPinThreads: 'Anclar Hilos Táctiles a Núcleos Big',
     touchPinThreadsDesc: 'Ancla la IRQ táctil e InputReader a núcleos Big (Recomendado APAGADO en juegos para evitar micro-tirones)',
     touchBadge: 'Touch',
+    vmTitle: 'Memoria Virtual y Kernel',
+    swappiness: 'Swappiness',
+    swappinessDesc: 'Agresividad del intercambio de páginas de memoria (mayor = más uso de ZRAM)',
+    mglru: 'Multi-Gen LRU (MGLRU)',
+    mglruDesc: 'Algoritmo moderno de recuperación de caché de páginas para multitarea fluida',
+    watermarkScale: 'Factor de Escala de Watermark',
+    watermarkScaleDesc: 'Margen de presión de memoria antes del despertar de kswapd en segundo plano',
+    compactionProactiveness: 'Compactación Proactiva',
+    compactionProactivenessDesc: 'Desfragmenta la memoria proactivamente para evitar tirones de frames',
+    compactOnLaunch: 'Compactar Memoria al Iniciar',
+    compactOnLaunchDesc: 'Ejecuta compactación proactiva al abrir juegos exigentes',
+    statInterval: 'Intervalo de Estadísticas VM',
+    displayTitle: 'Tasa de Refresco de Pantalla',
+    displayRefreshDesc: 'Tasa de refresco objetivo cuando este perfil está activo',
+    refreshRateAuto: 'Auto / Dinámico',
+    refreshRate60: '60 Hz',
+    refreshRate90: '90 Hz',
+    refreshRate120: '120 Hz',
+    refreshRate144: '144 Hz',
+    maxFreqDram: 'Frecuencia Máxima de DRAM',
+    uncapped: 'Sin límite',
+    disableThermalServices: 'Desactivar Servicios Térmicos OEM',
+    disableThermalServicesDesc: 'Elimina servicios de throttling OEM (ej. mi_thermald) durante juegos',
+    gentleCharge: 'Carga Suave (Gentle Charge)',
+    gentleChargeDesc: 'Restringe la corriente de carga para mantener fresco el equipo al jugar conectado',
+    gentleChargeDisabled: 'Desactivado (Velocidad completa)',
+    bypassMinBatt: 'Nivel Mínimo de Batería para Bypass',
+    rescueEnable: 'Rescate de Caída de FPS (FBT)',
+    rescueEnableDesc: 'Aumento inmediato de frecuencias al prever una caída de frames',
+    ultraRescue: 'Rescate Ultra',
+    ultraRescueDesc: 'Pico agresivo de CPU ante tirones intensos en 3D',
+    downThrottle: 'Suprimir Desaceleración en Frame',
+    downThrottleDesc: 'Bloquea caídas de frecuencia de CPU a mitad del renderizado de frame',
+    tgProfileTitle: 'Thermal Guardian (Perfil)',
+    tgProfileEnableDesc: 'Regulación proactiva de margen térmico para este perfil',
+    tgUclampStep: 'Reducción de Uclamp por Paso',
+    renderBoost: 'RenderBooster',
+    renderBoostDesc: 'Fija y eleva el hilo de UI y los hilos de render a núcleos Big/Prime para cero tirones',
   };
 
   static String getValue(String key) {

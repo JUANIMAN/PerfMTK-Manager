@@ -92,7 +92,7 @@ class DeviceConfParser {
               vars['CHARGER_COOLING_DEV'] != 'none' &&
               vars['CHARGER_COOLING_DEV']!.isNotEmpty) ||
           (vars['BATTERY_PS_PATH'] != null && vars['BATTERY_PS_PATH'] != 'none'),
-      maxDisplayFps: int.tryParse(vars['MAX_DISPLAY_FPS'] ?? '') ?? 60,
+      maxDisplayFps: int.tryParse(vars['MAX_DISPLAY_FPS'] ?? '') ?? 120,
       minDramFreq: minDram,
       maxDramFreq: maxDram,
       minGpuFreqKhz: minGpu,

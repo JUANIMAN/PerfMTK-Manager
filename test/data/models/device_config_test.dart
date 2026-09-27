@@ -146,6 +146,16 @@ void main() {
       expect(config.hasHardwareBypass, isFalse);
       expect(config.policies, isEmpty);
       expect(config.gpuFreqs, isEmpty);
+      expect(config.maxDisplayFps, equals(120));
+    });
+
+    test('parses display max_fps from display block correctly', () {
+      const displayJson = {
+        'soc': {'name': 'mt6897'},
+        'display': {'max_fps': 144},
+      };
+      final config = DeviceConfig.fromJson(displayJson);
+      expect(config.maxDisplayFps, equals(144));
     });
   });
 }

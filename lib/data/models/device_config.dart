@@ -124,7 +124,7 @@ class DeviceConfig {
     this.hasHardwareBypass = false,
     this.hasSmartFastCharge = false,
     this.hasBatteryCare = false,
-    this.maxDisplayFps = 60,
+    this.maxDisplayFps = 120,
     this.minDramFreq = 0,
     this.maxDramFreq = 0,
     this.minGpuFreqKhz = 0,
@@ -139,6 +139,7 @@ class DeviceConfig {
     final gpu = json['gpu'] as Map<String, dynamic>? ?? {};
     final dram = json['dram'] as Map<String, dynamic>? ?? {};
     final ufs = json['ufs'] as Map<String, dynamic>? ?? {};
+    final display = json['display'] as Map<String, dynamic>? ?? {};
     final policiesList = json['cpu_policies'] as List<dynamic>? ?? [];
 
     final policies = <CpuPolicy>[];
@@ -228,10 +229,12 @@ class DeviceConfig {
       hasHardwareBypass: features['charge_bypass'] as bool? ?? false,
       hasSmartFastCharge: features['smart_fast_charge'] as bool? ?? true,
       hasBatteryCare: features['battery_care'] as bool? ?? false,
-      maxDisplayFps: (soc['max_display_fps'] as num?)?.toInt() ??
+      maxDisplayFps: (display['max_fps'] as num?)?.toInt() ??
+          (display['max_display_fps'] as num?)?.toInt() ??
+          (soc['max_display_fps'] as num?)?.toInt() ??
           (features['max_display_fps'] as num?)?.toInt() ??
           (json['max_display_fps'] as num?)?.toInt() ??
-          60,
+          120,
       minDramFreq: (dram['min_freq'] as num?)?.toInt() ??
           (dramFreqs.isNotEmpty ? dramFreqs.first : 0),
       maxDramFreq: (dram['max_freq'] as num?)?.toInt() ??
@@ -283,7 +286,7 @@ class DeviceConfig {
       hasHardwareBypass: false,
       hasSmartFastCharge: false,
       hasBatteryCare: false,
-      maxDisplayFps: 60,
+      maxDisplayFps: 120,
       minDramFreq: 0,
       maxDramFreq: 0,
       minGpuFreqKhz: 0,

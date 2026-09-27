@@ -36,6 +36,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
   late bool _chargeBypass;
   late bool _disableThermal;
   late bool _touchGameMode;
+  late bool _renderBoost;
+  late int? _gentleCharge;
   late int? _selectedFps;
 
   @override
@@ -46,6 +48,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     _chargeBypass = widget.currentDirectives?.chargeBypass == true;
     _disableThermal = widget.currentDirectives?.disableThermal == true;
     _touchGameMode = widget.currentDirectives?.touchGameMode == true;
+    _renderBoost = widget.currentDirectives?.renderBoost == 1;
+    _gentleCharge = widget.currentDirectives?.gentleCharge;
     _selectedFps = widget.currentDirectives?.fps;
   }
 
@@ -61,8 +65,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
       touchGameMode: _touchGameMode ? true : null,
       dramMin: widget.currentDirectives?.dramMin,
       uclampMax: widget.currentDirectives?.uclampMax,
-      gentleCharge: widget.currentDirectives?.gentleCharge,
-      renderBoost: widget.currentDirectives?.renderBoost,
+      gentleCharge: _gentleCharge,
+      renderBoost: _renderBoost ? 1 : null,
       fps: _selectedFps,
     );
     widget.onProfileSelected(profile, directives.isEmpty ? null : directives);
@@ -365,6 +369,56 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                             _apply(_selectedProfile);
                           },
                         ),
+                        const SizedBox(height: 8),
+                        _buildDirectiveRow(
+                          context: context,
+                          icon: Icons.rocket_launch_rounded,
+                          iconColor: const Color(0xFFFF6D00),
+                          title: AppLocale.renderBoost.getString(context),
+                          subtitle: AppLocale.renderBoostDesc.getString(context),
+                          value: _renderBoost,
+                          onChanged: (v) {
+                            setState(() => _renderBoost = v);
+                            _apply(_selectedProfile);
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        Divider(
+                          height: 1,
+                          color: cs.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.35),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.battery_charging_full_rounded,
+                              size: 14,
+                              color: Color(0xFF26A69A),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              AppLocale.gentleCharge.getString(context).toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.4,
+                                color: cs.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildGentleChargeChip(context, label: 'Off', value: null, isDark: isDark),
+                            const SizedBox(width: 8),
+                            _buildGentleChargeChip(context, label: '500mA', value: 500, isDark: isDark),
+                            const SizedBox(width: 8),
+                            _buildGentleChargeChip(context, label: '1000mA', value: 1000, isDark: isDark),
+                            const SizedBox(width: 8),
+                            _buildGentleChargeChip(context, label: '1500mA', value: 1500, isDark: isDark),
+                          ],
+                        ),
                         const SizedBox(height: 12),
                         Divider(
                           height: 1,
@@ -646,6 +700,63 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                       ? (isDark ? accentColor : const Color(0xFF00A352))
                       : cs.onSurfaceVariant,
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGentleChargeChip(
+    BuildContext context, {
+    required String label,
+    required int? value,
+    required bool isDark,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    final isSelected = _gentleCharge == value;
+    const accentColor = Color(0xFF26A69A);
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() => _gentleCharge = value);
+            _apply(_selectedProfile);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? accentColor.withValues(alpha: isDark ? 0.20 : 0.14)
+                  : (isDark
+                      ? cs.surfaceContainerHighest.withValues(alpha: 0.35)
+                      : cs.surfaceContainerHighest.withValues(alpha: 0.45)),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected
+                    ? accentColor.withValues(alpha: 0.65)
+                    : cs.outlineVariant.withValues(alpha: 0.25),
+                width: isSelected ? 1.2 : 0.8,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected
+                      ? (isDark ? accentColor : const Color(0xFF00796B))
+                      : cs.onSurfaceVariant,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),

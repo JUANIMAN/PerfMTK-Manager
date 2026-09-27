@@ -10,14 +10,17 @@ import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/widgets/perf_config/charge_thermal_card.dart';
 import 'package:manager/presentation/widgets/perf_config/cpu_policy_card.dart';
 import 'package:manager/presentation/widgets/perf_config/devfreq_card.dart';
+import 'package:manager/presentation/widgets/perf_config/display_card.dart';
 import 'package:manager/presentation/widgets/perf_config/fpsgo_card.dart';
 import 'package:manager/presentation/widgets/perf_config/gbe_card.dart';
 import 'package:manager/presentation/widgets/perf_config/gpu_card.dart';
 import 'package:manager/presentation/widgets/perf_config/profile_save_fab.dart';
 import 'package:manager/presentation/widgets/perf_config/rate_limits_card.dart';
+import 'package:manager/presentation/widgets/perf_config/thermal_guardian_config_card.dart';
 import 'package:manager/presentation/widgets/perf_config/touch_card.dart';
 import 'package:manager/presentation/widgets/perf_config/uclamp_card.dart';
 import 'package:manager/presentation/widgets/perf_config/ufs_card.dart';
+import 'package:manager/presentation/widgets/perf_config/vm_card.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
 
 /// Body for each profile tab showing all configurable hardware subsystems.
@@ -411,6 +414,26 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
       ),
     );
 
+    // ── DISPLAY ──────────────────────────────────────────────────────────
+    sections.add(const SizedBox(height: AppConstants.spacing20));
+    sections.add(
+      SectionLabel(
+        label: AppLocale.displayTitle.getString(context),
+        color: profileColor,
+      ),
+    );
+    sections.add(const SizedBox(height: AppConstants.spacing8));
+    sections.add(
+      DisplayCard(
+        refreshRate: config.refreshRate,
+        maxDisplayFps: device.maxDisplayFps,
+        color: profileColor,
+        onChanged: (rate) {
+          notifier.update(config.copyWith(refreshRate: rate));
+        },
+      ),
+    );
+
     // ── DEVFREQ ──────────────────────────────────────────────────────────
     if (device.dvfAvailable && device.dvfFreqs.isNotEmpty) {
       sections.add(const SizedBox(height: AppConstants.spacing20));
@@ -420,15 +443,17 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
         DevfreqCard(
           dvfGovernor: config.devfreq.dvfGovernor,
           currentMinFreq: config.devfreq.dvfMinFreq,
+          currentMaxFreq: config.devfreq.dvfMaxFreq,
           availableFreqs: device.dvfFreqs,
           availableGovernors: device.dvfGovernors,
           color: profileColor,
-          onChanged: ({String? governor, int? minFreq}) {
+          onChanged: ({String? governor, int? minFreq, int? maxFreq}) {
             notifier.update(
               config.copyWith(
                 devfreq: config.devfreq.copyWith(
                   dvfGovernor: governor ?? config.devfreq.dvfGovernor,
                   dvfMinFreq: minFreq ?? config.devfreq.dvfMinFreq,
+                  dvfMaxFreq: maxFreq ?? config.devfreq.dvfMaxFreq,
                 ),
               ),
             );
@@ -468,11 +493,26 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
         FpsgoCard(
           forceOnOff: config.fpsgo.forceOnOff,
           boostTa: config.fpsgo.boostTa,
+          rescueEnable: config.fpsgo.rescueEnable,
+          ultraRescue: config.fpsgo.ultraRescue,
+          downThrottle: config.fpsgo.downThrottle,
           color: profileColor,
-          onChanged: (force, boost) {
+          onChanged: ({
+            required forceOnOff,
+            required boostTa,
+            required rescueEnable,
+            required ultraRescue,
+            required downThrottle,
+          }) {
             notifier.update(
               config.copyWith(
-                fpsgo: config.fpsgo.copyWith(forceOnOff: force, boostTa: boost),
+                fpsgo: config.fpsgo.copyWith(
+                  forceOnOff: forceOnOff,
+                  boostTa: boostTa,
+                  rescueEnable: rescueEnable,
+                  ultraRescue: ultraRescue,
+                  downThrottle: downThrottle,
+                ),
               ),
             );
           },
@@ -504,6 +544,51 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
       );
     }
 
+    // ── VIRTUAL MEMORY (VM) ───────────────────────────────────────────────
+    sections.add(const SizedBox(height: AppConstants.spacing20));
+    sections.add(
+      SectionLabel(
+        label: AppLocale.vmTitle.getString(context),
+        color: profileColor,
+      ),
+    );
+    sections.add(const SizedBox(height: AppConstants.spacing8));
+    sections.add(
+      VmCard(
+        swappiness: config.vm.swappiness,
+        mglru: config.vm.mglru,
+        watermarkScaleFactor: config.vm.watermarkScaleFactor,
+        compactionProactiveness: config.vm.compactionProactiveness,
+        compactOnLaunch: config.vm.compactOnLaunch,
+        statInterval: config.vm.statInterval,
+        color: profileColor,
+        onChanged: ({
+          swappiness,
+          mglru,
+          watermarkScaleFactor,
+          compactionProactiveness,
+          compactOnLaunch,
+          statInterval,
+        }) {
+          notifier.update(
+            config.copyWith(
+              vm: config.vm.copyWith(
+                swappiness: swappiness ?? config.vm.swappiness,
+                mglru: mglru ?? config.vm.mglru,
+                watermarkScaleFactor:
+                    watermarkScaleFactor ?? config.vm.watermarkScaleFactor,
+                compactionProactiveness:
+                    compactionProactiveness ??
+                    config.vm.compactionProactiveness,
+                compactOnLaunch: compactOnLaunch ?? config.vm.compactOnLaunch,
+                statInterval: statInterval ?? config.vm.statInterval,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
     // ── THERMAL & CHARGING ────────────────────────────────────────────────
     sections.add(const SizedBox(height: AppConstants.spacing20));
     sections.add(
@@ -518,12 +603,18 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
         bypassChargeThrottle: config.chargeThermal.bypassChargeThrottle,
         unlockFpsThermal: config.chargeThermal.unlockFpsThermal,
         batteryTempLimit: config.chargeThermal.batteryTempLimit,
+        disableThermalServices: config.chargeThermal.disableThermalServices,
+        gentleChargeMa: config.chargeThermal.gentleChargeMa,
+        bypassMinBattPct: config.chargeThermal.bypassMinBattPct,
         color: profileColor,
         hasChargeBypass: device.hasChargeBypass,
         onChanged: ({
           required bool bypassChargeThrottle,
           required bool unlockFpsThermal,
           required int batteryTempLimit,
+          required bool disableThermalServices,
+          required int gentleChargeMa,
+          required int bypassMinBattPct,
         }) {
           notifier.update(
             config.copyWith(
@@ -533,6 +624,34 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
                     device.hasHardwareBypass ? bypassChargeThrottle : false,
                 unlockFpsThermal: unlockFpsThermal,
                 batteryTempLimit: batteryTempLimit,
+                disableThermalServices: disableThermalServices,
+                gentleChargeMa: gentleChargeMa,
+                bypassMinBattPct: bypassMinBattPct,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+    // ── THERMAL GUARDIAN ─────────────────────────────────────────────────
+    sections.add(const SizedBox(height: AppConstants.spacing16));
+    sections.add(
+      ThermalGuardianConfigCard(
+        enable: config.thermalGuardian.enable,
+        tempTarget: config.thermalGuardian.tempTarget,
+        stepDownMax: config.thermalGuardian.stepDownMax,
+        uclampStepPct: config.thermalGuardian.uclampStepPct,
+        color: profileColor,
+        onChanged: ({enable, tempTarget, stepDownMax, uclampStepPct}) {
+          notifier.update(
+            config.copyWith(
+              thermalGuardian: config.thermalGuardian.copyWith(
+                enable: enable ?? config.thermalGuardian.enable,
+                tempTarget: tempTarget ?? config.thermalGuardian.tempTarget,
+                stepDownMax: stepDownMax ?? config.thermalGuardian.stepDownMax,
+                uclampStepPct:
+                    uclampStepPct ?? config.thermalGuardian.uclampStepPct,
               ),
             ),
           );

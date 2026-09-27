@@ -50,6 +50,17 @@ class DeviceConfParser {
       gpuFreqInKHz = false;
     }
 
+    final dvfFreqs = parseIntList(vars['DVF_FREQS']);
+    final minDram = int.tryParse(vars['MIN_DRAM_FREQ'] ?? '') ??
+        (dvfFreqs.isNotEmpty ? dvfFreqs.first : 0);
+    final maxDram = int.tryParse(vars['MAX_DRAM_FREQ'] ?? '') ??
+        (dvfFreqs.isNotEmpty ? dvfFreqs.last : 0);
+
+    final minGpu = int.tryParse(vars['MIN_GPU_FREQ_KHZ'] ?? '') ??
+        (gpuFreqs.isNotEmpty ? gpuFreqs.last : 0);
+    final maxGpu = int.tryParse(vars['MAX_GPU_FREQ_KHZ'] ?? '') ??
+        (gpuFreqs.isNotEmpty ? gpuFreqs.first : 0);
+
     return DeviceConfig(
       socName: vars['SOC_NAME'] ?? 'Unknown',
       archType: vars['ARCH_TYPE'] ?? 'Unknown',
@@ -59,7 +70,7 @@ class DeviceConfParser {
       gpuFreqs: gpuFreqs,
       gpuGovernors: parseStrList(vars['GPU_GOVERNORS']),
       gpuFreqInKHz: gpuFreqInKHz,
-      dvfFreqs: parseIntList(vars['DVF_FREQS']),
+      dvfFreqs: dvfFreqs,
       dvfGovernors: parseStrList(vars['DVF_GOVERNORS']),
       dvfAvailable: vars['DVF_AVAILABLE']?.toLowerCase() == 'true',
       ufsFreqs: parseIntList(vars['UFS_FREQS']),
@@ -81,6 +92,11 @@ class DeviceConfParser {
               vars['CHARGER_COOLING_DEV'] != 'none' &&
               vars['CHARGER_COOLING_DEV']!.isNotEmpty) ||
           (vars['BATTERY_PS_PATH'] != null && vars['BATTERY_PS_PATH'] != 'none'),
+      maxDisplayFps: int.tryParse(vars['MAX_DISPLAY_FPS'] ?? '') ?? 60,
+      minDramFreq: minDram,
+      maxDramFreq: maxDram,
+      minGpuFreqKhz: minGpu,
+      maxGpuFreqKhz: maxGpu,
     );
   }
 

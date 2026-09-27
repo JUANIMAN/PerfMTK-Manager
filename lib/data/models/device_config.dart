@@ -90,6 +90,17 @@ class DeviceConfig {
   final bool hasSmartFastCharge;
   final bool hasBatteryCare;
 
+  /// Maximum detected display refresh rate (e.g. 60, 90, 120, 144).
+  final int maxDisplayFps;
+
+  /// Dynamic DRAM bounds in Hz.
+  final int minDramFreq;
+  final int maxDramFreq;
+
+  /// Dynamic GPU bounds in KHz.
+  final int minGpuFreqKhz;
+  final int maxGpuFreqKhz;
+
   const DeviceConfig({
     required this.socName,
     required this.archType,
@@ -113,6 +124,11 @@ class DeviceConfig {
     this.hasHardwareBypass = false,
     this.hasSmartFastCharge = false,
     this.hasBatteryCare = false,
+    this.maxDisplayFps = 60,
+    this.minDramFreq = 0,
+    this.maxDramFreq = 0,
+    this.minGpuFreqKhz = 0,
+    this.maxGpuFreqKhz = 0,
   });
 
   /// Creates a [DeviceConfig] directly from the JSON returned by
@@ -212,6 +228,18 @@ class DeviceConfig {
       hasHardwareBypass: features['charge_bypass'] as bool? ?? false,
       hasSmartFastCharge: features['smart_fast_charge'] as bool? ?? true,
       hasBatteryCare: features['battery_care'] as bool? ?? false,
+      maxDisplayFps: (soc['max_display_fps'] as num?)?.toInt() ??
+          (features['max_display_fps'] as num?)?.toInt() ??
+          (json['max_display_fps'] as num?)?.toInt() ??
+          60,
+      minDramFreq: (dram['min_freq'] as num?)?.toInt() ??
+          (dramFreqs.isNotEmpty ? dramFreqs.first : 0),
+      maxDramFreq: (dram['max_freq'] as num?)?.toInt() ??
+          (dramFreqs.isNotEmpty ? dramFreqs.last : 0),
+      minGpuFreqKhz: (gpu['min_freq_khz'] as num?)?.toInt() ??
+          (gpuFreqs.isNotEmpty ? gpuFreqs.last : 0),
+      maxGpuFreqKhz: (gpu['max_freq_khz'] as num?)?.toInt() ??
+          (gpuFreqs.isNotEmpty ? gpuFreqs.first : 0),
     );
   }
 
@@ -255,6 +283,11 @@ class DeviceConfig {
       hasHardwareBypass: false,
       hasSmartFastCharge: false,
       hasBatteryCare: false,
+      maxDisplayFps: 60,
+      minDramFreq: 0,
+      maxDramFreq: 0,
+      minGpuFreqKhz: 0,
+      maxGpuFreqKhz: 0,
     );
   }
 

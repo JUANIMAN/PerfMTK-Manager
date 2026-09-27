@@ -41,6 +41,12 @@ DVF_AVAILABLE="true"
 UFS_FREQS="100 200"
 UFS_GOVERNORS="simple_ondemand"
 UFS_AVAILABLE="true"
+
+MAX_DISPLAY_FPS=120
+MIN_DRAM_FREQ=1000
+MAX_DRAM_FREQ=3000
+MIN_GPU_FREQ_KHZ=500000
+MAX_GPU_FREQ_KHZ=1400000
 ''';
 
     test('parses full device configuration correctly with OPP table', () {
@@ -69,6 +75,13 @@ UFS_AVAILABLE="true"
       expect(config.dvfFreqs, equals([1000, 2000, 3000]));
       expect(config.ufsAvailable, isTrue);
       expect(config.ufsFreqs, equals([100, 200]));
+
+      // Display & bounds
+      expect(config.maxDisplayFps, equals(120));
+      expect(config.minDramFreq, equals(1000));
+      expect(config.maxDramFreq, equals(3000));
+      expect(config.minGpuFreqKhz, equals(500000));
+      expect(config.maxGpuFreqKhz, equals(1400000));
     });
 
     test('parses legacy GPU_FREQS in Hz and converts to KHz', () {

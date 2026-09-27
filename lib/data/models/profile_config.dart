@@ -205,16 +205,23 @@ class GpuConfig {
 class DevfreqConfig {
   final String dvfGovernor;
   final int dvfMinFreq;
+  final int dvfMaxFreq;
 
   const DevfreqConfig({
     required this.dvfGovernor,
     this.dvfMinFreq = 0,
+    this.dvfMaxFreq = 0,
   });
 
-  DevfreqConfig copyWith({String? dvfGovernor, int? dvfMinFreq}) =>
+  DevfreqConfig copyWith({
+    String? dvfGovernor,
+    int? dvfMinFreq,
+    int? dvfMaxFreq,
+  }) =>
       DevfreqConfig(
         dvfGovernor: dvfGovernor ?? this.dvfGovernor,
         dvfMinFreq: dvfMinFreq ?? this.dvfMinFreq,
+        dvfMaxFreq: dvfMaxFreq ?? this.dvfMaxFreq,
       );
 }
 

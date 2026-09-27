@@ -39,6 +39,7 @@ GED_BOOST_ENABLE=1
 [DEVFREQ]
 DVF_GOVERNOR="simple_ondemand"
 DVF_MIN_FREQ=1000
+DVF_MAX_FREQ=3000
 
 [UFS]
 UFS_GOVERNOR="simple_ondemand"
@@ -130,6 +131,7 @@ TOUCH_MOVE_THRESHOLD=20
       // DEVFREQ & UFS
       expect(config.devfreq.dvfGovernor, equals('simple_ondemand'));
       expect(config.devfreq.dvfMinFreq, equals(1000));
+      expect(config.devfreq.dvfMaxFreq, equals(3000));
       expect(config.ufs.ufsGovernor, equals('simple_ondemand'));
       expect(config.ufs.ufsClkEnable, equals(1));
 

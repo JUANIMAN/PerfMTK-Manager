@@ -131,6 +131,7 @@ class ProfileConfParser {
       devfreq: DevfreqConfig(
         dvfGovernor: devfreq['DVF_GOVERNOR'] ?? 'userspace',
         dvfMinFreq: int.tryParse(devfreq['DVF_MIN_FREQ'] ?? '') ?? 0,
+        dvfMaxFreq: int.tryParse(devfreq['DVF_MAX_FREQ'] ?? '') ?? 0,
       ),
       ufs: UfsConfig(
         ufsGovernor: ufs['UFS_GOVERNOR'] ?? 'simple_ondemand',
@@ -327,6 +328,9 @@ class ProfileConfParser {
     if (c.devfreq.dvfMinFreq > 0) {
       b.writeln('DVF_MIN_FREQ=${c.devfreq.dvfMinFreq}');
     }
+    if (c.devfreq.dvfMaxFreq > 0) {
+      b.writeln('DVF_MAX_FREQ=${c.devfreq.dvfMaxFreq}');
+    }
 
     b
       ..writeln()
@@ -414,15 +418,13 @@ class ProfileConfParser {
       ..writeln('[DISPLAY]')
       ..writeln('REFRESH_RATE=${c.refreshRate}');
 
-    if (c.thermalGuardian.enable) {
-      b
-        ..writeln()
-        ..writeln('[THERMAL_GUARDIAN]')
-        ..writeln('ENABLE=${c.thermalGuardian.enable}')
-        ..writeln('TEMP_TARGET=${c.thermalGuardian.tempTarget}')
-        ..writeln('STEP_DOWN_MAX=${c.thermalGuardian.stepDownMax}')
-        ..writeln('UCLAMP_STEP_PCT=${c.thermalGuardian.uclampStepPct}');
-    }
+    b
+      ..writeln()
+      ..writeln('[THERMAL_GUARDIAN]')
+      ..writeln('ENABLE=${c.thermalGuardian.enable}')
+      ..writeln('TEMP_TARGET=${c.thermalGuardian.tempTarget}')
+      ..writeln('STEP_DOWN_MAX=${c.thermalGuardian.stepDownMax}')
+      ..writeln('UCLAMP_STEP_PCT=${c.thermalGuardian.uclampStepPct}');
 
     b
       ..writeln()

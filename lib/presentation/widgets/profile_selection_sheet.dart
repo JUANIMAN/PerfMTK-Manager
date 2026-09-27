@@ -721,12 +721,6 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
       ),
     );
   }
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildProfileCard({
     required BuildContext context,

@@ -39,6 +39,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
   late bool _renderBoost;
   late int? _gentleCharge;
   late int? _selectedFps;
+  late bool _showDirectives;
 
   @override
   void initState() {
@@ -51,6 +52,34 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     _renderBoost = widget.currentDirectives?.renderBoost == 1;
     _gentleCharge = widget.currentDirectives?.gentleCharge;
     _selectedFps = widget.currentDirectives?.fps;
+    _showDirectives = widget.currentDirectives != null &&
+        widget.currentDirectives!.isNotEmpty;
+  }
+
+  int get _activeDirectivesCount {
+    var count = 0;
+    if (_gbe) count++;
+    if (_chargeBypass) count++;
+    if (_disableThermal) count++;
+    if (_touchGameMode) count++;
+    if (_renderBoost) count++;
+    if (_gentleCharge != null) count++;
+    if (_selectedFps != null) count++;
+    return count;
+  }
+
+  void _clearDirectives() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _gbe = false;
+      _chargeBypass = false;
+      _disableThermal = false;
+      _touchGameMode = false;
+      _renderBoost = false;
+      _gentleCharge = null;
+      _selectedFps = null;
+    });
+    _apply(_selectedProfile);
   }
 
   void _apply(ProfileType? profile) {
@@ -276,193 +305,422 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                 },
               ),
 
-              // Directives section (when a profile is assigned)
+              // Directives section (collapsible progressive disclosure)
               if (_selectedProfile != null) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? cs.surfaceContainerHigh.withValues(alpha: 0.40)
-                          : cs.surfaceContainer.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: cs.outlineVariant.withValues(
-                          alpha: isDark ? 0.25 : 0.35,
-                        ),
-                        width: 1.0,
+                  child: _buildOverridesAccordionHeader(context, isDark, cs),
+                ),
+                if (_showDirectives) ...[
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildDirectivesCard(context, isDark, cs),
+                  ),
+                ],
+              ],
+
+              // Prominent Done button
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.of(context).pop();
+                    },
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.tune_rounded,
-                              size: 14,
-                              color: cs.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              AppLocale.gameDirectives.getString(context).toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                                color: cs.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        _buildDirectiveRow(
-                          context: context,
-                          icon: Icons.sports_esports_rounded,
-                          iconColor: const Color(0xFFE040FB),
-                          title: AppLocale.gbeTitle.getString(context),
-                          subtitle: AppLocale.gbeDirectiveSubtitle.getString(context),
-                          value: _gbe,
-                          onChanged: (v) {
-                            setState(() => _gbe = v);
-                            _apply(_selectedProfile);
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDirectiveRow(
-                          context: context,
-                          icon: Icons.bolt_rounded,
-                          iconColor: const Color(0xFFFFB300),
-                          title: AppLocale.chargeBypassTitle.getString(context),
-                          subtitle: AppLocale.bypassDirectiveSubtitle.getString(context),
-                          value: _chargeBypass,
-                          onChanged: (v) {
-                            setState(() => _chargeBypass = v);
-                            _apply(_selectedProfile);
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDirectiveRow(
-                          context: context,
-                          icon: Icons.local_fire_department_rounded,
-                          iconColor: const Color(0xFFFF5252),
-                          title: AppLocale.thermalBypassTitle.getString(context),
-                          subtitle: AppLocale.thermalBypassSubtitle.getString(context),
-                          value: _disableThermal,
-                          onChanged: (v) {
-                            setState(() => _disableThermal = v);
-                            _apply(_selectedProfile);
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDirectiveRow(
-                          context: context,
-                          icon: Icons.touch_app_rounded,
-                          iconColor: const Color(0xFF00E5FF),
-                          title: AppLocale.touchBoosterTitle.getString(context),
-                          subtitle: AppLocale.touchBoosterSubtitle.getString(context),
-                          value: _touchGameMode,
-                          onChanged: (v) {
-                            setState(() => _touchGameMode = v);
-                            _apply(_selectedProfile);
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDirectiveRow(
-                          context: context,
-                          icon: Icons.rocket_launch_rounded,
-                          iconColor: const Color(0xFFFF6D00),
-                          title: AppLocale.renderBoost.getString(context),
-                          subtitle: AppLocale.renderBoostDesc.getString(context),
-                          value: _renderBoost,
-                          onChanged: (v) {
-                            setState(() => _renderBoost = v);
-                            _apply(_selectedProfile);
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        Divider(
-                          height: 1,
-                          color: cs.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.35),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.battery_charging_full_rounded,
-                              size: 14,
-                              color: Color(0xFF26A69A),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              AppLocale.gentleCharge.getString(context).toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.4,
-                                color: cs.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _buildGentleChargeChip(context, label: 'Off', value: null, isDark: isDark),
-                            const SizedBox(width: 8),
-                            _buildGentleChargeChip(context, label: '500mA', value: 500, isDark: isDark),
-                            const SizedBox(width: 8),
-                            _buildGentleChargeChip(context, label: '1000mA', value: 1000, isDark: isDark),
-                            const SizedBox(width: 8),
-                            _buildGentleChargeChip(context, label: '1500mA', value: 1500, isDark: isDark),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Divider(
-                          height: 1,
-                          color: cs.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.35),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.speed_rounded,
-                              size: 14,
-                              color: Color(0xFF00E676),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              AppLocale.fpsgoHeader.getString(context),
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.4,
-                                color: cs.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _buildFpsChip(context, label: 'Auto', value: null, isDark: isDark),
-                            const SizedBox(width: 8),
-                            _buildFpsChip(context, label: '60 FPS', value: 60, isDark: isDark),
-                            const SizedBox(width: 8),
-                            _buildFpsChip(context, label: '90 FPS', value: 90, isDark: isDark),
-                            const SizedBox(width: 8),
-                            _buildFpsChip(context, label: '120 FPS', value: 120, isDark: isDark),
-                          ],
-                        ),
-                      ],
+                    child: Text(
+                      AppLocale.done.getString(context),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(height: 14),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              const SizedBox(height: 18),
+  Widget _buildOverridesAccordionHeader(
+    BuildContext context,
+    bool isDark,
+    ColorScheme cs,
+  ) {
+    final count = _activeDirectivesCount;
+    final hasActive = count > 0;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _showDirectives = !_showDirectives);
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark
+                ? cs.surfaceContainerHigh.withValues(alpha: 0.35)
+                : cs.surfaceContainer.withValues(alpha: 0.50),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: hasActive
+                  ? cs.primary.withValues(alpha: 0.45)
+                  : cs.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.30),
+              width: 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: (hasActive ? cs.primary : cs.onSurfaceVariant)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: hasActive ? cs.primary : cs.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocale.appOverridesTitle.getString(context),
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      AppLocale.appOverridesSubtitle.getString(context),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: cs.onSurfaceVariant.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: hasActive
+                      ? cs.primary.withValues(alpha: 0.15)
+                      : cs.surfaceContainerHighest.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: hasActive
+                        ? cs.primary.withValues(alpha: 0.35)
+                        : Colors.transparent,
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  hasActive
+                      ? '$count ${AppLocale.appOverridesActiveCount.getString(context)}'
+                      : AppLocale.appOverridesInherited.getString(context),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: hasActive ? cs.primary : cs.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              AnimatedRotation(
+                turns: _showDirectives ? 0.5 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 20,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDirectivesCard(
+    BuildContext context,
+    bool isDark,
+    ColorScheme cs,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? cs.surfaceContainerHigh.withValues(alpha: 0.40)
+            : cs.surfaceContainer.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(
+            alpha: isDark ? 0.25 : 0.35,
+          ),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Notice banner & clear overrides
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: cs.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: cs.primary.withValues(alpha: 0.20),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 16,
+                  color: cs.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppLocale.appOverridesNotice.getString(context),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.35,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                if (_activeDirectivesCount > 0) ...[
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: _clearDirectives,
+                    child: Text(
+                      AppLocale.appOverridesReset.getString(context),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: cs.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // ── Section 1: Performance & Touch ──
+          Row(
+            children: [
+              Icon(Icons.flash_on_rounded, size: 14, color: cs.primary),
+              const SizedBox(width: 6),
+              Text(
+                AppLocale.perfAndTouchSection.getString(context).toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _buildDirectiveRow(
+            context: context,
+            icon: Icons.sports_esports_rounded,
+            iconColor: const Color(0xFFE040FB),
+            title: AppLocale.gbeTitle.getString(context),
+            subtitle: AppLocale.gbeDirectiveSubtitle.getString(context),
+            value: _gbe,
+            onChanged: (v) {
+              setState(() => _gbe = v);
+              _apply(_selectedProfile);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildDirectiveRow(
+            context: context,
+            icon: Icons.touch_app_rounded,
+            iconColor: const Color(0xFF00E5FF),
+            title: AppLocale.touchBoosterTitle.getString(context),
+            subtitle: AppLocale.touchBoosterSubtitle.getString(context),
+            value: _touchGameMode,
+            onChanged: (v) {
+              setState(() => _touchGameMode = v);
+              _apply(_selectedProfile);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildDirectiveRow(
+            context: context,
+            icon: Icons.rocket_launch_rounded,
+            iconColor: const Color(0xFFFF6D00),
+            title: AppLocale.renderBoost.getString(context),
+            subtitle: AppLocale.renderBoostDesc.getString(context),
+            value: _renderBoost,
+            onChanged: (v) {
+              setState(() => _renderBoost = v);
+              _apply(_selectedProfile);
+            },
+          ),
+
+          const SizedBox(height: 14),
+          Divider(
+            height: 1,
+            color: cs.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.35),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Section 2: Thermal & Charging ──
+          Row(
+            children: [
+              Icon(Icons.thermostat_rounded, size: 14, color: const Color(0xFFFF5252)),
+              const SizedBox(width: 6),
+              Text(
+                AppLocale.thermalChargeSection.getString(context).toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _buildDirectiveRow(
+            context: context,
+            icon: Icons.local_fire_department_rounded,
+            iconColor: const Color(0xFFFF5252),
+            title: AppLocale.thermalBypassTitle.getString(context),
+            subtitle: AppLocale.thermalBypassSubtitle.getString(context),
+            value: _disableThermal,
+            onChanged: (v) {
+              setState(() => _disableThermal = v);
+              _apply(_selectedProfile);
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildDirectiveRow(
+            context: context,
+            icon: Icons.bolt_rounded,
+            iconColor: const Color(0xFFFFB300),
+            title: AppLocale.chargeBypassTitle.getString(context),
+            subtitle: AppLocale.bypassDirectiveSubtitle.getString(context),
+            value: _chargeBypass,
+            onChanged: (v) {
+              setState(() => _chargeBypass = v);
+              _apply(_selectedProfile);
+            },
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(
+                Icons.battery_charging_full_rounded,
+                size: 14,
+                color: Color(0xFF26A69A),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                AppLocale.gentleCharge.getString(context).toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildGentleChargeChip(context, label: 'Off', value: null, isDark: isDark),
+              const SizedBox(width: 8),
+              _buildGentleChargeChip(context, label: '500mA', value: 500, isDark: isDark),
+              const SizedBox(width: 8),
+              _buildGentleChargeChip(context, label: '1000mA', value: 1000, isDark: isDark),
+              const SizedBox(width: 8),
+              _buildGentleChargeChip(context, label: '1500mA', value: 1500, isDark: isDark),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+          Divider(
+            height: 1,
+            color: cs.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.35),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Section 3: FPS / Refresh Rate ──
+          Row(
+            children: [
+              const Icon(
+                Icons.speed_rounded,
+                size: 14,
+                color: Color(0xFF00E676),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                AppLocale.fpsgoHeader.getString(context),
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildFpsChip(context, label: 'Auto', value: null, isDark: isDark),
+              const SizedBox(width: 8),
+              _buildFpsChip(context, label: '60 FPS', value: 60, isDark: isDark),
+              const SizedBox(width: 8),
+              _buildFpsChip(context, label: '90 FPS', value: 90, isDark: isDark),
+              const SizedBox(width: 8),
+              _buildFpsChip(context, label: '120 FPS', value: 120, isDark: isDark),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
             ],
           ),
         ),

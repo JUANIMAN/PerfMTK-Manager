@@ -724,9 +724,30 @@ class HardwareTelemetryCard extends StatelessWidget {
   double _calcDramRatio(String raw) {
     final mhz = _parseFreqValue(raw);
     if (mhz == null) return 0.25;
-    // LPDDR5X ranges ~800MHz - 3200MHz
-    const minMhz = 800;
-    const maxMhz = 3200;
+
+    // Detect if telemetry reports effective data rate (e.g. 8533 MT/s)
+    // or raw bus clock (e.g. LPDDR4X ~2133MHz, LPDDR5 ~3200MHz, LPDDR5X ~4266MHz)
+    final double minMhz;
+    final double maxMhz;
+
+    if (mhz > 4500) {
+      // Effective DDR rate (LPDDR5: 6400, LPDDR5X: 8533/9600)
+      minMhz = 800;
+      maxMhz = 8533;
+    } else if (mhz > 3200) {
+      // LPDDR5X bus clock (~4266MHz max)
+      minMhz = 600;
+      maxMhz = 4266;
+    } else if (mhz > 2133) {
+      // LPDDR5 bus clock (~3200MHz max)
+      minMhz = 400;
+      maxMhz = 3200;
+    } else {
+      // LPDDR4X / legacy bus clock (~2133MHz max) or lower power steps
+      minMhz = 300;
+      maxMhz = 2133;
+    }
+
     final r = (mhz - minMhz) / (maxMhz - minMhz);
     return r.clamp(0.15, 1.0);
   }

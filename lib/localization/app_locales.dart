@@ -317,6 +317,17 @@ mixin AppLocale {
   static const String renderBoost = 'renderBoost';
   static const String renderBoostDesc = 'renderBoostDesc';
 
+  // App Overrides / Directives Progressive Disclosure
+  static const String appOverridesTitle = 'appOverridesTitle';
+  static const String appOverridesSubtitle = 'appOverridesSubtitle';
+  static const String appOverridesInherited = 'appOverridesInherited';
+  static const String appOverridesActiveCount = 'appOverridesActiveCount';
+  static const String appOverridesNotice = 'appOverridesNotice';
+  static const String appOverridesReset = 'appOverridesReset';
+  static const String perfAndTouchSection = 'perfAndTouchSection';
+  static const String thermalChargeSection = 'thermalChargeSection';
+  static const String done = 'done';
+
   static const Map<String, dynamic> en = {
     profiles: 'Profiles',
     thermal: 'Thermal',
@@ -615,6 +626,15 @@ mixin AppLocale {
     tgUclampStep: 'Uclamp Reduction per Step',
     renderBoost: 'RenderBooster',
     renderBoostDesc: 'Pins and elevates UI and render threads to Big/Prime cores for stutter-free frames',
+    appOverridesTitle: 'App Overrides (Optional)',
+    appOverridesSubtitle: 'Temporarily override profile settings for this app',
+    appOverridesInherited: 'Inherits from profile',
+    appOverridesActiveCount: 'active',
+    appOverridesNotice: 'By default, the app inherits all settings from the selected profile. Enable these options only if you need specific exceptions for this app.',
+    appOverridesReset: 'Clear Overrides',
+    perfAndTouchSection: 'Performance & Touch',
+    thermalChargeSection: 'Thermal & Charging',
+    done: 'Done',
   };
 
   static const Map<String, dynamic> es = {
@@ -915,6 +935,15 @@ mixin AppLocale {
     tgUclampStep: 'Reducción de Uclamp por Paso',
     renderBoost: 'RenderBooster',
     renderBoostDesc: 'Fija y eleva el hilo de UI y los hilos de render a núcleos Big/Prime para cero tirones',
+    appOverridesTitle: 'Sobrescrituras por App (Opcional)',
+    appOverridesSubtitle: 'Reemplaza temporalmente parámetros del perfil para esta app',
+    appOverridesInherited: 'Hereda del perfil',
+    appOverridesActiveCount: 'activas',
+    appOverridesNotice: 'Por defecto, la aplicación hereda todos los ajustes del perfil. Activa estas opciones solo si requieres excepciones específicas para esta app.',
+    appOverridesReset: 'Limpiar Sobrescrituras',
+    perfAndTouchSection: 'Rendimiento y Táctil',
+    thermalChargeSection: 'Térmico y Carga',
+    done: 'Listo',
   };
 
   static String getValue(String key) {

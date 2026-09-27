@@ -222,7 +222,9 @@ class AppProfileItem extends StatelessWidget {
             dirs.chargeBypass == true ||
             dirs.disableThermal == true ||
             dirs.fps != null ||
-            dirs.touchGameMode == true);
+            dirs.touchGameMode == true ||
+            dirs.renderBoost == 1 ||
+            (dirs.gentleCharge != null && dirs.gentleCharge! > 0));
 
     if (!hasExtraChips) {
       return profileChip;
@@ -386,6 +388,71 @@ class AppProfileItem extends StatelessWidget {
                   'Touch',
                   style: TextStyle(
                     color: Color(0xFF00E5FF),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (currentDirectives?.renderBoost == 1)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF6D00).withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: const Color(0xFFFF6D00).withValues(alpha: 0.50),
+                width: 0.9,
+              ),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.rocket_launch_rounded,
+                  size: 11,
+                  color: Color(0xFFFF6D00),
+                ),
+                SizedBox(width: 3.5),
+                Text(
+                  'RenderBoost',
+                  style: TextStyle(
+                    color: Color(0xFFFF6D00),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (currentDirectives?.gentleCharge != null &&
+            currentDirectives!.gentleCharge! > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+            decoration: BoxDecoration(
+              color: const Color(0xFF26A69A).withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: const Color(0xFF26A69A).withValues(alpha: 0.50),
+                width: 0.9,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.battery_charging_full_rounded,
+                  size: 11,
+                  color: Color(0xFF26A69A),
+                ),
+                const SizedBox(width: 3.5),
+                Text(
+                  'Gentle ${currentDirectives!.gentleCharge}mA',
+                  style: const TextStyle(
+                    color: Color(0xFF26A69A),
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,

@@ -1,5 +1,45 @@
 # Changelog
 
+## v8.5.0
+
+## English
+- Progressive Disclosure App Overrides Architecture:
+  - Redesigned `ProfileSelectionSheet` with a compact, distraction-free modal that fits on screen without scrolling when collapsed.
+  - Implemented collapsible progressive disclosure accordion for app directives with dynamic inheritance badge (`Inherits from profile` vs `X active`).
+  - Categorized directive controls into semantic groups: Performance & Touch (GBE, Touch 480Hz, RenderBooster), Thermal & Charge (Thermal Bypass, Smart Fast Charge Bypass, Gentle Charge), and Refresh Rate (FPSGO).
+  - Contextual "Clear Overrides" action to instantly reset all custom app directives to profile inheritance.
+  - Prevented premature modal dismissal during in-sheet directive toggling.
+- Advanced Profile Configuration Subsystems:
+  - Added `DisplayCard` with dynamic max refresh rate selection (`maxDisplayFps`) adapted to device hardware capabilities.
+  - Added `VmCard` with virtual memory, compaction, and MGLRU controls to eliminate texture streaming stalls.
+  - Added `ThermalGuardianConfigCard` for per-profile thermal headroom and predictive ramp configuration.
+  - Added `ChargeThermalCard` with gentle charging selectors (500mA / 1000mA / 1500mA), OEM thermal service bypass toggle, and safety thresholds.
+  - Added `FpsgoCard` frame drop rescue (`fstb_fps_recovery`) and down-throttle suppression controls.
+  - Added `DevfreqCard` with dynamic GPU frequency ceiling slider.
+- App Profiles List & Visual Enhancements:
+  - Added themed badge chips (`[RenderBoost]`, `[GBE]`, `[GentleCharge]`) on app list cards reflecting active overrides.
+  - Dynamic DRAM frequency ratio scaling for modern LPDDR5X up to 4266MHz clock and 8533 MT/s.
+  - 100% complete bilingual localization parity (EN/ES) across all new cards, dialogs, and controls.
+
+## Español
+- Arquitectura de Sobrescrituras por App con Divulgación Progresiva:
+  - Rediseño de `ProfileSelectionSheet` con un modal compacto y libre de distracciones que cabe en pantalla sin necesidad de scroll al abrirse.
+  - Implementación de acordeón colapsable para directivas con badge dinámico de estado (`Hereda del perfil` vs `X activas`).
+  - Categorización semántica de directivas: Rendimiento y Táctil (GBE, Touch 480Hz, RenderBooster), Térmico y Carga (Bypass Térmico, Smart Fast Charge Bypass, Carga Suave) y Tasa de Refresco (FPSGO).
+  - Acción contextual "Limpiar Sobrescrituras" para resetear al instante todas las excepciones al perfil base.
+  - Corrección de cierre prematuro del modal al alternar directivas dentro de la hoja.
+- Subsistemas Avanzados de Configuración de Perfiles:
+  - Incorporación de `DisplayCard` con selección dinámica de tasa de refresco (`maxDisplayFps`) adaptada a la pantalla del hardware.
+  - Incorporación de `VmCard` con controles de memoria virtual, compactación y MGLRU para suprimir tirones de streaming de texturas.
+  - Incorporación de `ThermalGuardianConfigCard` para margen térmico por perfil y rampa predictiva.
+  - Incorporación de `ChargeThermalCard` con selector de carga suave (500mA / 1000mA / 1500mA), bypass de servicios térmicos OEM y umbrales de seguridad.
+  - Incorporación en `FpsgoCard` de recuperación de caídas de frames (`fstb_fps_recovery`) y supresión de bajadas de frecuencia.
+  - Incorporación en `DevfreqCard` de control deslizante para el techo de frecuencia GPU.
+- Mejoras Visuales y Lista de Perfiles de Apps:
+  - Incorporación de chips temáticos (`[RenderBoost]`, `[GBE]`, `[GentleCharge]`) en las tarjetas de la lista reflejando las excepciones activas.
+  - Escalado dinámico de telemetría DRAM para memorias LPDDR5X de hasta 4266MHz de reloj y 8533 MT/s.
+  - Paridad bilingüe estricta al 100% (EN/ES) en todas las nuevas tarjetas, diálogos y controles.
+
 ## v8.2.0
 
 ## English

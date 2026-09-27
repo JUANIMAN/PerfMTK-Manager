@@ -6,19 +6,21 @@ import 'package:manager/presentation/widgets/perf_config/freq_slider.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
-/// DRAM DEVFREQ configuration card — governor selection + optional min frequency slider.
+/// DRAM DEVFREQ configuration card — governor selection + min/max frequency sliders.
 class DevfreqCard extends StatelessWidget {
   final String dvfGovernor;
   final int currentMinFreq;
+  final int currentMaxFreq;
   final List<int> availableFreqs;
   final List<String> availableGovernors;
   final Color color;
-  final void Function({String? governor, int? minFreq}) onChanged;
+  final void Function({String? governor, int? minFreq, int? maxFreq}) onChanged;
 
   const DevfreqCard({
     super.key,
     required this.dvfGovernor,
     this.currentMinFreq = 0,
+    this.currentMaxFreq = 0,
     this.availableFreqs = const [],
     required this.availableGovernors,
     required this.color,
@@ -31,6 +33,13 @@ class DevfreqCard extends StatelessWidget {
         ? availableGovernors
         : const ['simple_ondemand', 'powersave', 'performance', 'userspace'];
 
+    final effectiveMin = (currentMinFreq > 0)
+        ? currentMinFreq
+        : (availableFreqs.isNotEmpty ? availableFreqs.last : 0);
+    final effectiveMax = (currentMaxFreq > 0)
+        ? currentMaxFreq
+        : (availableFreqs.isNotEmpty ? availableFreqs.first : 0);
+
     return SectionCard(
       title: 'DRAM DVFS',
       icon: Icons.storage_rounded,
@@ -42,10 +51,29 @@ class DevfreqCard extends StatelessWidget {
             FreqSlider(
               label: AppLocale.minFreqDram.getString(context),
               availableFreqs: availableFreqs,
-              currentFreq: currentMinFreq,
+              currentFreq: effectiveMin,
               color: color,
               isKHz: false,
-              onChanged: (v) => onChanged(minFreq: v),
+              onChanged: (v) => onChanged(
+                minFreq: v,
+                maxFreq: effectiveMax < v ? v : currentMaxFreq,
+              ),
+            ),
+            const SizedBox(height: AppConstants.spacing16),
+            FreqSlider(
+              label: AppLocale.maxFreqDram.getString(context),
+              availableFreqs: availableFreqs,
+              currentFreq: effectiveMax,
+              color: color,
+              isKHz: false,
+              onChanged: (v) {
+                final isHighest =
+                    availableFreqs.isNotEmpty && v == availableFreqs.first;
+                onChanged(
+                  minFreq: effectiveMin > v ? v : currentMinFreq,
+                  maxFreq: isHighest ? 0 : v,
+                );
+              },
             ),
             const SizedBox(height: AppConstants.spacing16),
           ],

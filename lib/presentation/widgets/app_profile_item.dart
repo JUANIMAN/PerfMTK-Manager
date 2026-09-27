@@ -477,7 +477,6 @@ class AppProfileItem extends StatelessWidget {
         currentDirectives: currentDirectives,
         isSystemApp: isSystemApp,
         onProfileSelected: (profile, directives) {
-          Navigator.of(context).pop();
           onProfileSelected(profile, directives);
         },
       ),

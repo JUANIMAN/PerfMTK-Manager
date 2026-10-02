@@ -14,8 +14,6 @@ abstract class SystemRepository {
   Future<void> setChargeBypass(bool enabled);
   Future<bool> getChargeBypassStatus();
   Future<void> setBatteryCare(bool enabled, int limitPct);
-  Future<void> setThermalGuardian(bool enabled, {int? targetTempC, int? maxSteps});
-  Future<String> getThermalGuardianStatus();
   Future<bool> checkRootAccess();
 }
 
@@ -205,47 +203,6 @@ class SystemRepositoryImpl implements SystemRepository {
       throw SystemCommandException('Failed to set battery care: $e');
     } catch (e) {
       throw SystemCommandException('Unexpected error setting battery care: $e');
-    }
-  }
-
-  @override
-  Future<void> setThermalGuardian(
-    bool enabled, {
-    int? targetTempC,
-    int? maxSteps,
-  }) async {
-    try {
-      final arg = enabled
-          ? 'enable ${targetTempC ?? 75} ${maxSteps ?? 2}'
-          : 'disable';
-      final resp = await _nativeIpc.sendCommand('THERMAL_GUARDIAN', arg);
-      if (resp == null || !resp.startsWith('OK')) {
-        await _shellManager.executeCommand(
-          'perfmtk --thermal-guardian $arg',
-          timeout: const Duration(seconds: 10),
-        );
-      }
-    } on RootShellException catch (e) {
-      throw SystemCommandException('Failed to set Thermal Guardian: $e');
-    } catch (e) {
-      throw SystemCommandException('Unexpected error setting Thermal Guardian: $e');
-    }
-  }
-
-  @override
-  Future<String> getThermalGuardianStatus() async {
-    try {
-      final resp = await _nativeIpc.sendCommand('THERMAL_GUARDIAN', 'status');
-      if (resp != null && resp.isNotEmpty) {
-        return resp;
-      }
-      final result = await _shellManager.executeCommand(
-        'perfmtk --thermal-guardian status',
-        timeout: const Duration(seconds: 5),
-      );
-      return result;
-    } catch (_) {
-      return '';
     }
   }
 

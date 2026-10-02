@@ -420,14 +420,6 @@ class ProfileConfParser {
 
     b
       ..writeln()
-      ..writeln('[THERMAL_GUARDIAN]')
-      ..writeln('ENABLE=${c.thermalGuardian.enable}')
-      ..writeln('TEMP_TARGET=${c.thermalGuardian.tempTarget}')
-      ..writeln('STEP_DOWN_MAX=${c.thermalGuardian.stepDownMax}')
-      ..writeln('UCLAMP_STEP_PCT=${c.thermalGuardian.uclampStepPct}');
-
-    b
-      ..writeln()
       ..writeln('[VM]')
       ..writeln('SWAPPINESS=${c.vm.swappiness}')
       ..writeln('STAT_INTERVAL=${c.vm.statInterval}')

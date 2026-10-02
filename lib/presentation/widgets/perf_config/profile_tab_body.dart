@@ -16,7 +16,6 @@ import 'package:manager/presentation/widgets/perf_config/gbe_card.dart';
 import 'package:manager/presentation/widgets/perf_config/gpu_card.dart';
 import 'package:manager/presentation/widgets/perf_config/profile_save_fab.dart';
 import 'package:manager/presentation/widgets/perf_config/rate_limits_card.dart';
-import 'package:manager/presentation/widgets/perf_config/thermal_guardian_config_card.dart';
 import 'package:manager/presentation/widgets/perf_config/touch_card.dart';
 import 'package:manager/presentation/widgets/perf_config/uclamp_card.dart';
 import 'package:manager/presentation/widgets/perf_config/ufs_card.dart';
@@ -627,31 +626,6 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
                 disableThermalServices: disableThermalServices,
                 gentleChargeMa: gentleChargeMa,
                 bypassMinBattPct: bypassMinBattPct,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-
-    // ── THERMAL GUARDIAN ─────────────────────────────────────────────────
-    sections.add(const SizedBox(height: AppConstants.spacing16));
-    sections.add(
-      ThermalGuardianConfigCard(
-        enable: config.thermalGuardian.enable,
-        tempTarget: config.thermalGuardian.tempTarget,
-        stepDownMax: config.thermalGuardian.stepDownMax,
-        uclampStepPct: config.thermalGuardian.uclampStepPct,
-        color: profileColor,
-        onChanged: ({enable, tempTarget, stepDownMax, uclampStepPct}) {
-          notifier.update(
-            config.copyWith(
-              thermalGuardian: config.thermalGuardian.copyWith(
-                enable: enable ?? config.thermalGuardian.enable,
-                tempTarget: tempTarget ?? config.thermalGuardian.tempTarget,
-                stepDownMax: stepDownMax ?? config.thermalGuardian.stepDownMax,
-                uclampStepPct:
-                    uclampStepPct ?? config.thermalGuardian.uclampStepPct,
               ),
             ),
           );

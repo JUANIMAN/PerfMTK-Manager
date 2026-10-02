@@ -206,8 +206,7 @@ TOUCH_MOVE_THRESHOLD=20
       expect(reloaded.chargeThermal.gentleChargeMa, equals(config.chargeThermal.gentleChargeMa));
       expect(reloaded.chargeThermal.disableThermalServices, equals(config.chargeThermal.disableThermalServices));
       expect(reloaded.refreshRate, equals(config.refreshRate));
-      expect(reloaded.thermalGuardian.enable, equals(config.thermalGuardian.enable));
-      expect(reloaded.thermalGuardian.tempTarget, equals(config.thermalGuardian.tempTarget));
+      expect(serialized.contains('[THERMAL_GUARDIAN]'), isFalse);
       expect(reloaded.vm.swappiness, equals(config.vm.swappiness));
       expect(reloaded.vm.mglruMinTtlMs, equals(config.vm.mglruMinTtlMs));
       expect(reloaded.touch.gameMode, equals(config.touch.gameMode));

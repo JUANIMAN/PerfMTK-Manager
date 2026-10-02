@@ -47,9 +47,6 @@ final isChangingChargeBypassProvider = NotifierProvider<BooleanNotifier, bool>(
 final isChangingBatteryCareProvider = NotifierProvider<BooleanNotifier, bool>(
   BooleanNotifier.new,
 );
-final isChangingThermalGuardianProvider = NotifierProvider<BooleanNotifier, bool>(
-  BooleanNotifier.new,
-);
 
 /// Verificación de acceso root
 final rootAccessProvider = FutureProvider<bool>((ref) async {
@@ -154,29 +151,6 @@ class SystemStateNotifier extends AsyncNotifier<SystemState> {
     }
   }
 
-  /// Configura el Thermal Guardian proactivo.
-  Future<void> setThermalGuardian(
-    bool enabled, {
-    int? targetTempC,
-    int? maxSteps,
-  }) async {
-    ref.read(isChangingThermalGuardianProvider.notifier).state = true;
-
-    try {
-      await _repository.setThermalGuardian(
-        enabled,
-        targetTempC: targetTempC,
-        maxSteps: maxSteps,
-      );
-      state = AsyncData(await build());
-    } catch (error, stackTrace) {
-      state = await AsyncValue.guard(build);
-      Error.throwWithStackTrace(error, stackTrace);
-    } finally {
-      ref.read(isChangingThermalGuardianProvider.notifier).state = false;
-    }
-  }
-
   /// Recarga silenciosa sin poner la UI en estado de carga (ideal para streaming de telemetría).
   Future<void> pollLiveMetrics() async {
     try {
@@ -210,9 +184,4 @@ final currentChargeBypassProvider = Provider<bool?>((ref) {
 /// Estado de Battery Care actual (null mientras carga o en error)
 final currentBatteryCareProvider = Provider<bool?>((ref) {
   return ref.watch(systemStateProvider).value?.batteryCareEnabled;
-});
-
-/// Estado de Thermal Guardian actual (null mientras carga o en error)
-final currentThermalGuardianProvider = Provider<bool?>((ref) {
-  return ref.watch(systemStateProvider).value?.thermalGuardianEnabled;
 });

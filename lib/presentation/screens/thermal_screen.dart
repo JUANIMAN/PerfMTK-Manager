@@ -8,7 +8,6 @@ import 'package:manager/presentation/widgets/thermal_switch.dart';
 import 'package:manager/presentation/widgets/charge_bypass_card.dart';
 import 'package:manager/presentation/widgets/battery_care_card.dart';
 import 'package:manager/presentation/widgets/realtime_thermal_chart.dart';
-import 'package:manager/presentation/widgets/thermal_guardian_card.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -52,7 +51,6 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
     final isChanging = ref.watch(isChangingThermalProvider);
     final isChangingBypass = ref.watch(isChangingChargeBypassProvider);
     final isChangingCare = ref.watch(isChangingBatteryCareProvider);
-    final isChangingGuardian = ref.watch(isChangingThermalGuardianProvider);
     final isEnabled = state.thermalState == ThermalState.enabled;
 
     return RefreshIndicator(
@@ -77,38 +75,6 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
                   RealtimeThermalChart(
                     socTempC: state.socTempC,
                     batteryTempC: state.batteryTempC,
-                  ),
-                  const SizedBox(height: AppConstants.spacing24),
-
-                  // ── Thermal Guardian (Predictive Gaming Optimizer) ────────
-                  IgnorePointer(
-                    ignoring: isChangingGuardian,
-                    child: AnimatedOpacity(
-                      duration: AppConstants.animationFast,
-                      opacity:
-                          isChangingGuardian ? AppConstants.opacityDisabled : 1.0,
-                      child: ThermalGuardianCard(
-                        key: const ValueKey('thermal_guardian_card'),
-                        isEnabled: state.thermalGuardianEnabled,
-                        status: state.thermalGuardianStatus,
-                        targetTempC: state.thermalGuardianTargetC,
-                        currentClampStep: state.thermalGuardianClampStep,
-                        maxSteps: state.thermalGuardianMaxSteps,
-                        trend: state.thermalGuardianTrend,
-                        currentSocTempC: state.socTempC,
-                        isChanging: isChangingGuardian,
-                        onToggle: (val) => _setThermalGuardian(
-                          val,
-                          targetTempC: state.thermalGuardianTargetC,
-                          maxSteps: state.thermalGuardianMaxSteps,
-                        ),
-                        onSettingsChanged: (temp, steps) => _setThermalGuardian(
-                          state.thermalGuardianEnabled,
-                          targetTempC: temp,
-                          maxSteps: steps,
-                        ),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: AppConstants.spacing24),
 
@@ -308,32 +274,6 @@ class _ThermalScreenState extends ConsumerState<ThermalScreen>
       await ref
           .read(systemStateProvider.notifier)
           .setBatteryCare(enabled, limitPct);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(AppLocale.snackBarText.getString(context)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-    }
-  }
-
-  Future<void> _setThermalGuardian(
-    bool enabled, {
-    int? targetTempC,
-    int? maxSteps,
-  }) async {
-    try {
-      await ref
-          .read(systemStateProvider.notifier)
-          .setThermalGuardian(
-            enabled,
-            targetTempC: targetTempC,
-            maxSteps: maxSteps,
-          );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)

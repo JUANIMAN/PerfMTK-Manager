@@ -33,12 +33,12 @@ class DevfreqCard extends StatelessWidget {
         ? availableGovernors
         : const ['simple_ondemand', 'powersave', 'performance', 'userspace'];
 
-    final effectiveMin = (currentMinFreq > 0)
-        ? currentMinFreq
-        : (availableFreqs.isNotEmpty ? availableFreqs.last : 0);
-    final effectiveMax = (currentMaxFreq > 0)
-        ? currentMaxFreq
-        : (availableFreqs.isNotEmpty ? availableFreqs.first : 0);
+    final sortedFreqs = List<int>.from(availableFreqs)..sort();
+    final lowestFreq = sortedFreqs.isNotEmpty ? sortedFreqs.first : 0;
+    final highestFreq = sortedFreqs.isNotEmpty ? sortedFreqs.last : 0;
+
+    final effectiveMin = (currentMinFreq > 0) ? currentMinFreq : lowestFreq;
+    final effectiveMax = (currentMaxFreq > 0) ? currentMaxFreq : highestFreq;
 
     return SectionCard(
       title: 'DRAM DVFS',
@@ -56,7 +56,7 @@ class DevfreqCard extends StatelessWidget {
               isKHz: false,
               onChanged: (v) => onChanged(
                 minFreq: v,
-                maxFreq: effectiveMax < v ? v : currentMaxFreq,
+                maxFreq: effectiveMax < v ? v : effectiveMax,
               ),
             ),
             const SizedBox(height: AppConstants.spacing16),
@@ -67,11 +67,9 @@ class DevfreqCard extends StatelessWidget {
               color: color,
               isKHz: false,
               onChanged: (v) {
-                final isHighest =
-                    availableFreqs.isNotEmpty && v == availableFreqs.first;
                 onChanged(
-                  minFreq: effectiveMin > v ? v : currentMinFreq,
-                  maxFreq: isHighest ? 0 : v,
+                  minFreq: effectiveMin > v ? v : effectiveMin,
+                  maxFreq: v,
                 );
               },
             ),

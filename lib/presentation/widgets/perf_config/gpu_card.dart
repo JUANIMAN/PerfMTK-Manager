@@ -55,12 +55,16 @@ class GpuCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final isDvfs = gpuFreq == -1;
 
+    final sortedFreqs = List<int>.from(availableFreqs)..sort();
+    final lowestFreq = sortedFreqs.isNotEmpty ? sortedFreqs.first : 0;
+    final highestFreq = sortedFreqs.isNotEmpty ? sortedFreqs.last : 0;
+
     final effectiveMin = (gpuMinFreq != null && gpuMinFreq! > 0)
         ? gpuMinFreq!
-        : (availableFreqs.isNotEmpty ? availableFreqs.last : 0);
+        : lowestFreq;
     final effectiveMax = (gpuMaxFreq != null && gpuMaxFreq! > 0)
         ? gpuMaxFreq!
-        : (availableFreqs.isNotEmpty ? availableFreqs.first : 0);
+        : highestFreq;
 
     return SectionCard(
       title: 'GPU',
@@ -102,9 +106,7 @@ class GpuCard extends StatelessWidget {
                 onChanged: (fixed) {
                   if (fixed) {
                     // Default to highest freq when enabling fixed mode
-                    final defaultFreq = availableFreqs.isNotEmpty
-                        ? availableFreqs.first
-                        : 0;
+                    final defaultFreq = highestFreq;
                     onChanged(
                       freq: defaultFreq,
                       governor: gpuGovernor,

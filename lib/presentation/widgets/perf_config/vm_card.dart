@@ -80,7 +80,7 @@ class VmCard extends StatelessWidget {
             label: AppLocale.watermarkScale.getString(context),
             desc: AppLocale.watermarkScaleDesc.getString(context),
             value: watermarkScaleFactor,
-            min: 50,
+            min: 10,
             max: 300,
             unit: '',
             onChanged: (v) => onChanged(watermarkScaleFactor: v),

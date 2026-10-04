@@ -356,10 +356,6 @@ class ProfileConfParser {
 
     if (c.fpsgo.fstbTuneQuantile > 0) {
       b.writeln('FSTB_TUNE_QUANTILE=${c.fpsgo.fstbTuneQuantile}');
-      if (c.fpsgo.fstbTuneQuantile >= 95) {
-        b.writeln('BLC_BOOST=1');
-        b.writeln('BYPASS_NON_SF=1');
-      }
     }
 
     if (c.fpsgo.fbtBhrOpp > 0) {

@@ -338,6 +338,15 @@ mixin AppLocale {
   static const String coreBig = 'coreBig';
   static const String coreAllBig = 'coreAllBig';
 
+  // v17.0 DVFSRC & FSTB Quantile Controls
+  static const String dvfsrcTurboQosTitle = 'dvfsrcTurboQosTitle';
+  static const String dvfsrcTurboQosSubtitle = 'dvfsrcTurboQosSubtitle';
+  static const String fstbTuneQuantileTitle = 'fstbTuneQuantileTitle';
+  static const String fstbTuneQuantileSubtitle = 'fstbTuneQuantileSubtitle';
+  static const String quantileP50 = 'quantileP50';
+  static const String quantileP95 = 'quantileP95';
+  static const String quantileP99 = 'quantileP99';
+
   static const Map<String, dynamic> en = {
     profiles: 'Profiles',
     thermal: 'Thermal',
@@ -655,6 +664,15 @@ mixin AppLocale {
     corePrime: 'Core 7 (Prime)',
     coreBig: 'Cores 4-6 (Big)',
     coreAllBig: 'Cores 4-7 (All Big)',
+
+    // DVFSRC & FSTB
+    dvfsrcTurboQosTitle: 'Turbo QoS Interconnect (DVFSRC)',
+    dvfsrcTurboQosSubtitle: 'Forces maximum memory interconnect priority and full DRAM bandwidth',
+    fstbTuneQuantileTitle: 'FSTB Frame Delivery Quantile',
+    fstbTuneQuantileSubtitle: 'Statistical estimator percentile for frame rendering capacity (P95/P99 prevents micro-stutters)',
+    quantileP50: 'P50 (Median)',
+    quantileP95: 'P95 (Smooth)',
+    quantileP99: 'P99 (Extreme)',
   };
 
   static const Map<String, dynamic> es = {
@@ -974,6 +992,15 @@ mixin AppLocale {
     corePrime: 'Núcleo 7 (Prime)',
     coreBig: 'Núcleos 4-6 (Big)',
     coreAllBig: 'Núcleos 4-7 (Todos Big)',
+
+    // DVFSRC & FSTB
+    dvfsrcTurboQosTitle: 'Turbo QoS del Bus (DVFSRC)',
+    dvfsrcTurboQosSubtitle: 'Prioridad máxima de interconexión del bus de memoria y ancho de banda DDR completo',
+    fstbTuneQuantileTitle: 'Cuantil de Entrega FSTB (P99/P95)',
+    fstbTuneQuantileSubtitle: 'Percentil estadístico de capacidad de renderizado (P95/P99 elimina micro-tirones)',
+    quantileP50: 'P50 (Mediana)',
+    quantileP95: 'P95 (Suave)',
+    quantileP99: 'P99 (Extremo)',
   };
 
   static String getValue(String key) {

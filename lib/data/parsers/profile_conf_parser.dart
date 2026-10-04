@@ -39,6 +39,7 @@ class ProfileConfParser {
     final uclamp = sections.remove('UCLAMP') ?? {};
     final gpu = sections.remove('GPU') ?? {};
     final devfreq = sections.remove('DEVFREQ') ?? {};
+    final dvfsrc = sections.remove('DVFSRC') ?? {};
     final ufs = sections.remove('UFS') ?? {};
     final fpsgo = sections.remove('FPSGO') ?? {};
     final gbe = sections.remove('GBE') ?? {};
@@ -132,6 +133,7 @@ class ProfileConfParser {
         dvfGovernor: devfreq['DVF_GOVERNOR'] ?? 'userspace',
         dvfMinFreq: int.tryParse(devfreq['DVF_MIN_FREQ'] ?? '') ?? 0,
         dvfMaxFreq: int.tryParse(devfreq['DVF_MAX_FREQ'] ?? '') ?? 0,
+        dvfsrcTurboQos: int.tryParse(dvfsrc['TURBO_QOS'] ?? devfreq['TURBO_QOS'] ?? '') ?? -1,
       ),
       ufs: UfsConfig(
         ufsGovernor: ufs['UFS_GOVERNOR'] ?? 'simple_ondemand',
@@ -149,6 +151,7 @@ class ProfileConfParser {
         downThrottle: int.tryParse(fpsgo['DOWN_THROTTLE'] ?? '') ?? 0,
         rescuePercent: int.tryParse(fpsgo['RESCUE_PERCENT'] ?? '') ?? 0,
         rescueEnhanceF: int.tryParse(fpsgo['RESCUE_ENHANCE_F'] ?? '') ?? 0,
+        fstbTuneQuantile: int.tryParse(fpsgo['FSTB_TUNE_QUANTILE'] ?? '') ?? 50,
       ),
       gbe: GbeConfig(
         gbeEnable: int.tryParse(gbe['GBE_ENABLE'] ?? '') ?? 1,
@@ -332,6 +335,14 @@ class ProfileConfParser {
       b.writeln('DVF_MAX_FREQ=${c.devfreq.dvfMaxFreq}');
     }
 
+    if (c.devfreq.dvfsrcTurboQos >= 0) {
+      b
+        ..writeln()
+        ..writeln('[DVFSRC]')
+        ..writeln('TURBO_QOS=${c.devfreq.dvfsrcTurboQos}')
+        ..writeln('REQ_DDR_OPP=${c.devfreq.dvfsrcTurboQos == 1 ? 0 : -1}');
+    }
+
     b
       ..writeln()
       ..writeln('[UFS]')
@@ -342,6 +353,14 @@ class ProfileConfParser {
       ..writeln('# FORCE_ONOFF: 0=off, 1=on, 2=free(default)')
       ..writeln('FORCE_ONOFF=${c.fpsgo.forceOnOff}')
       ..writeln('BOOST_TA=${c.fpsgo.boostTa}');
+
+    if (c.fpsgo.fstbTuneQuantile > 0) {
+      b.writeln('FSTB_TUNE_QUANTILE=${c.fpsgo.fstbTuneQuantile}');
+      if (c.fpsgo.fstbTuneQuantile >= 95) {
+        b.writeln('BLC_BOOST=1');
+        b.writeln('BYPASS_NON_SF=1');
+      }
+    }
 
     if (c.fpsgo.fbtBhrOpp > 0) {
       b.writeln('FBT_BHR_OPP=${c.fpsgo.fbtBhrOpp}');

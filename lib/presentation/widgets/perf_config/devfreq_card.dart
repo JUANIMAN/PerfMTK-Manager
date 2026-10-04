@@ -11,16 +11,18 @@ class DevfreqCard extends StatelessWidget {
   final String dvfGovernor;
   final int currentMinFreq;
   final int currentMaxFreq;
+  final int dvfsrcTurboQos;
   final List<int> availableFreqs;
   final List<String> availableGovernors;
   final Color color;
-  final void Function({String? governor, int? minFreq, int? maxFreq}) onChanged;
+  final void Function({String? governor, int? minFreq, int? maxFreq, int? turboQos}) onChanged;
 
   const DevfreqCard({
     super.key,
     required this.dvfGovernor,
     this.currentMinFreq = 0,
     this.currentMaxFreq = 0,
+    this.dvfsrcTurboQos = -1,
     this.availableFreqs = const [],
     required this.availableGovernors,
     required this.color,
@@ -29,6 +31,8 @@ class DevfreqCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final govs = availableGovernors.isNotEmpty
         ? availableGovernors
         : const ['simple_ondemand', 'powersave', 'performance', 'userspace'];
@@ -39,9 +43,10 @@ class DevfreqCard extends StatelessWidget {
 
     final effectiveMin = (currentMinFreq > 0) ? currentMinFreq : lowestFreq;
     final effectiveMax = (currentMaxFreq > 0) ? currentMaxFreq : highestFreq;
+    final turboQosOn = dvfsrcTurboQos == 1;
 
     return SectionCard(
-      title: 'DRAM DVFS',
+      title: 'DRAM DVFS & DVFSRC',
       icon: Icons.storage_rounded,
       color: color,
       child: Column(
@@ -81,6 +86,41 @@ class DevfreqCard extends StatelessWidget {
             governors: govs,
             color: color,
             onChanged: (v) => onChanged(governor: v),
+          ),
+          const SizedBox(height: AppConstants.spacing16),
+          Divider(color: cs.outlineVariant.withValues(alpha: 0.5)),
+          const SizedBox(height: AppConstants.spacing8),
+
+          // ── DVFSRC Turbo QoS toggle ─────────────────────────────────────
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocale.dvfsrcTurboQosTitle.getString(context),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spacing4),
+                    Text(
+                      AppLocale.dvfsrcTurboQosSubtitle.getString(context),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: turboQosOn ? color : cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: turboQosOn,
+                activeThumbColor: color,
+                onChanged: (v) => onChanged(turboQos: v ? 1 : 0),
+              ),
+            ],
           ),
         ],
       ),

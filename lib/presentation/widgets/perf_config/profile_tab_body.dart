@@ -443,16 +443,18 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
           dvfGovernor: config.devfreq.dvfGovernor,
           currentMinFreq: config.devfreq.dvfMinFreq,
           currentMaxFreq: config.devfreq.dvfMaxFreq,
+          dvfsrcTurboQos: config.devfreq.dvfsrcTurboQos,
           availableFreqs: device.dvfFreqs,
           availableGovernors: device.dvfGovernors,
           color: profileColor,
-          onChanged: ({String? governor, int? minFreq, int? maxFreq}) {
+          onChanged: ({String? governor, int? minFreq, int? maxFreq, int? turboQos}) {
             notifier.update(
               config.copyWith(
                 devfreq: config.devfreq.copyWith(
                   dvfGovernor: governor ?? config.devfreq.dvfGovernor,
                   dvfMinFreq: minFreq ?? config.devfreq.dvfMinFreq,
                   dvfMaxFreq: maxFreq ?? config.devfreq.dvfMaxFreq,
+                  dvfsrcTurboQos: turboQos ?? config.devfreq.dvfsrcTurboQos,
                 ),
               ),
             );
@@ -495,6 +497,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
           rescueEnable: config.fpsgo.rescueEnable,
           ultraRescue: config.fpsgo.ultraRescue,
           downThrottle: config.fpsgo.downThrottle,
+          fstbTuneQuantile: config.fpsgo.fstbTuneQuantile,
           color: profileColor,
           onChanged: ({
             required forceOnOff,
@@ -502,6 +505,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
             required rescueEnable,
             required ultraRescue,
             required downThrottle,
+            int? fstbTuneQuantile,
           }) {
             notifier.update(
               config.copyWith(
@@ -511,6 +515,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
                   rescueEnable: rescueEnable,
                   ultraRescue: ultraRescue,
                   downThrottle: downThrottle,
+                  fstbTuneQuantile: fstbTuneQuantile ?? config.fpsgo.fstbTuneQuantile,
                 ),
               ),
             );

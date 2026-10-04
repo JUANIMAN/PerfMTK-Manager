@@ -21,6 +21,9 @@ class FpsgoCard extends StatelessWidget {
   /// 0 = standard, 1 = down-throttle suppressed.
   final int downThrottle;
 
+  /// FSTB Quantile pacing (50=Median, 95=P95 Smooth, 99=P99 Ultra).
+  final int fstbTuneQuantile;
+
   final Color color;
 
   final void Function({
@@ -29,6 +32,7 @@ class FpsgoCard extends StatelessWidget {
     required int rescueEnable,
     required int ultraRescue,
     required int downThrottle,
+    int? fstbTuneQuantile,
   }) onChanged;
 
   const FpsgoCard({
@@ -38,6 +42,7 @@ class FpsgoCard extends StatelessWidget {
     this.rescueEnable = 0,
     this.ultraRescue = 0,
     this.downThrottle = 0,
+    this.fstbTuneQuantile = 50,
     required this.color,
     required this.onChanged,
   });
@@ -93,6 +98,56 @@ class FpsgoCard extends StatelessWidget {
               rescueEnable: rescueEnable,
               ultraRescue: ultraRescue,
               downThrottle: downThrottle,
+              fstbTuneQuantile: fstbTuneQuantile,
+            ),
+          ),
+
+          const SizedBox(height: AppConstants.spacing20),
+
+          // ── FSTB_TUNE_QUANTILE ───────────────────────────────────────────
+          Text(
+            AppLocale.fstbTuneQuantileTitle.getString(context),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: AppConstants.spacing4),
+          Text(
+            AppLocale.fstbTuneQuantileSubtitle.getString(context),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant.withValues(alpha: 0.75),
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: AppConstants.spacing8),
+          _SegmentedOption(
+            options: [
+              (
+                value: 50,
+                label: AppLocale.quantileP50.getString(context),
+                icon: Icons.graphic_eq_rounded,
+              ),
+              (
+                value: 95,
+                label: AppLocale.quantileP95.getString(context),
+                icon: Icons.auto_graph_rounded,
+              ),
+              (
+                value: 99,
+                label: AppLocale.quantileP99.getString(context),
+                icon: Icons.rocket_launch_rounded,
+              ),
+            ],
+            selectedValue: fstbTuneQuantile,
+            color: color,
+            onChanged: (v) => onChanged(
+              forceOnOff: forceOnOff,
+              boostTa: boostTa,
+              rescueEnable: rescueEnable,
+              ultraRescue: ultraRescue,
+              downThrottle: downThrottle,
+              fstbTuneQuantile: v,
             ),
           ),
 
@@ -133,6 +188,7 @@ class FpsgoCard extends StatelessWidget {
                   rescueEnable: rescueEnable,
                   ultraRescue: ultraRescue,
                   downThrottle: downThrottle,
+                  fstbTuneQuantile: fstbTuneQuantile,
                 ),
               ),
             ],
@@ -175,6 +231,7 @@ class FpsgoCard extends StatelessWidget {
                   rescueEnable: v ? 1 : 0,
                   ultraRescue: ultraRescue,
                   downThrottle: downThrottle,
+                  fstbTuneQuantile: fstbTuneQuantile,
                 ),
               ),
             ],
@@ -217,6 +274,7 @@ class FpsgoCard extends StatelessWidget {
                   rescueEnable: rescueEnable,
                   ultraRescue: v ? 1 : 0,
                   downThrottle: downThrottle,
+                  fstbTuneQuantile: fstbTuneQuantile,
                 ),
               ),
             ],
@@ -259,6 +317,7 @@ class FpsgoCard extends StatelessWidget {
                   rescueEnable: rescueEnable,
                   ultraRescue: ultraRescue,
                   downThrottle: v ? 1 : 0,
+                  fstbTuneQuantile: fstbTuneQuantile,
                 ),
               ),
             ],

@@ -207,21 +207,27 @@ class DevfreqConfig {
   final int dvfMinFreq;
   final int dvfMaxFreq;
 
+  /// DVFSRC Interconnect Turbo QoS (1=enabled, 0=disabled, -1=auto/default).
+  final int dvfsrcTurboQos;
+
   const DevfreqConfig({
     required this.dvfGovernor,
     this.dvfMinFreq = 0,
     this.dvfMaxFreq = 0,
+    this.dvfsrcTurboQos = -1,
   });
 
   DevfreqConfig copyWith({
     String? dvfGovernor,
     int? dvfMinFreq,
     int? dvfMaxFreq,
+    int? dvfsrcTurboQos,
   }) =>
       DevfreqConfig(
         dvfGovernor: dvfGovernor ?? this.dvfGovernor,
         dvfMinFreq: dvfMinFreq ?? this.dvfMinFreq,
         dvfMaxFreq: dvfMaxFreq ?? this.dvfMaxFreq,
+        dvfsrcTurboQos: dvfsrcTurboQos ?? this.dvfsrcTurboQos,
       );
 }
 
@@ -278,6 +284,9 @@ class FpsgoConfig {
   /// Rescue enhance factor.
   final int rescueEnhanceF;
 
+  /// FSTB Quantile pacing (50=Standard/Median, 95=P95 Smooth, 99=P99 Ultra).
+  final int fstbTuneQuantile;
+
   const FpsgoConfig({
     required this.forceOnOff,
     required this.boostTa,
@@ -290,6 +299,7 @@ class FpsgoConfig {
     this.downThrottle = 0,
     this.rescuePercent = 0,
     this.rescueEnhanceF = 0,
+    this.fstbTuneQuantile = 50,
   });
 
   FpsgoConfig copyWith({
@@ -304,6 +314,7 @@ class FpsgoConfig {
     int? downThrottle,
     int? rescuePercent,
     int? rescueEnhanceF,
+    int? fstbTuneQuantile,
   }) {
     return FpsgoConfig(
       forceOnOff: forceOnOff ?? this.forceOnOff,
@@ -317,6 +328,7 @@ class FpsgoConfig {
       downThrottle: downThrottle ?? this.downThrottle,
       rescuePercent: rescuePercent ?? this.rescuePercent,
       rescueEnhanceF: rescueEnhanceF ?? this.rescueEnhanceF,
+      fstbTuneQuantile: fstbTuneQuantile ?? this.fstbTuneQuantile,
     );
   }
 }

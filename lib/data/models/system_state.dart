@@ -46,6 +46,8 @@ class SystemState {
   final int thermalGuardianClampStep;
   final int thermalGuardianMaxSteps;
   final double thermalGuardianTrend;
+  final bool backgroundJailed;
+  final List<Map<String, dynamic>> pinnedThreads;
 
   const SystemState({
     required this.currentProfile,
@@ -79,6 +81,8 @@ class SystemState {
     this.thermalGuardianClampStep = 0,
     this.thermalGuardianMaxSteps = 2,
     this.thermalGuardianTrend = 0.0,
+    this.backgroundJailed = false,
+    this.pinnedThreads = const [],
   });
 
   factory SystemState.fromJson(
@@ -136,6 +140,11 @@ class SystemState {
     final String chgMode = charge?['mode'] as String? ??
         ((charge?['bypass'] as bool? ?? false) ? 'bypass' : 'normal');
     final int? gentleMa = (charge?['gentle_charge_ma'] as num?)?.toInt();
+    final bool bgJailed = json['background_jailed'] as bool? ?? false;
+    final List<Map<String, dynamic>> threads = (json['pinned_threads'] as List?)
+            ?.map((e) => Map<String, dynamic>.from(e as Map))
+            .toList() ??
+        const [];
 
     return SystemState(
       currentProfile: ProfileType.fromString(activeProfileStr),
@@ -169,6 +178,8 @@ class SystemState {
       thermalGuardianClampStep: tgStep,
       thermalGuardianMaxSteps: tgMaxSteps,
       thermalGuardianTrend: tgTrend,
+      backgroundJailed: bgJailed,
+      pinnedThreads: threads,
     );
   }
 
@@ -204,6 +215,8 @@ class SystemState {
     int? thermalGuardianClampStep,
     int? thermalGuardianMaxSteps,
     double? thermalGuardianTrend,
+    bool? backgroundJailed,
+    List<Map<String, dynamic>>? pinnedThreads,
   }) {
     return SystemState(
       currentProfile: currentProfile ?? this.currentProfile,
@@ -243,6 +256,8 @@ class SystemState {
           thermalGuardianMaxSteps ?? this.thermalGuardianMaxSteps,
       thermalGuardianTrend:
           thermalGuardianTrend ?? this.thermalGuardianTrend,
+      backgroundJailed: backgroundJailed ?? this.backgroundJailed,
+      pinnedThreads: pinnedThreads ?? this.pinnedThreads,
     );
   }
 }

@@ -328,6 +328,16 @@ mixin AppLocale {
   static const String thermalChargeSection = 'thermalChargeSection';
   static const String done = 'done';
 
+  // v17.0 VIP Gaming Pipeline & Background Jail
+  static const String vipPipelineHeader = 'vipPipelineHeader';
+  static const String bgJailedBadge = 'bgJailedBadge';
+  static const String bgNormalBadge = 'bgNormalBadge';
+  static const String bgJailedDesc = 'bgJailedDesc';
+  static const String noVipThreads = 'noVipThreads';
+  static const String corePrime = 'corePrime';
+  static const String coreBig = 'coreBig';
+  static const String coreAllBig = 'coreAllBig';
+
   static const Map<String, dynamic> en = {
     profiles: 'Profiles',
     thermal: 'Thermal',
@@ -635,6 +645,16 @@ mixin AppLocale {
     perfAndTouchSection: 'Performance & Touch',
     thermalChargeSection: 'Thermal & Charging',
     done: 'Done',
+
+    // v17.0
+    vipPipelineHeader: 'GAME ENGINE VIP PIPELINE',
+    bgJailedBadge: 'BG JAILED (LITTLE 0-3)',
+    bgNormalBadge: 'STANDARD',
+    bgJailedDesc: 'Background tasks quarantined to Little Cores with 20% uclamp',
+    noVipThreads: 'Awaiting game engine thread spawn...',
+    corePrime: 'Core 7 (Prime)',
+    coreBig: 'Cores 4-6 (Big)',
+    coreAllBig: 'Cores 4-7 (All Big)',
   };
 
   static const Map<String, dynamic> es = {
@@ -944,6 +964,16 @@ mixin AppLocale {
     perfAndTouchSection: 'Rendimiento y Táctil',
     thermalChargeSection: 'Térmico y Carga',
     done: 'Listo',
+
+    // v17.0
+    vipPipelineHeader: 'CANAL VIP DEL MOTOR DE JUEGO',
+    bgJailedBadge: 'BG AISLADO (LITTLE 0-3)',
+    bgNormalBadge: 'ESTÁNDAR',
+    bgJailedDesc: 'Tareas secundarias aisladas en núcleos Little al 20% de uclamp',
+    noVipThreads: 'Esperando detección de hilos del motor...',
+    corePrime: 'Núcleo 7 (Prime)',
+    coreBig: 'Núcleos 4-6 (Big)',
+    coreAllBig: 'Núcleos 4-7 (Todos Big)',
   };
 
   static String getValue(String key) {

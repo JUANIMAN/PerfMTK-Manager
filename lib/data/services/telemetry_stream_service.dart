@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:manager/core/native_ipc_channel.dart';
 import 'package:manager/data/models/system_state.dart';
@@ -9,10 +11,12 @@ typedef ProcessStarter = Future<Process> Function(String executable, List<String
 
 /// Persistent root telemetry stream service.
 ///
-/// Subscribes to the native LocalSocket stream from `@perfmtkd_ctrl` (zero-fork)
-/// or spawns a fallback `perfmtk --stream-json <interval>` process.
-/// Automatically pauses process execution when the app enters background or screen locks,
-/// and resumes when the app returns to foreground.
+/// Tier 1 (Primary): Maps `perfmtkd` anonymous `memfd` shared memory (`SUBSCRIBE_SHM` + `SCM_RIGHTS`)
+/// and reads `PerfMTKSharedTelemetry` directly from RAM via `dart:ffi` + Seqlock with zero JSON parsing
+/// and zero socket traffic.
+/// Tier 2 (Fallback): Subscribes to the native LocalSocket JSON stream from `@perfmtkd_ctrl`.
+/// Tier 3 (Fallback): Spawns `perfmtk --stream-json <interval>`.
+/// Automatically releases the liveness lease when the app enters background or screen locks.
 class TelemetryStreamService with WidgetsBindingObserver {
   final int intervalMs;
   final ProcessStarter? _processStarter;
@@ -22,7 +26,14 @@ class TelemetryStreamService with WidgetsBindingObserver {
   StreamSubscription<String>? _stdoutSubscription;
   StreamSubscription<String>? _stderrSubscription;
   StreamSubscription<String>? _nativeStreamSubscription;
+  Timer? _shmPollTimer;
   Timer? _reconnectTimer;
+
+  int _shmAddress = 0;
+  int _lastShmSeq = 0;
+  int _staleShmTicks = 0;
+  final Uint8List _shmScratchBuffer = Uint8List(SystemState.shmStructSize);
+  late final ByteData _shmScratchView = ByteData.sublistView(_shmScratchBuffer);
 
   bool _isDisposed = false;
   bool _isPaused = false;
@@ -33,7 +44,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
       StreamController<SystemState>.broadcast();
 
   TelemetryStreamService({
-    this.intervalMs = 2000,
+    this.intervalMs = 1000,
     ProcessStarter? processStarter,
     NativeIpcChannel? ipcChannel,
   })  : _processStarter = processStarter,
@@ -45,14 +56,20 @@ class TelemetryStreamService with WidgetsBindingObserver {
   /// Latest parsed system state, or null if no packet received yet.
   SystemState? get latestState => _latestState;
 
+  /// Whether Zero-Copy Shared Memory mode is currently active.
+  bool get isZeroCopyShmActive => _shmAddress != 0 && _shmPollTimer != null;
+
   /// Optimistically updates latest cached state so actions reflect immediately.
   void updateLatest(SystemState state) {
     _latestState = state;
   }
 
-  /// Whether the streaming process is currently running.
+  /// Whether the streaming service is currently running.
   bool get isRunning =>
-      (_process != null || _nativeStreamSubscription != null) && !_isPaused;
+      (_shmPollTimer != null ||
+          _process != null ||
+          _nativeStreamSubscription != null) &&
+      !_isPaused;
 
   /// Initializes the service, registers app lifecycle observer, and starts streaming.
   Future<void> start() async {
@@ -74,6 +91,22 @@ class TelemetryStreamService with WidgetsBindingObserver {
       if (_processStarter == null && Platform.isAndroid) {
         final available = await _ipcChannel.isAvailable();
         if (available) {
+          // Tier 1: Zero-Copy Shared Memory (memfd + SCM_RIGHTS + dart:ffi Seqlock)
+          final shmPollMs = intervalMs.clamp(250, 1000);
+          final addr = await _ipcChannel.subscribeShm(intervalMs: shmPollMs);
+          if (addr != null && addr != 0 && !_isDisposed && !_isPaused) {
+            _shmAddress = addr;
+            _lastShmSeq = 0;
+            _staleShmTicks = 0;
+            _pollShmSnapshot();
+            _shmPollTimer = Timer.periodic(
+              Duration(milliseconds: shmPollMs),
+              (_) => _pollShmSnapshot(),
+            );
+            return;
+          }
+
+          // Tier 2: Legacy LocalSocket JSON stream fallback
           _nativeStreamSubscription = _ipcChannel
               .streamTelemetry(intervalMs: intervalMs)
               .listen(
@@ -93,11 +126,64 @@ class TelemetryStreamService with WidgetsBindingObserver {
         }
       }
 
+      // Tier 3: Root CLI process fallback
       await _startStreamProcess();
     } catch (e) {
       _scheduleReconnect();
     } finally {
       _isStarting = false;
+    }
+  }
+
+  void _pollShmSnapshot() {
+    final addr = _shmAddress;
+    if (addr == 0 || _isDisposed || _isPaused) return;
+
+    try {
+      final ptr = ffi.Pointer<ffi.Uint8>.fromAddress(addr);
+      final liveBytes = ptr.asTypedList(SystemState.shmStructSize);
+      final liveView = ByteData.sublistView(liveBytes);
+
+      // Lockless Seqlock read retry loop (up to 3 attempts if writer is mid-transaction)
+      for (int attempt = 0; attempt < 3; attempt++) {
+        final seq1 = liveView.getUint32(8, Endian.host);
+        if (seq1 == 0 || (seq1 & 1) != 0) {
+          continue; // Writer is currently updating SHM (seq is odd)
+        }
+
+        if (seq1 == _lastShmSeq && _latestState != null) {
+          _staleShmTicks++;
+          // If SHM sequence hasn't advanced for >6 seconds, daemon may have restarted
+          final maxStaleTicks = (6000 ~/ intervalMs.clamp(250, 1000)).clamp(6, 24);
+          if (_staleShmTicks > maxStaleTicks) {
+            _stopProcess();
+            _scheduleReconnect();
+          }
+          return;
+        }
+
+        _shmScratchBuffer.setRange(0, SystemState.shmStructSize, liveBytes);
+        final seq2 = liveView.getUint32(8, Endian.host);
+
+        if (seq1 == seq2) {
+          final state = SystemState.fromShmBytes(
+            _shmScratchBuffer,
+            _shmScratchView,
+          );
+          if (state != null) {
+            _lastShmSeq = seq1;
+            _staleShmTicks = 0;
+            _latestState = state;
+            if (!_controller.isClosed) {
+              _controller.add(state);
+            }
+            return;
+          }
+        }
+      }
+    } catch (_) {
+      _stopProcess();
+      _scheduleReconnect();
     }
   }
 
@@ -185,6 +271,15 @@ class TelemetryStreamService with WidgetsBindingObserver {
   void _stopProcess() {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
+
+    _shmPollTimer?.cancel();
+    _shmPollTimer = null;
+    if (_shmAddress != 0) {
+      _shmAddress = 0;
+      _lastShmSeq = 0;
+      _staleShmTicks = 0;
+      unawaited(_ipcChannel.unsubscribeShm());
+    }
 
     _nativeStreamSubscription?.cancel();
     _nativeStreamSubscription = null;

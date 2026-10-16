@@ -70,7 +70,10 @@ class RootShellManager implements ShellCommandExecutor {
       _stderrSubscription = process.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen(_lineController.addError);
+          .listen(
+            (_) {},
+            onError: (_) {},
+          );
 
       _isActive = true;
       final result = await _sendAndCollect(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:manager/data/models/profile.dart';
@@ -156,6 +157,82 @@ void main() {
       expect(createdProcesses.length, 2);
 
       service.dispose();
+    });
+
+    test('SystemState.fromShmBytes decodes 2784-byte PerfMTKSharedTelemetry binary snapshot', () {
+      final bytes = Uint8List(SystemState.shmStructSize);
+      final bd = ByteData.sublistView(bytes);
+
+      void writeStr(int offset, int maxLen, String val) {
+        final encoded = utf8.encode(val);
+        final len = encoded.length < maxLen - 1 ? encoded.length : maxLen - 1;
+        bytes.setRange(offset, offset + len, encoded);
+        bytes[offset + len] = 0;
+      }
+
+      bd.setUint32(0, SystemState.shmMagic, Endian.host);
+      bd.setUint32(4, SystemState.shmVersion, Endian.host);
+      bd.setUint32(8, 42, Endian.host); // even seq
+      bd.setUint32(12, (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5), Endian.host);
+      bd.setUint64(16, 123456789, Endian.host);
+      bd.setInt32(24, 12, Endian.host);     // drivers_active
+      bd.setInt32(28, 120, Endian.host);    // display_fps
+      bd.setInt32(32, 60, Endian.host);     // game_fps
+      bd.setInt32(36, 31, Endian.host);     // battery_temp_c
+      bd.setInt32(40, 38500, Endian.host);  // soc_temp_mdeg -> 38.5C
+      bd.setInt32(44, 85, Endian.host);     // battery_capacity_pct
+      bd.setInt32(48, 120, Endian.host);    // cycle_count
+      bd.setInt32(52, 98, Endian.host);     // soh_pct
+      bd.setInt32(56, 4900, Endian.host);   // charge_full_mah
+      bd.setInt32(60, 5000, Endian.host);   // charge_design_mah
+      bd.setInt32(64, 4250, Endian.host);   // charge_counter_mah
+      bd.setInt32(68, 1980, Endian.host);   // charge_current_now_ma
+      bd.setInt32(72, 4120, Endian.host);   // charge_voltage_now_mv
+      bd.setInt32(76, 8158, Endian.host);   // charge_power_mw -> 8.158W
+      bd.setInt32(80, 2000, Endian.host);   // charge_current_limit_ma
+      bd.setInt32(84, 1500, Endian.host);   // gentle_charge_ma
+      bd.setInt32(88, 80, Endian.host);     // battery_care_limit_pct
+      bd.setInt32(92, 1, Endian.host);      // pinned_threads_count
+
+      writeStr(96, 16, '17.2');
+      writeStr(112, 32, 'performance');
+      writeStr(144, 128, 'com.miHoYo.GenshinImpact');
+      writeStr(272, 48, 'LSPosed Hook (Push)');
+      writeStr(320, 32, 'mt6897');
+      writeStr(352, 32, '4+3+1');
+      writeStr(384, 32, 'gpufreqv2');
+      writeStr(416, 128, 'P0: 2200MHz | P1: 3000MHz | P2: 3350MHz');
+      writeStr(544, 32, '1100MHz');
+      writeStr(576, 32, '4266MHz');
+      writeStr(608, 64, 'min: 45.00 | max: max');
+      writeStr(672, 32, 'bypass');
+      writeStr(704, 32, 'Charging');
+
+      // Pinned thread 0 at offset 736
+      bd.setInt32(736, 4567, Endian.host);
+      writeStr(736 + 4, 28, 'UnityMain');
+      writeStr(736 + 32, 32, 'Prime Core (CPU7)');
+
+      final state = SystemState.fromShmBytes(bytes, bd);
+      expect(state, isNotNull);
+      expect(state!.version, '17.2');
+      expect(state.currentProfile, ProfileType.performance);
+      expect(state.thermalState, ThermalState.enabled);
+      expect(state.currentApp, 'com.miHoYo.GenshinImpact');
+      expect(state.screenOn, true);
+      expect(state.chargeBypass, true);
+      expect(state.batteryCareEnabled, true);
+      expect(state.backgroundJailed, true);
+      expect(state.driversActive, 12);
+      expect(state.displayFps, 120);
+      expect(state.gameFps, 60);
+      expect(state.batteryTempC, 31);
+      expect(state.socTempC, closeTo(38.5, 0.01));
+      expect(state.chargePowerW, closeTo(8.158, 0.001));
+      expect(state.pinnedThreads.length, 1);
+      expect(state.pinnedThreads.first['tid'], 4567);
+      expect(state.pinnedThreads.first['name'], 'UnityMain');
+      expect(state.pinnedThreads.first['role'], 'Prime Core (CPU7)');
     });
   });
 }

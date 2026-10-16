@@ -17,16 +17,18 @@ class NativeIpcChannel {
   bool? _isChannelSupported;
 
   /// Checks if the native platform channel is supported and reachable.
+  /// Only caches positive availability so transient boot delays do not lock out native IPC.
   Future<bool> isAvailable() async {
     if (!Platform.isAndroid) return false;
-    if (_isChannelSupported != null) return _isChannelSupported!;
+    if (_isChannelSupported == true) return true;
 
     try {
       final running = await isDaemonRunning();
-      _isChannelSupported = running;
+      if (running) {
+        _isChannelSupported = true;
+      }
       return running;
     } catch (_) {
-      _isChannelSupported = false;
       return false;
     }
   }
@@ -58,6 +60,32 @@ class NativeIpcChannel {
     } catch (_) {
       return false;
     }
+  }
+
+  /// Subscribes to Zero-Copy Shared Memory telemetry (`memfd` + `SCM_RIGHTS`).
+  /// Returns the read-only `mmap` virtual memory address in this process, or null if unsupported.
+  Future<int?> subscribeShm({int intervalMs = 1000}) async {
+    if (!Platform.isAndroid) return null;
+    try {
+      final addr = await _methodChannel.invokeMethod<int>(
+        'subscribeShm',
+        {'intervalMs': intervalMs},
+      );
+      if (addr != null && addr != 0) {
+        return addr;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Releases the Zero-Copy Shared Memory liveness lease socket and unmaps the region.
+  Future<void> unsubscribeShm() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _methodChannel.invokeMethod<bool>('unsubscribeShm');
+    } catch (_) {}
   }
 
   /// Subscribes to continuous JSON telemetry lines streamed directly from LocalSocket.

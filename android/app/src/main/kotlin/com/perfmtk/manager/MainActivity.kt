@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
+import android.system.Os
+import android.system.OsConstants
 import android.util.LruCache
 import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
@@ -25,6 +27,11 @@ class MainActivity : FlutterActivity() {
     private val streamChannelName = "com.perfmtk.manager/telemetry_stream"
     private val appsChannelName = "com.perfmtk.manager/apps"
     private val socketName = "perfmtkd_ctrl"
+    private val shmPageSize = 4096L
+
+    private val shmLock = Any()
+    private var shmLeaseSocket: LocalSocket? = null
+    private var shmMappedAddress: Long = 0L
 
     private val executor = Executors.newCachedThreadPool()
     // Dedicated low-priority worker thread pool for background icon decoding and disk caching
@@ -67,6 +74,27 @@ class MainActivity : FlutterActivity() {
                         val isRunning = response?.trim() == "PONG"
                         runOnUiThread {
                             result.success(isRunning)
+                        }
+                    }
+                }
+                "subscribeShm" -> {
+                    val intervalMs = call.argument<Int>("intervalMs") ?: 1000
+                    executor.execute {
+                        val addr = subscribeSharedMemory(intervalMs)
+                        runOnUiThread {
+                            if (addr != 0L) {
+                                result.success(addr)
+                            } else {
+                                result.error("SHM_ERROR", "Failed to map shared memory telemetry", null)
+                            }
+                        }
+                    }
+                }
+                "unsubscribeShm" -> {
+                    executor.execute {
+                        closeSharedMemoryLease()
+                        runOnUiThread {
+                            result.success(true)
                         }
                     }
                 }
@@ -202,12 +230,105 @@ class MainActivity : FlutterActivity() {
         )
     }
 
+    private fun subscribeSharedMemory(intervalMs: Int): Long {
+        synchronized(shmLock) {
+            closeSharedMemoryLeaseLocked()
+            var socket: LocalSocket? = null
+            try {
+                socket = LocalSocket()
+                socket.connect(LocalSocketAddress(socketName, LocalSocketAddress.Namespace.ABSTRACT))
+                socket.soTimeout = 2000
+
+                val writer = OutputStreamWriter(socket.outputStream)
+                writer.write("SUBSCRIBE_SHM $intervalMs\n")
+                writer.flush()
+
+                // Read 1-byte ACK which triggers recvmsg() and populates ancillaryFileDescriptors
+                val ack = socket.inputStream.read()
+                if (ack != '1'.code) {
+                    socket.close()
+                    return 0L
+                }
+
+                val fds = socket.ancillaryFileDescriptors
+                if (fds == null || fds.isEmpty()) {
+                    socket.close()
+                    return 0L
+                }
+
+                val shmFd = fds[0]
+                val addr = try {
+                    Os.mmap(
+                        0L,
+                        shmPageSize,
+                        OsConstants.PROT_READ,
+                        OsConstants.MAP_SHARED,
+                        shmFd,
+                        0L
+                    )
+                } finally {
+                    // Close duplicate FDs in this process; the mmap mapping retains the kernel reference
+                    for (fd in fds) {
+                        try {
+                            Os.close(fd)
+                        } catch (_: Throwable) {}
+                    }
+                }
+
+                if (addr == 0L) {
+                    socket.close()
+                    return 0L
+                }
+
+                // Keep socket open as a Zero-Traffic Liveness Lease so perfmtkd detects app pause/exit via EPOLLRDHUP
+                shmLeaseSocket = socket
+                shmMappedAddress = addr
+                return addr
+            } catch (e: Throwable) {
+                android.util.Log.w("PerfMTK-SHM", "subscribeSharedMemory failed: ${e.message}")
+                try {
+                    socket?.close()
+                } catch (_: Throwable) {}
+                return 0L
+            }
+        }
+    }
+
+    private fun closeSharedMemoryLease() {
+        synchronized(shmLock) {
+            closeSharedMemoryLeaseLocked()
+        }
+    }
+
+    private fun closeSharedMemoryLeaseLocked() {
+        val sock = shmLeaseSocket
+        shmLeaseSocket = null
+        if (sock != null) {
+            try {
+                sock.close()
+            } catch (_: Throwable) {}
+        }
+
+        val addr = shmMappedAddress
+        shmMappedAddress = 0L
+        if (addr != 0L) {
+            try {
+                Os.munmap(addr, shmPageSize)
+            } catch (_: Throwable) {}
+        }
+    }
+
+    override fun onDestroy() {
+        closeSharedMemoryLease()
+        super.onDestroy()
+    }
+
     private fun sendSocketCommand(cmd: String, arg: String?): String? {
         var socket: LocalSocket? = null
         return try {
             socket = LocalSocket()
-            socket.soTimeout = 3000
             socket.connect(LocalSocketAddress(socketName, LocalSocketAddress.Namespace.ABSTRACT))
+            socket.soTimeout = 3000
 
             val writer = OutputStreamWriter(socket.outputStream)
             val fullCmd = if (arg != null && arg.isNotBlank()) "$cmd $arg\n" else "$cmd\n"
@@ -218,6 +339,7 @@ class MainActivity : FlutterActivity() {
             val response = reader.readText()
             response.trim()
         } catch (e: Exception) {
+            android.util.Log.w("PerfMTK-IPC", "sendSocketCommand($cmd) failed: ${e.message}")
             null
         } finally {
             try {

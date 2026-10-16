@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -14,6 +15,7 @@ class ChargeThermalCard extends StatelessWidget {
   final int bypassMinBattPct;
   final Color color;
   final bool hasChargeBypass;
+  final bool hasHardwareBypass;
 
   final void Function({
     required bool bypassChargeThrottle,
@@ -34,6 +36,7 @@ class ChargeThermalCard extends StatelessWidget {
     this.bypassMinBattPct = 20,
     required this.color,
     this.hasChargeBypass = true,
+    this.hasHardwareBypass = false,
     required this.onChanged,
   });
 
@@ -45,13 +48,15 @@ class ChargeThermalCard extends StatelessWidget {
     final gentleOptions = [0, 500, 1000, 1500];
 
     return SectionCard(
-      title: AppLocale.thermalChargeTitle.getString(context),
+      title: hasHardwareBypass
+          ? AppLocale.thermalChargeTitle.getString(context)
+          : AppLocale.thermalFastChargeTitle.getString(context),
       icon: Icons.bolt_rounded,
       color: color,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Charge Bypass Throttle ────────────────────────────────────────
+          // ── Charge Throttle / Hardware Bypass ──────────────────────────────
           if (hasChargeBypass) ...[
             Row(
               children: [
@@ -60,7 +65,9 @@ class ChargeThermalCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        AppLocale.bypassChargeThrottle.getString(context),
+                        hasHardwareBypass
+                            ? AppLocale.hwChargeBypassTitle.getString(context)
+                            : AppLocale.smartFastChargeTitle.getString(context),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: cs.onSurface,
@@ -68,13 +75,29 @@ class ChargeThermalCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppConstants.spacing4),
                       Text(
-                        bypassChargeThrottle
-                            ? AppLocale.bypassChargeActiveDesc.getString(context)
-                            : AppLocale.bypassChargeInactiveDesc
-                                .getString(context),
+                        hasHardwareBypass
+                            ? (bypassChargeThrottle
+                                ? AppLocale.hwBypassActive.getString(context)
+                                : AppLocale.hwBypassInactive.getString(context))
+                            : (bypassChargeThrottle
+                                ? AppLocale.smartFastChargeActive
+                                    .getString(context)
+                                : AppLocale.smartFastChargeInactive
+                                    .getString(context)),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color:
                               bypassChargeThrottle ? color : cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppConstants.spacing4),
+                      Text(
+                        hasHardwareBypass
+                            ? AppLocale.hwChargeBypassDesc.getString(context)
+                            : AppLocale.smartFastChargeDesc.getString(context),
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          height: 1.3,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -83,18 +106,21 @@ class ChargeThermalCard extends StatelessWidget {
                 Switch(
                   value: bypassChargeThrottle,
                   activeThumbColor: color,
-                  onChanged: (v) => onChanged(
-                    bypassChargeThrottle: v,
-                    unlockFpsThermal: unlockFpsThermal,
-                    batteryTempLimit: batteryTempLimit,
-                    disableThermalServices: disableThermalServices,
-                    gentleChargeMa: gentleChargeMa,
-                    bypassMinBattPct: bypassMinBattPct,
-                  ),
+                  onChanged: (v) {
+                    HapticFeedback.lightImpact();
+                    onChanged(
+                      bypassChargeThrottle: v,
+                      unlockFpsThermal: unlockFpsThermal,
+                      batteryTempLimit: batteryTempLimit,
+                      disableThermalServices: disableThermalServices,
+                      gentleChargeMa: gentleChargeMa,
+                      bypassMinBattPct: bypassMinBattPct,
+                    );
+                  },
                 ),
               ],
             ),
-            if (bypassChargeThrottle) ...[
+            if (hasHardwareBypass && bypassChargeThrottle) ...[
               const SizedBox(height: AppConstants.spacing12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,14 +155,20 @@ class ChargeThermalCard extends StatelessWidget {
                   min: 10,
                   max: 50,
                   divisions: 8,
-                  onChanged: (v) => onChanged(
-                    bypassChargeThrottle: bypassChargeThrottle,
-                    unlockFpsThermal: unlockFpsThermal,
-                    batteryTempLimit: batteryTempLimit,
-                    disableThermalServices: disableThermalServices,
-                    gentleChargeMa: gentleChargeMa,
-                    bypassMinBattPct: v.round(),
-                  ),
+                  onChanged: (v) {
+                    final nv = v.round();
+                    if (nv != bypassMinBattPct) {
+                      HapticFeedback.selectionClick();
+                    }
+                    onChanged(
+                      bypassChargeThrottle: bypassChargeThrottle,
+                      unlockFpsThermal: unlockFpsThermal,
+                      batteryTempLimit: batteryTempLimit,
+                      disableThermalServices: disableThermalServices,
+                      gentleChargeMa: gentleChargeMa,
+                      bypassMinBattPct: nv,
+                    );
+                  },
                 ),
               ),
             ],
@@ -174,14 +206,17 @@ class ChargeThermalCard extends StatelessWidget {
               Switch(
                 value: unlockFpsThermal,
                 activeThumbColor: color,
-                onChanged: (v) => onChanged(
-                  bypassChargeThrottle: bypassChargeThrottle,
-                  unlockFpsThermal: v,
-                  batteryTempLimit: batteryTempLimit,
-                  disableThermalServices: disableThermalServices,
-                  gentleChargeMa: gentleChargeMa,
-                  bypassMinBattPct: bypassMinBattPct,
-                ),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(
+                    bypassChargeThrottle: bypassChargeThrottle,
+                    unlockFpsThermal: v,
+                    batteryTempLimit: batteryTempLimit,
+                    disableThermalServices: disableThermalServices,
+                    gentleChargeMa: gentleChargeMa,
+                    bypassMinBattPct: bypassMinBattPct,
+                  );
+                },
               ),
             ],
           ),
@@ -218,14 +253,17 @@ class ChargeThermalCard extends StatelessWidget {
               Switch(
                 value: disableThermalServices,
                 activeThumbColor: color,
-                onChanged: (v) => onChanged(
-                  bypassChargeThrottle: bypassChargeThrottle,
-                  unlockFpsThermal: unlockFpsThermal,
-                  batteryTempLimit: batteryTempLimit,
-                  disableThermalServices: v,
-                  gentleChargeMa: gentleChargeMa,
-                  bypassMinBattPct: bypassMinBattPct,
-                ),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(
+                    bypassChargeThrottle: bypassChargeThrottle,
+                    unlockFpsThermal: unlockFpsThermal,
+                    batteryTempLimit: batteryTempLimit,
+                    disableThermalServices: v,
+                    gentleChargeMa: gentleChargeMa,
+                    bypassMinBattPct: bypassMinBattPct,
+                  );
+                },
               ),
             ],
           ),
@@ -276,14 +314,19 @@ class ChargeThermalCard extends StatelessWidget {
                           ),
                         ),
                         child: InkWell(
-                          onTap: () => onChanged(
-                            bypassChargeThrottle: bypassChargeThrottle,
-                            unlockFpsThermal: unlockFpsThermal,
-                            batteryTempLimit: batteryTempLimit,
-                            disableThermalServices: disableThermalServices,
-                            gentleChargeMa: ma,
-                            bypassMinBattPct: bypassMinBattPct,
-                          ),
+                          onTap: () {
+                            if (gentleChargeMa != ma) {
+                              HapticFeedback.selectionClick();
+                            }
+                            onChanged(
+                              bypassChargeThrottle: bypassChargeThrottle,
+                              unlockFpsThermal: unlockFpsThermal,
+                              batteryTempLimit: batteryTempLimit,
+                              disableThermalServices: disableThermalServices,
+                              gentleChargeMa: ma,
+                              bypassMinBattPct: bypassMinBattPct,
+                            );
+                          },
                           borderRadius:
                               BorderRadius.circular(AppConstants.radiusMedium),
                           child: Padding(

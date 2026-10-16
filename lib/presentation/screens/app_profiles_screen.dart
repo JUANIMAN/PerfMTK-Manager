@@ -9,6 +9,7 @@ import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
+import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/widgets/app_profile_item.dart';
 import 'package:manager/presentation/widgets/app_profiles/app_filter_chips_bar.dart';
 import 'package:manager/presentation/widgets/app_profiles/app_search_bar.dart';
@@ -24,8 +25,7 @@ class AppProfilesScreen extends ConsumerStatefulWidget {
   ConsumerState<AppProfilesScreen> createState() => _AppProfilesScreenState();
 }
 
-class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
-    with SingleTickerProviderStateMixin, EntryAnimationMixin {
+class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<bool> _showBackToTopButton = ValueNotifier<bool>(false);
@@ -77,12 +77,10 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
-    initEntryAnimation();
   }
 
   @override
   void dispose() {
-    disposeEntryAnimation();
     _searchController.dispose();
     _scrollController.dispose();
     _showBackToTopButton.dispose();
@@ -110,26 +108,24 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
     final appProfileAsync = ref.watch(appProfileProvider);
 
     return Scaffold(
-      body: buildWithEntryAnimation(
-        Column(
-          children: [
-            // ── Fixed top section (header + search + filters) ─────────────────
-            appProfileAsync.when(
-              data: (state) => _buildFixedTop(state),
-              loading: () => _buildFixedTop(null),
-              error: (_, _) => _buildFixedTop(null),
-            ),
+      body: Column(
+        children: [
+          // ── Fixed top section (header + search + filters) ─────────────────
+          appProfileAsync.when(
+            data: (state) => _buildFixedTop(state),
+            loading: () => _buildFixedTop(null),
+            error: (_, _) => _buildFixedTop(null),
+          ),
 
-            // ── Scrollable app list ───────────────────────────────────────────
-            Expanded(
-              child: appProfileAsync.when(
-                data: (state) => _buildAppList(state),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => _buildErrorView(error),
-              ),
+          // ── Scrollable app list ───────────────────────────────────────────
+          Expanded(
+            child: appProfileAsync.when(
+              data: (state) => _buildAppList(state),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => _buildErrorView(error),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: ValueListenableBuilder<bool>(
         valueListenable: _showBackToTopButton,
@@ -323,6 +319,8 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
   Widget _buildAppList(AppProfileState state) {
     _updateFilterCache(state.appProfiles);
     final filteredApps = _cachedFilteredApps;
+    final hasHardwareBypass =
+        ref.watch(deviceConfigProvider).value?.hasHardwareBypass ?? false;
 
     if (filteredApps.isEmpty) {
       return _buildEmptyState();
@@ -334,6 +332,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
         await ref.read(appProfileProvider.notifier).reloadInstalledApps();
       },
       child: ListView.builder(
+        key: const PageStorageKey('app_profiles_list_view'),
         controller: _scrollController,
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
@@ -354,6 +353,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen>
             currentProfile: appProfile.assignedProfile,
             currentDirectives: appProfile.directives,
             isSystemApp: appProfile.appInfo.isSystemApp,
+            hasHardwareBypass: hasHardwareBypass,
             onProfileSelected: (profile, directives) => _setAppProfile(
               appProfile.appInfo.packageName,
               appProfile.appInfo.name,

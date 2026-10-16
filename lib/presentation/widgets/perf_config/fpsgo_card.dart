@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -182,14 +183,17 @@ class FpsgoCard extends StatelessWidget {
               Switch(
                 value: taOn,
                 activeThumbColor: color,
-                onChanged: (v) => onChanged(
-                  forceOnOff: forceOnOff,
-                  boostTa: v ? 1 : 0,
-                  rescueEnable: rescueEnable,
-                  ultraRescue: ultraRescue,
-                  downThrottle: downThrottle,
-                  fstbTuneQuantile: fstbTuneQuantile,
-                ),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(
+                    forceOnOff: forceOnOff,
+                    boostTa: v ? 1 : 0,
+                    rescueEnable: rescueEnable,
+                    ultraRescue: ultraRescue,
+                    downThrottle: downThrottle,
+                    fstbTuneQuantile: fstbTuneQuantile,
+                  );
+                },
               ),
             ],
           ),
@@ -225,14 +229,17 @@ class FpsgoCard extends StatelessWidget {
               Switch(
                 value: rescueOn,
                 activeThumbColor: color,
-                onChanged: (v) => onChanged(
-                  forceOnOff: forceOnOff,
-                  boostTa: boostTa,
-                  rescueEnable: v ? 1 : 0,
-                  ultraRescue: ultraRescue,
-                  downThrottle: downThrottle,
-                  fstbTuneQuantile: fstbTuneQuantile,
-                ),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(
+                    forceOnOff: forceOnOff,
+                    boostTa: boostTa,
+                    rescueEnable: v ? 1 : 0,
+                    ultraRescue: ultraRescue,
+                    downThrottle: downThrottle,
+                    fstbTuneQuantile: fstbTuneQuantile,
+                  );
+                },
               ),
             ],
           ),
@@ -268,14 +275,17 @@ class FpsgoCard extends StatelessWidget {
               Switch(
                 value: ultraOn,
                 activeThumbColor: color,
-                onChanged: (v) => onChanged(
-                  forceOnOff: forceOnOff,
-                  boostTa: boostTa,
-                  rescueEnable: rescueEnable,
-                  ultraRescue: v ? 1 : 0,
-                  downThrottle: downThrottle,
-                  fstbTuneQuantile: fstbTuneQuantile,
-                ),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(
+                    forceOnOff: forceOnOff,
+                    boostTa: boostTa,
+                    rescueEnable: rescueEnable,
+                    ultraRescue: v ? 1 : 0,
+                    downThrottle: downThrottle,
+                    fstbTuneQuantile: fstbTuneQuantile,
+                  );
+                },
               ),
             ],
           ),
@@ -311,14 +321,17 @@ class FpsgoCard extends StatelessWidget {
               Switch(
                 value: downThrottleOn,
                 activeThumbColor: color,
-                onChanged: (v) => onChanged(
-                  forceOnOff: forceOnOff,
-                  boostTa: boostTa,
-                  rescueEnable: rescueEnable,
-                  ultraRescue: ultraRescue,
-                  downThrottle: v ? 1 : 0,
-                  fstbTuneQuantile: fstbTuneQuantile,
-                ),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(
+                    forceOnOff: forceOnOff,
+                    boostTa: boostTa,
+                    rescueEnable: rescueEnable,
+                    ultraRescue: ultraRescue,
+                    downThrottle: v ? 1 : 0,
+                    fstbTuneQuantile: fstbTuneQuantile,
+                  );
+                },
               ),
             ],
           ),
@@ -368,7 +381,12 @@ class _SegmentedOption extends StatelessWidget {
                 ),
               ),
               child: InkWell(
-                onTap: () => onChanged(opt.value),
+                onTap: () {
+                  if (opt.value != selectedValue) {
+                    HapticFeedback.selectionClick();
+                  }
+                  onChanged(opt.value);
+                },
                 borderRadius:
                     BorderRadius.circular(AppConstants.radiusMedium),
                 child: Padding(

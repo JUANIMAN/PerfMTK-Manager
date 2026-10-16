@@ -6,11 +6,13 @@ import 'package:manager/config/app_constants.dart';
 
 class ThermalSwitch extends StatefulWidget {
   final bool isEnabled;
+  final bool isChanging;
   final ValueChanged<bool> onChanged;
 
   const ThermalSwitch({
     super.key,
     required this.isEnabled,
+    this.isChanging = false,
     required this.onChanged,
   });
 
@@ -22,7 +24,6 @@ class _ThermalSwitchState extends State<ThermalSwitch>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _t;
-
 
   @override
   void initState() {
@@ -53,22 +54,24 @@ class _ThermalSwitchState extends State<ThermalSwitch>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final activeColor = widget.isEnabled
-        ? const Color(0xFF00E676)
-        : const Color(0xFFFF5252);
+        ? const Color(0xFF00E676) // Green (Protection active)
+        : const Color(0xFFFF9100); // Amber (Throttling bypassed)
 
     return AnimatedBuilder(
       animation: _t,
       builder: (context, _) {
         return Container(
           decoration: BoxDecoration(
-            color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+            color: cs.surfaceContainerHigh.withValues(alpha: 0.60),
             borderRadius: BorderRadius.circular(AppConstants.radiusXLarge),
             border: Border.all(
               color: widget.isEnabled
                   ? activeColor.withValues(alpha: 0.35)
-                  : cs.outlineVariant.withValues(alpha: 0.25),
-              width: 1,
+                  : const Color(0xFFFF9100).withValues(alpha: 0.35),
+              width: 1.0,
             ),
           ),
           padding: const EdgeInsets.all(AppConstants.spacing20),
@@ -82,21 +85,34 @@ class _ThermalSwitchState extends State<ThermalSwitch>
                   Container(
                     padding: const EdgeInsets.all(AppConstants.spacing12),
                     decoration: BoxDecoration(
-                      color: activeColor.withValues(alpha: 0.15),
+                      color: activeColor.withValues(alpha: isDark ? 0.16 : 0.10),
                       borderRadius:
                           BorderRadius.circular(AppConstants.radiusLarge),
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: AppConstants.animationFast,
-                      child: Icon(
-                        widget.isEnabled
-                            ? Icons.thermostat_auto_rounded
-                            : Icons.thermostat_rounded,
-                        key: ValueKey(widget.isEnabled),
-                        color: activeColor,
-                        size: AppConstants.iconSizeLarge,
+                      border: Border.all(
+                        color: activeColor.withValues(alpha: isDark ? 0.35 : 0.25),
+                        width: 0.8,
                       ),
                     ),
+                    child: widget.isChanging
+                        ? SizedBox(
+                            width: AppConstants.iconSizeLarge,
+                            height: AppConstants.iconSizeLarge,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation(activeColor),
+                            ),
+                          )
+                        : AnimatedSwitcher(
+                            duration: AppConstants.animationFast,
+                            child: Icon(
+                              widget.isEnabled
+                                  ? Icons.security_rounded
+                                  : Icons.flash_on_rounded,
+                              key: ValueKey(widget.isEnabled),
+                              color: activeColor,
+                              size: AppConstants.iconSizeLarge,
+                            ),
+                          ),
                   ),
                   const SizedBox(width: AppConstants.spacing16),
                   Expanded(
@@ -114,12 +130,12 @@ class _ThermalSwitchState extends State<ThermalSwitch>
                           duration: AppConstants.animationFast,
                           child: Text(
                             widget.isEnabled
-                                ? AppLocale.enabled.getString(context)
-                                : AppLocale.disabled.getString(context),
+                                ? 'Protección Térmica Activa (OEM)'
+                                : 'Throttling Desactivado (Máximo Rendimiento)',
                             key: ValueKey(widget.isEnabled),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: activeColor,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -130,10 +146,12 @@ class _ThermalSwitchState extends State<ThermalSwitch>
                   Switch(
                     value: widget.isEnabled,
                     activeThumbColor: activeColor,
-                    onChanged: (val) {
-                      HapticFeedback.mediumImpact();
-                      widget.onChanged(val);
-                    },
+                    onChanged: widget.isChanging
+                        ? null
+                        : (val) {
+                            HapticFeedback.mediumImpact();
+                            widget.onChanged(val);
+                          },
                   ),
                 ],
               ),
@@ -142,10 +160,11 @@ class _ThermalSwitchState extends State<ThermalSwitch>
               const SizedBox(height: AppConstants.spacing12),
               Text(
                 widget.isEnabled
-                    ? AppLocale.disableDsc.getString(context)
-                    : AppLocale.enableDsc.getString(context),
+                    ? 'Los servicios térmicos del sistema (mi_thermald) regulan la temperatura. Si el equipo se calienta, limitarán la velocidad de carga, brillo o FPS.'
+                    : 'Servicios térmicos del sistema deshabilitados. Previene caídas forzadas de FPS y permite la máxima tasa de carga sin estrangulamiento térmico de software.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
+                  height: 1.35,
                 ),
               ),
             ],

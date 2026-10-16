@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
@@ -32,6 +33,9 @@ class ProfileTabBar extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: TabBar(
         controller: controller,
+        onTap: (index) {
+          HapticFeedback.selectionClick();
+        },
         isScrollable: false,
         padding: EdgeInsets.zero,
         labelPadding: const EdgeInsets.symmetric(horizontal: 2),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -94,7 +95,12 @@ class DisplayCard extends StatelessWidget {
                       ),
                     ),
                     child: InkWell(
-                      onTap: () => onChanged(opt.value),
+                      onTap: () {
+                        if (opt.value != refreshRate) {
+                          HapticFeedback.selectionClick();
+                        }
+                        onChanged(opt.value);
+                      },
                       borderRadius:
                           BorderRadius.circular(AppConstants.radiusMedium),
                       child: Padding(

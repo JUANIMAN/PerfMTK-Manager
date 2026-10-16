@@ -4,6 +4,7 @@ import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
+import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
 import 'package:manager/presentation/widgets/profile_button.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
@@ -18,20 +19,7 @@ class ProfilesScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfilesScreen> createState() => _ProfilesScreenState();
 }
 
-class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
-    with SingleTickerProviderStateMixin, EntryAnimationMixin {
-  @override
-  void initState() {
-    super.initState();
-    initEntryAnimation();
-  }
-
-  @override
-  void dispose() {
-    disposeEntryAnimation();
-    super.dispose();
-  }
-
+class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(
@@ -44,13 +32,11 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
     );
 
     return Scaffold(
-      body: buildWithEntryAnimation(
-        isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : error != null
-                ? _buildErrorView(error)
-                : _buildContent(),
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : error != null
+              ? _buildErrorView(error)
+              : _buildContent(),
     );
   }
 
@@ -58,6 +44,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen>
     return RefreshIndicator(
       onRefresh: () => ref.read(systemStateProvider.notifier).refresh(),
       child: CustomScrollView(
+        key: const PageStorageKey('profiles_scroll_view'),
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
@@ -307,6 +294,8 @@ class _HardwareTelemetrySection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(systemStateProvider).value;
     if (state == null || !hasTelemetry(state)) return const SizedBox.shrink();
+    final hasHardwareBypass =
+        ref.watch(deviceConfigProvider).value?.hasHardwareBypass ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,7 +305,10 @@ class _HardwareTelemetrySection extends ConsumerWidget {
           AppLocale.hardwareMonitorHeader.getString(context),
         ),
         const SizedBox(height: AppConstants.spacing8),
-        HardwareTelemetryCard(state: state),
+        HardwareTelemetryCard(
+          state: state,
+          hasHardwareBypass: hasHardwareBypass,
+        ),
       ],
     );
   }

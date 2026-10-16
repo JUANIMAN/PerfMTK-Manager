@@ -45,6 +45,11 @@ class TelemetryStreamService with WidgetsBindingObserver {
   /// Latest parsed system state, or null if no packet received yet.
   SystemState? get latestState => _latestState;
 
+  /// Optimistically updates latest cached state so actions reflect immediately.
+  void updateLatest(SystemState state) {
+    _latestState = state;
+  }
+
   /// Whether the streaming process is currently running.
   bool get isRunning =>
       (_process != null || _nativeStreamSubscription != null) && !_isPaused;

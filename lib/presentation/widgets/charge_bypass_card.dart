@@ -6,6 +6,7 @@ import 'package:manager/config/app_constants.dart';
 
 class ChargeBypassCard extends StatefulWidget {
   final bool isEnabled;
+  final bool hasHardwareBypass;
   final int? batteryTempC;
   final bool isChanging;
   final ValueChanged<bool> onChanged;
@@ -13,6 +14,7 @@ class ChargeBypassCard extends StatefulWidget {
   const ChargeBypassCard({
     super.key,
     required this.isEnabled,
+    this.hasHardwareBypass = false,
     this.batteryTempC,
     this.isChanging = false,
     required this.onChanged,
@@ -115,7 +117,9 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocale.chargeBypassTitle.getString(context),
+                          widget.hasHardwareBypass
+                              ? AppLocale.hwChargeBypassTitle.getString(context)
+                              : AppLocale.smartFastChargeTitle.getString(context),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -127,12 +131,14 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
                             widget.isChanging
                                 ? AppLocale.applying.getString(context)
                                 : (widget.isEnabled
-                                    ? AppLocale.chargeBypassActive
-                                        .getString(context)
-                                    : AppLocale.chargeBypassInactive
-                                        .getString(context)),
+                                    ? (widget.hasHardwareBypass
+                                        ? AppLocale.hwBypassActive.getString(context)
+                                        : AppLocale.smartFastChargeActive.getString(context))
+                                    : (widget.hasHardwareBypass
+                                        ? AppLocale.hwBypassInactive.getString(context)
+                                        : AppLocale.smartFastChargeInactive.getString(context))),
                             key: ValueKey(
-                                '${widget.isEnabled}-${widget.isChanging}'),
+                                '${widget.isEnabled}-${widget.isChanging}-${widget.hasHardwareBypass}'),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: widget.isEnabled
                                   ? activeColor
@@ -171,7 +177,9 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
               // ── Description ───────────────────────────────────────────
               const SizedBox(height: AppConstants.spacing12),
               Text(
-                AppLocale.chargeBypassDesc.getString(context),
+                widget.hasHardwareBypass
+                    ? AppLocale.hwChargeBypassDesc.getString(context)
+                    : AppLocale.smartFastChargeDesc.getString(context),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
                 ),

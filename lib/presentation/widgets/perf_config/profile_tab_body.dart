@@ -597,7 +597,9 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
     sections.add(const SizedBox(height: AppConstants.spacing20));
     sections.add(
       SectionLabel(
-        label: AppLocale.thermalChargeTitle.getString(context),
+        label: device.hasHardwareBypass
+            ? AppLocale.thermalChargeTitle.getString(context)
+            : AppLocale.thermalFastChargeTitle.getString(context),
         color: profileColor,
       ),
     );
@@ -612,6 +614,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
         bypassMinBattPct: config.chargeThermal.bypassMinBattPct,
         color: profileColor,
         hasChargeBypass: device.hasChargeBypass,
+        hasHardwareBypass: device.hasHardwareBypass,
         onChanged: ({
           required bool bypassChargeThrottle,
           required bool unlockFpsThermal,

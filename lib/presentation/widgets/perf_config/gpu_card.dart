@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -104,6 +105,7 @@ class GpuCard extends StatelessWidget {
                 value: !isDvfs,
                 activeThumbColor: color,
                 onChanged: (fixed) {
+                  HapticFeedback.lightImpact();
                   if (fixed) {
                     // Default to highest freq when enabling fixed mode
                     final defaultFreq = highestFreq;

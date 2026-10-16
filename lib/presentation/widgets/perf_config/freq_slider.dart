@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:manager/config/app_constants.dart';
 
 /// Formats a frequency value for display.
@@ -158,6 +159,9 @@ class FreqSlider extends StatelessWidget {
             divisions: maxIdx,
             onChanged: (v) {
               final idx = v.round().clamp(0, maxIdx);
+              if (idx != currentIdx) {
+                HapticFeedback.selectionClick();
+              }
               onChanged(ascending[idx]);
             },
           ),

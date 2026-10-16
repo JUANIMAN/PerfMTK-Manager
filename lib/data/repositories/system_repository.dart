@@ -14,6 +14,7 @@ abstract class SystemRepository {
   Future<void> setChargeBypass(bool enabled);
   Future<bool> getChargeBypassStatus();
   Future<void> setBatteryCare(bool enabled, int limitPct);
+  Future<void> setChargeCurrentLimit(int ma);
   Future<bool> checkRootAccess();
 }
 
@@ -203,6 +204,24 @@ class SystemRepositoryImpl implements SystemRepository {
       throw SystemCommandException('Failed to set battery care: $e');
     } catch (e) {
       throw SystemCommandException('Unexpected error setting battery care: $e');
+    }
+  }
+
+  @override
+  Future<void> setChargeCurrentLimit(int ma) async {
+    try {
+      final arg = ma.toString();
+      final resp = await _nativeIpc.sendCommand('CHARGE_CURRENT', arg);
+      if (resp == null || !resp.startsWith('OK')) {
+        await _shellManager.executeCommand(
+          'perfmtk -cc $arg',
+          timeout: const Duration(seconds: 10),
+        );
+      }
+    } on RootShellException catch (e) {
+      throw SystemCommandException('Failed to set charge current limit: $e');
+    } catch (e) {
+      throw SystemCommandException('Unexpected error setting charge current limit: $e');
     }
   }
 

@@ -14,6 +14,7 @@ class ProfileSelectionSheet extends StatefulWidget {
   final ProfileType? currentProfile;
   final AppDirectives? currentDirectives;
   final bool isSystemApp;
+  final bool hasHardwareBypass;
   final void Function(ProfileType? profile, AppDirectives? directives)
   onProfileSelected;
 
@@ -23,6 +24,7 @@ class ProfileSelectionSheet extends StatefulWidget {
     required this.currentProfile,
     this.currentDirectives,
     this.isSystemApp = false,
+    this.hasHardwareBypass = false,
     required this.onProfileSelected,
   });
 
@@ -637,8 +639,12 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             context: context,
             icon: Icons.bolt_rounded,
             iconColor: const Color(0xFFFFB300),
-            title: AppLocale.chargeBypassTitle.getString(context),
-            subtitle: AppLocale.bypassDirectiveSubtitle.getString(context),
+            title: widget.hasHardwareBypass
+                ? AppLocale.hwChargeBypassTitle.getString(context)
+                : AppLocale.smartFastChargeTitle.getString(context),
+            subtitle: widget.hasHardwareBypass
+                ? AppLocale.hwBypassDirectiveSubtitle.getString(context)
+                : AppLocale.smartFastChargeDirectiveSubtitle.getString(context),
             value: _chargeBypass,
             onChanged: (v) {
               setState(() => _chargeBypass = v);

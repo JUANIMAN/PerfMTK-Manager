@@ -7,8 +7,13 @@ import 'package:manager/localization/app_locales.dart';
 /// Cyber-Engine Unified Hardware Telemetry HUD with multi-segment LED rev meters.
 class HardwareTelemetryCard extends StatelessWidget {
   final SystemState state;
+  final bool hasHardwareBypass;
 
-  const HardwareTelemetryCard({super.key, required this.state});
+  const HardwareTelemetryCard({
+    super.key,
+    required this.state,
+    this.hasHardwareBypass = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -572,7 +577,11 @@ class HardwareTelemetryCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           state.chargeBypass
-                              ? AppLocale.smartBypass.getString(context)
+                              ? (hasHardwareBypass
+                                  ? AppLocale.smartBypass.getString(context)
+                                  : AppLocale.smartFastChargeTitle
+                                      .getString(context)
+                                      .toUpperCase())
                               : AppLocale.powerRail.getString(context),
                           style: TextStyle(
                             fontSize: 9.5,
@@ -588,7 +597,10 @@ class HardwareTelemetryCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       state.chargeBypass
-                          ? AppLocale.directSilicon.getString(context)
+                          ? (hasHardwareBypass
+                              ? AppLocale.directSilicon.getString(context)
+                              : AppLocale.smartFastChargeTelemetry
+                                  .getString(context))
                           : (state.batteryCapacityPct != null
                               ? AppLocale.batteryPct
                                   .getString(context)
@@ -607,7 +619,10 @@ class HardwareTelemetryCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       state.chargeBypass
-                          ? AppLocale.cellIsolated.getString(context)
+                          ? (hasHardwareBypass
+                              ? AppLocale.cellIsolated.getString(context)
+                              : AppLocale.smartFastChargeTelemetryDesc
+                                  .getString(context))
                           : (state.batteryTempC != null
                               ? AppLocale.batteryTempCell
                                   .getString(context)

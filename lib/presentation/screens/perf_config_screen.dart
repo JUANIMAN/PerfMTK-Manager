@@ -14,7 +14,7 @@ class PerfConfigScreen extends ConsumerStatefulWidget {
 }
 
 class _PerfConfigScreenState extends ConsumerState<PerfConfigScreen>
-    with TickerProviderStateMixin, EntryAnimationMixin {
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -24,13 +24,11 @@ class _PerfConfigScreenState extends ConsumerState<PerfConfigScreen>
       length: ProfileType.values.length,
       vsync: this,
     );
-    initEntryAnimation();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    disposeEntryAnimation();
     super.dispose();
   }
 
@@ -40,8 +38,7 @@ class _PerfConfigScreenState extends ConsumerState<PerfConfigScreen>
     final cs = theme.colorScheme;
 
     return Scaffold(
-      body: buildWithEntryAnimation(
-        Column(
+      body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: AppConstants.spacing12),
@@ -69,7 +66,6 @@ class _PerfConfigScreenState extends ConsumerState<PerfConfigScreen>
             ),
           ],
         ),
-      ),
     );
   }
 }

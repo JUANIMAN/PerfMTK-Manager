@@ -15,6 +15,7 @@ class AppProfileItem extends StatelessWidget {
   final ProfileType? currentProfile;
   final AppDirectives? currentDirectives;
   final bool isSystemApp;
+  final bool hasHardwareBypass;
   final void Function(ProfileType? profile, AppDirectives? directives)
   onProfileSelected;
 
@@ -24,6 +25,7 @@ class AppProfileItem extends StatelessWidget {
     required this.currentProfile,
     this.currentDirectives,
     this.isSystemApp = false,
+    this.hasHardwareBypass = false,
     required this.onProfileSelected,
   });
   @override
@@ -279,18 +281,18 @@ class AppProfileItem extends StatelessWidget {
                 width: 0.9,
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.bolt_rounded,
                   size: 12,
                   color: Color(0xFFFFC107),
                 ),
-                SizedBox(width: 2.5),
+                const SizedBox(width: 2.5),
                 Text(
-                  'Bypass',
-                  style: TextStyle(
+                  hasHardwareBypass ? 'HW Bypass' : 'Fast Chg',
+                  style: const TextStyle(
                     color: Color(0xFFFFC107),
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
@@ -476,6 +478,7 @@ class AppProfileItem extends StatelessWidget {
         currentProfile: currentProfile,
         currentDirectives: currentDirectives,
         isSystemApp: isSystemApp,
+        hasHardwareBypass: hasHardwareBypass,
         onProfileSelected: (profile, directives) {
           onProfileSelected(profile, directives);
         },

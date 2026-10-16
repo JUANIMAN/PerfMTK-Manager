@@ -29,6 +29,11 @@ class SystemState {
   final String dramFreq;
   final bool chargeBypass;
   final String chargeMode;
+  final String chargeStatus;
+  final int? chargeCurrentNowMa;
+  final int? chargeVoltageNowMv;
+  final double? chargePowerW;
+  final int? chargeCurrentLimitMa;
   final int? gentleChargeMa;
   final int? batteryTempC;
   final double? socTempC;
@@ -37,6 +42,11 @@ class SystemState {
   final int? displayFps;
   final int? gameFps;
   final int? batteryCapacityPct;
+  final int? batteryCycleCount;
+  final int? batterySohPct;
+  final int? chargeFullMah;
+  final int? chargeDesignMah;
+  final int? chargeCounterMah;
   final bool batteryCareEnabled;
   final int batteryCareLimitPct;
   final bool batteryCareSuspended;
@@ -64,6 +74,11 @@ class SystemState {
     this.dramFreq = '',
     this.chargeBypass = false,
     this.chargeMode = 'normal',
+    this.chargeStatus = 'Discharging',
+    this.chargeCurrentNowMa,
+    this.chargeVoltageNowMv,
+    this.chargePowerW,
+    this.chargeCurrentLimitMa,
     this.gentleChargeMa,
     this.batteryTempC,
     this.socTempC,
@@ -72,6 +87,11 @@ class SystemState {
     this.displayFps,
     this.gameFps,
     this.batteryCapacityPct,
+    this.batteryCycleCount,
+    this.batterySohPct,
+    this.chargeFullMah,
+    this.chargeDesignMah,
+    this.chargeCounterMah,
     this.batteryCareEnabled = false,
     this.batteryCareLimitPct = 80,
     this.batteryCareSuspended = false,
@@ -115,6 +135,11 @@ class SystemState {
     }
 
     final int? battCap = (charge?['battery_capacity'] as num?)?.toInt();
+    final int? battCycles = (charge?['cycle_count'] as num?)?.toInt();
+    final int? battSoh = (charge?['soh_pct'] as num?)?.toInt();
+    final int? chgFullMah = (charge?['charge_full_mah'] as num?)?.toInt();
+    final int? chgDesignMah = (charge?['charge_design_mah'] as num?)?.toInt();
+    final int? chgCounterMah = (charge?['charge_counter_mah'] as num?)?.toInt();
     final int? dispFps = (json['display_fps'] as num?)?.toInt();
     final int? gFps = (json['game_fps'] as num?)?.toInt();
 
@@ -139,6 +164,11 @@ class SystemState {
 
     final String chgMode = charge?['mode'] as String? ??
         ((charge?['bypass'] as bool? ?? false) ? 'bypass' : 'normal');
+    final String chgStatus = charge?['status'] as String? ?? 'Discharging';
+    final int? chgCurrentMa = (charge?['current_now_ma'] as num?)?.toInt();
+    final int? chgVoltageMv = (charge?['voltage_now_mv'] as num?)?.toInt();
+    final double? chgPowerW = (charge?['power_w'] as num?)?.toDouble();
+    final int? chgLimitMa = (charge?['current_limit_ma'] as num?)?.toInt();
     final int? gentleMa = (charge?['gentle_charge_ma'] as num?)?.toInt();
     final bool bgJailed = json['background_jailed'] as bool? ?? false;
     final List<Map<String, dynamic>> threads = (json['pinned_threads'] as List?)
@@ -161,6 +191,11 @@ class SystemState {
       dramFreq: json['dram_freq'] as String? ?? '',
       chargeBypass: charge?['bypass'] as bool? ?? false,
       chargeMode: chgMode,
+      chargeStatus: chgStatus,
+      chargeCurrentNowMa: chgCurrentMa,
+      chargeVoltageNowMv: chgVoltageMv,
+      chargePowerW: chgPowerW,
+      chargeCurrentLimitMa: chgLimitMa,
       gentleChargeMa: gentleMa,
       batteryTempC: battTemp,
       socTempC: socTemp,
@@ -169,6 +204,11 @@ class SystemState {
       displayFps: dispFps,
       gameFps: (gFps != null && gFps > 0) ? gFps : null,
       batteryCapacityPct: battCap,
+      batteryCycleCount: (battCycles != null && battCycles >= 0) ? battCycles : null,
+      batterySohPct: (battSoh != null && battSoh > 0) ? battSoh : null,
+      chargeFullMah: (chgFullMah != null && chgFullMah > 0) ? chgFullMah : null,
+      chargeDesignMah: (chgDesignMah != null && chgDesignMah > 0) ? chgDesignMah : null,
+      chargeCounterMah: (chgCounterMah != null && chgCounterMah > 0) ? chgCounterMah : null,
       batteryCareEnabled: careEnabled,
       batteryCareLimitPct: careLimit,
       batteryCareSuspended: careSuspended,
@@ -198,6 +238,11 @@ class SystemState {
     String? dramFreq,
     bool? chargeBypass,
     String? chargeMode,
+    String? chargeStatus,
+    int? chargeCurrentNowMa,
+    int? chargeVoltageNowMv,
+    double? chargePowerW,
+    int? chargeCurrentLimitMa,
     int? gentleChargeMa,
     int? batteryTempC,
     double? socTempC,
@@ -206,6 +251,11 @@ class SystemState {
     int? displayFps,
     int? gameFps,
     int? batteryCapacityPct,
+    int? batteryCycleCount,
+    int? batterySohPct,
+    int? chargeFullMah,
+    int? chargeDesignMah,
+    int? chargeCounterMah,
     bool? batteryCareEnabled,
     int? batteryCareLimitPct,
     bool? batteryCareSuspended,
@@ -233,6 +283,11 @@ class SystemState {
       dramFreq: dramFreq ?? this.dramFreq,
       chargeBypass: chargeBypass ?? this.chargeBypass,
       chargeMode: chargeMode ?? this.chargeMode,
+      chargeStatus: chargeStatus ?? this.chargeStatus,
+      chargeCurrentNowMa: chargeCurrentNowMa ?? this.chargeCurrentNowMa,
+      chargeVoltageNowMv: chargeVoltageNowMv ?? this.chargeVoltageNowMv,
+      chargePowerW: chargePowerW ?? this.chargePowerW,
+      chargeCurrentLimitMa: chargeCurrentLimitMa ?? this.chargeCurrentLimitMa,
       gentleChargeMa: gentleChargeMa ?? this.gentleChargeMa,
       batteryTempC: batteryTempC ?? this.batteryTempC,
       socTempC: socTempC ?? this.socTempC,
@@ -241,6 +296,11 @@ class SystemState {
       displayFps: displayFps ?? this.displayFps,
       gameFps: gameFps ?? this.gameFps,
       batteryCapacityPct: batteryCapacityPct ?? this.batteryCapacityPct,
+      batteryCycleCount: batteryCycleCount ?? this.batteryCycleCount,
+      batterySohPct: batterySohPct ?? this.batterySohPct,
+      chargeFullMah: chargeFullMah ?? this.chargeFullMah,
+      chargeDesignMah: chargeDesignMah ?? this.chargeDesignMah,
+      chargeCounterMah: chargeCounterMah ?? this.chargeCounterMah,
       batteryCareEnabled: batteryCareEnabled ?? this.batteryCareEnabled,
       batteryCareLimitPct: batteryCareLimitPct ?? this.batteryCareLimitPct,
       batteryCareSuspended: batteryCareSuspended ?? this.batteryCareSuspended,

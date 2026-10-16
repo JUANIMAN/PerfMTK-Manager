@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -148,7 +149,13 @@ class UclampCard extends StatelessWidget {
             min: min.toDouble(),
             max: max.toDouble(),
             divisions: max - min,
-            onChanged: (v) => onChanged(v.round()),
+            onChanged: (v) {
+              final nv = v.round();
+              if (nv != value && (nv % 5 == 0 || nv == min || nv == max)) {
+                HapticFeedback.selectionClick();
+              }
+              onChanged(nv);
+            },
           ),
         ),
       ],

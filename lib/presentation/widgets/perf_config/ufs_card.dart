@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -79,8 +80,10 @@ class UfsCard extends StatelessWidget {
               Switch(
                 value: clkOn,
                 activeThumbColor: color,
-                onChanged: (v) =>
-                    onChanged(ufsGovernor, v ? 1 : 0),
+                onChanged: (v) {
+                  HapticFeedback.lightImpact();
+                  onChanged(ufsGovernor, v ? 1 : 0);
+                },
               ),
             ],
           ),

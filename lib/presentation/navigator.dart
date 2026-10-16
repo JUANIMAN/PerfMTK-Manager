@@ -7,15 +7,17 @@ import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/providers/app_profile_visibility_provider.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
 import 'package:manager/presentation/screens/app_profiles_screen.dart';
+import 'package:manager/presentation/screens/battery_screen.dart';
 import 'package:manager/presentation/screens/perf_config_screen.dart';
 import 'package:manager/presentation/screens/profiles_screen.dart';
 import 'package:manager/presentation/screens/settings_screen.dart';
-import 'package:manager/presentation/screens/thermal_screen.dart';
+import 'package:manager/presentation/screens/backup_screen.dart';
 import 'package:manager/core/utils/update_checker.dart';
 import 'package:manager/config/app_constants.dart';
+import 'package:manager/presentation/widgets/fade_through_tab_body.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-enum NavScreens { profiles, appProfiles, perfConfig, thermal }
+enum NavScreens { profiles, battery, appProfiles, perfConfig }
 
 class AppNavigator extends ConsumerStatefulWidget {
   const AppNavigator({super.key});
@@ -28,7 +30,6 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
     with WidgetsBindingObserver {
   final FlutterLocalization localization = FlutterLocalization.instance;
   NavScreens _currentScreen = NavScreens.profiles;
-  final Set<NavScreens> _visitedScreens = {NavScreens.profiles};
   DateTime? _lastResumeRefresh;
 
   @override
@@ -84,9 +85,9 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
   /// Ordered list of screens currently visible in the nav bar.
   List<NavScreens> _screenList(bool showAppProfiles) => [
     NavScreens.profiles,
+    NavScreens.battery,
     if (showAppProfiles) NavScreens.appProfiles,
     NavScreens.perfConfig,
-    NavScreens.thermal,
   ];
 
   NavScreens _effectiveScreen(bool showAppProfiles) {
@@ -109,13 +110,13 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
       extendBody: true,
       appBar: AppBar(
         title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 280),
           child: Text(
             switch (currentScreen) {
               NavScreens.profiles => 'PerfMTK Manager',
+              NavScreens.battery => AppLocale.titleBattery.getString(context),
               NavScreens.appProfiles => AppLocale.appProfiles.getString(context),
               NavScreens.perfConfig => AppLocale.perfConfig.getString(context),
-              NavScreens.thermal => AppLocale.thermal.getString(context),
             },
             key: ValueKey(currentScreen),
           ),
@@ -169,6 +170,17 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
                 ),
               ),
             ),
+          if (currentScreen == NavScreens.perfConfig)
+            IconButton(
+              icon: const Icon(Icons.backup_rounded),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BackupScreen()),
+                );
+              },
+              tooltip: AppLocale.backupManager.getString(context),
+            ),
           IconButton(
             icon: const Icon(Icons.settings_rounded),
             onPressed: () {
@@ -188,29 +200,18 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
   }
 
   Widget _buildBody(NavScreens currentScreen, bool showAppProfiles) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        for (final screen in NavScreens.values)
-          if (_visitedScreens.contains(screen) &&
-              (screen != NavScreens.appProfiles || showAppProfiles))
-            Offstage(
-              key: ValueKey(screen),
-              offstage: screen != currentScreen,
-              child: TickerMode(
-                enabled: screen == currentScreen,
-                child: _screenFor(screen),
-              ),
-            ),
-      ],
+    return FadeThroughTabBody(
+      currentScreen: currentScreen,
+      showAppProfiles: showAppProfiles,
+      screenBuilder: _screenFor,
     );
   }
 
   Widget _screenFor(NavScreens screen) => switch (screen) {
     NavScreens.profiles => const ProfilesScreen(),
+    NavScreens.battery => const BatteryScreen(),
     NavScreens.appProfiles => const AppProfilesScreen(),
     NavScreens.perfConfig => const PerfConfigScreen(),
-    NavScreens.thermal => const ThermalScreen(),
   };
 
   Widget _buildNavBar(bool showAppProfiles) {
@@ -293,6 +294,11 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
         Icons.tune,
         AppLocale.profiles,
       ),
+      NavScreens.battery => (
+        Icons.battery_charging_full_rounded,
+        Icons.battery_charging_full_outlined,
+        AppLocale.battery,
+      ),
       NavScreens.appProfiles => (
         Icons.apps_rounded,
         Icons.apps_outlined,
@@ -303,11 +309,6 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
         Icons.speed_outlined,
         AppLocale.perfConfig,
       ),
-      NavScreens.thermal => (
-        Icons.thermostat_rounded,
-        Icons.thermostat_outlined,
-        AppLocale.thermal,
-      ),
     };
 
     final accentColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
@@ -316,10 +317,9 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
     return InkWell(
       onTap: () {
         if (!isSelected) {
-          HapticFeedback.selectionClick();
+          HapticFeedback.lightImpact();
           setState(() {
             _currentScreen = screen;
-            _visitedScreens.add(screen);
           });
         }
       },

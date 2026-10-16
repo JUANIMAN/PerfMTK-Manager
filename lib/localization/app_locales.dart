@@ -131,6 +131,7 @@ mixin AppLocale {
   static const String gbeEnable = 'gbeEnable';
   static const String gbeThermalHeadroom = 'gbeThermalHeadroom';
   static const String thermalChargeTitle = 'thermalChargeTitle';
+  static const String thermalFastChargeTitle = 'thermalFastChargeTitle';
   static const String unlockFpsThermal = 'unlockFpsThermal';
   static const String unlockFpsThermalDesc = 'unlockFpsThermalDesc';
   static const String bypassChargeThrottle = 'bypassChargeThrottle';
@@ -199,6 +200,18 @@ mixin AppLocale {
   static const String batterySafetyGuard = 'batterySafetyGuard';
   static const String gbeDirectiveSubtitle = 'gbeDirectiveSubtitle';
   static const String bypassDirectiveSubtitle = 'bypassDirectiveSubtitle';
+  static const String hwChargeBypassTitle = 'hwChargeBypassTitle';
+  static const String hwChargeBypassDesc = 'hwChargeBypassDesc';
+  static const String hwBypassActive = 'hwBypassActive';
+  static const String hwBypassInactive = 'hwBypassInactive';
+  static const String hwBypassDirectiveSubtitle = 'hwBypassDirectiveSubtitle';
+  static const String smartFastChargeTitle = 'smartFastChargeTitle';
+  static const String smartFastChargeDesc = 'smartFastChargeDesc';
+  static const String smartFastChargeActive = 'smartFastChargeActive';
+  static const String smartFastChargeInactive = 'smartFastChargeInactive';
+  static const String smartFastChargeDirectiveSubtitle = 'smartFastChargeDirectiveSubtitle';
+  static const String smartFastChargeTelemetry = 'smartFastChargeTelemetry';
+  static const String smartFastChargeTelemetryDesc = 'smartFastChargeTelemetryDesc';
   static const String thermalBypassTitle = 'thermalBypassTitle';
   static const String thermalBypassSubtitle = 'thermalBypassSubtitle';
   static const String modeGlobal = 'modeGlobal';
@@ -347,6 +360,60 @@ mixin AppLocale {
   static const String quantileP95 = 'quantileP95';
   static const String quantileP99 = 'quantileP99';
 
+  // Battery & Charging Screen
+  static const String battery = 'battery';
+  static const String titleBattery = 'titleBattery';
+  static const String batteryHeroSubtitle = 'batteryHeroSubtitle';
+  static const String chargeSpeedRegulator = 'chargeSpeedRegulator';
+  static const String chargeSpeedDesc = 'chargeSpeedDesc';
+  static const String currentSpeed = 'currentSpeed';
+  static const String currentVoltage = 'currentVoltage';
+  static const String currentPower = 'currentPower';
+  static const String chargeStatus = 'chargeStatus';
+  static const String unlimitedTurbo = 'unlimitedTurbo';
+  static const String fastChargePreset = 'fastChargePreset';
+  static const String balancedChargePreset = 'balancedChargePreset';
+  static const String gentleChargePreset = 'gentleChargePreset';
+  static const String customLimit = 'customLimit';
+  static const String chargeLimitPct = 'chargeLimitPct';
+  static const String chargingCurrent = 'chargingCurrent';
+  static const String dischargingCurrent = 'dischargingCurrent';
+  static const String batteryHealthGood = 'batteryHealthGood';
+  static const String fastChargeStatus = 'fastChargeStatus';
+  static const String batteryHealthTitle = 'batteryHealthTitle';
+  static const String batteryHealthDesc = 'batteryHealthDesc';
+  static const String batteryCycles = 'batteryCycles';
+  static const String batteryDesignCapacity = 'batteryDesignCapacity';
+  static const String batteryActualCapacity = 'batteryActualCapacity';
+  static const String batterySoh = 'batterySoh';
+  static const String timeToFull = 'timeToFull';
+  static const String timeToProtection = 'timeToProtection';
+  static const String timeRemaining = 'timeRemaining';
+  static const String dischargeRate = 'dischargeRate';
+  static const String chargingSpeed = 'chargingSpeed';
+
+  // Backup & Restore
+  static const String backupManager = 'backupManager';
+  static const String backupTitle = 'backupTitle';
+  static const String backupSubtitle = 'backupSubtitle';
+  static const String createBackup = 'createBackup';
+  static const String createBackupDesc = 'createBackupDesc';
+  static const String creatingBackup = 'creatingBackup';
+  static const String backupCreatedSuccess = 'backupCreatedSuccess';
+  static const String backupCreateError = 'backupCreateError';
+  static const String restoreBackup = 'restoreBackup';
+  static const String restoringBackup = 'restoringBackup';
+  static const String restoreSuccess = 'restoreSuccess';
+  static const String restoreError = 'restoreError';
+  static const String confirmRestoreTitle = 'confirmRestoreTitle';
+  static const String confirmRestoreMessage = 'confirmRestoreMessage';
+  static const String resetStockTitle = 'resetStockTitle';
+  static const String resetStockDesc = 'resetStockDesc';
+  static const String resetStockConfirm = 'resetStockConfirm';
+  static const String resetStockSuccess = 'resetStockSuccess';
+  static const String noBackupsFound = 'noBackupsFound';
+  static const String noBackupsDesc = 'noBackupsDesc';
+
   static const Map<String, dynamic> en = {
     profiles: 'Profiles',
     thermal: 'Thermal',
@@ -477,6 +544,7 @@ mixin AppLocale {
     gbeEnable: 'GBE Optimization',
     gbeThermalHeadroom: 'Thermal Headroom Margin',
     thermalChargeTitle: 'Thermal Throttling & Charging Bypass',
+    thermalFastChargeTitle: 'Thermal Throttling & Fast Charging',
     unlockFpsThermal: 'Unlock FPS Thermal Caps',
     unlockFpsThermalDesc: 'Prevent kernel thermal daemon from capping display refresh rate',
     bypassChargeThrottle: 'Bypass Charging Throttle',
@@ -545,6 +613,18 @@ mixin AppLocale {
     batterySafetyGuard: 'Battery Temp Safety Cutoff Guard',
     gbeDirectiveSubtitle: 'Forces game frequencies and turbo GPU',
     bypassDirectiveSubtitle: 'Powers silicon directly without heating battery',
+    hwChargeBypassTitle: 'Hardware Charge Bypass',
+    hwChargeBypassDesc: 'Direct AC power to motherboard without charging or heating battery',
+    hwBypassActive: 'Hardware Bypass Active',
+    hwBypassInactive: 'Standard Charging Active',
+    hwBypassDirectiveSubtitle: 'Powers motherboard directly without heating battery',
+    smartFastChargeTitle: 'Smart Fast Charge',
+    smartFastChargeDesc: 'Maintains high charging speed during gaming by preventing thermal throttling',
+    smartFastChargeActive: 'Fast Charge Active',
+    smartFastChargeInactive: 'Thermal Throttling Active',
+    smartFastChargeDirectiveSubtitle: 'Prevents charge speed drops due to temperature during gaming',
+    smartFastChargeTelemetry: '⚡ Fast Charge Active',
+    smartFastChargeTelemetryDesc: 'Thermal throttle bypassed',
     thermalBypassTitle: 'Thermal Bypass (Disable Throttling)',
     thermalBypassSubtitle: 'Disables OEM thermal throttling services for max gaming performance',
     modeGlobal: 'Global Mode',
@@ -673,6 +753,58 @@ mixin AppLocale {
     quantileP50: 'P50 (Median)',
     quantileP95: 'P95 (Smooth)',
     quantileP99: 'P99 (Extreme)',
+
+    // Battery & Charging
+    battery: 'Battery',
+    titleBattery: 'Battery & Charging',
+    batteryHeroSubtitle: 'Real-time telemetry and intelligent charging controls',
+    chargeSpeedRegulator: 'Charging Speed Regulator',
+    chargeSpeedDesc: 'Limit maximum charging current to preserve battery health and prevent heat during use or gaming',
+    currentSpeed: 'Current Rate',
+    currentVoltage: 'Voltage',
+    currentPower: 'Power Draw',
+    chargeStatus: 'Status',
+    unlimitedTurbo: 'Turbo / Max (67W)',
+    fastChargePreset: 'Fast (3000 mA)',
+    balancedChargePreset: 'Balanced (2000 mA)',
+    gentleChargePreset: 'Night / Gentle (1000 mA)',
+    customLimit: 'Custom Limit',
+    chargeLimitPct: 'Charge Cut-off Limit',
+    chargingCurrent: 'Charging Current',
+    dischargingCurrent: 'Discharging Current',
+    batteryHealthGood: 'Battery Health',
+    fastChargeStatus: 'Turbo Charge',
+    batteryHealthTitle: 'Battery Health & Longevity',
+    batteryHealthDesc: 'Hardware-verified BMS cell degradation, life cycles, and design capacity',
+    batteryCycles: 'Charge Cycles',
+    batteryDesignCapacity: 'Design Capacity',
+    batteryActualCapacity: 'Current Capacity',
+    batterySoh: 'State of Health (SOH)',
+    timeToFull: 'Until Full (100%)',
+    timeToProtection: 'Until Protection Limit',
+    timeRemaining: 'Estimated Runtime',
+    dischargeRate: 'Discharge Rate',
+    chargingSpeed: 'Charging Rate',
+    backupManager: 'Backups & Snapshots',
+    backupTitle: 'Profile Snapshots',
+    backupSubtitle: 'Save snapshots of your custom kernel profiles and restore them anytime with a single tap',
+    createBackup: 'Create Backup',
+    createBackupDesc: 'Compress and archive all current .conf profiles into a timestamped snapshot',
+    creatingBackup: 'Creating snapshot...',
+    backupCreatedSuccess: 'Backup snapshot created successfully!',
+    backupCreateError: 'Failed to create backup archive',
+    restoreBackup: 'Restore',
+    restoringBackup: 'Restoring profiles...',
+    restoreSuccess: 'Profiles restored successfully!',
+    restoreError: 'Failed to restore backup archive',
+    confirmRestoreTitle: 'Restore Profile Snapshot?',
+    confirmRestoreMessage: 'All current hardware profile configurations will be replaced by this snapshot and applied immediately.',
+    resetStockTitle: 'Restore Factory Profiles',
+    resetStockDesc: 'Regenerate stock profiles for your Dimensity 8300 (an automatic safety backup will be created first).',
+    resetStockConfirm: 'Are you sure you want to restore stock profiles? An automatic safety backup will be created before proceeding.',
+    resetStockSuccess: 'Factory profiles restored and reloaded!',
+    noBackupsFound: 'No Backups Found',
+    noBackupsDesc: 'Create your first profile backup snapshot to keep your custom configurations safe.',
   };
 
   static const Map<String, dynamic> es = {
@@ -805,6 +937,7 @@ mixin AppLocale {
     gbeEnable: 'Optimización GBE',
     gbeThermalHeadroom: 'Margen Térmico de Seguridad',
     thermalChargeTitle: 'Límites Térmicos y Bypass de Carga',
+    thermalFastChargeTitle: 'Límites Térmicos y Carga Rápida',
     unlockFpsThermal: 'Desbloquear Límite FPS Térmico',
     unlockFpsThermalDesc: 'Evita que el daemon térmico limite la tasa de refresco de pantalla',
     bypassChargeThrottle: 'Bypass de Límite de Carga',
@@ -873,6 +1006,18 @@ mixin AppLocale {
     batterySafetyGuard: 'Protección de Corte Térmico de Batería',
     gbeDirectiveSubtitle: 'Fuerza frecuencias de juego y GPU turbo',
     bypassDirectiveSubtitle: 'Alimenta directo al silicio sin calentar la batería',
+    hwChargeBypassTitle: 'Bypass de Carga (Hardware)',
+    hwChargeBypassDesc: 'Alimenta directo a la placa base sin pasar por la batería',
+    hwBypassActive: 'Bypass de Hardware Activo',
+    hwBypassInactive: 'Carga Estándar Activa',
+    hwBypassDirectiveSubtitle: 'Alimenta la placa directamente por cargador sin degradar la batería',
+    smartFastChargeTitle: 'Carga Rápida en Juegos',
+    smartFastChargeDesc: 'Evita que el sistema reduzca la velocidad de carga por temperatura mientras juegas (corte a 48°C)',
+    smartFastChargeActive: 'Carga Rápida Activa',
+    smartFastChargeInactive: 'Reducción Térmica Activa',
+    smartFastChargeDirectiveSubtitle: 'Evita que caiga la velocidad de carga por temperatura en juegos',
+    smartFastChargeTelemetry: '⚡ Carga Rápida Activa',
+    smartFastChargeTelemetryDesc: 'Límite térmico anulado',
     thermalBypassTitle: 'Bypass Térmico (Desactivar Límite)',
     thermalBypassSubtitle: 'Desactiva los servicios térmicos del fabricante para máximo rendimiento en juegos',
     modeGlobal: 'Modo Global',
@@ -1001,6 +1146,58 @@ mixin AppLocale {
     quantileP50: 'P50 (Mediana)',
     quantileP95: 'P95 (Suave)',
     quantileP99: 'P99 (Extremo)',
+
+    // Battery & Charging
+    battery: 'Batería',
+    titleBattery: 'Batería y Carga',
+    batteryHeroSubtitle: 'Telemetría en tiempo real y gestión inteligente de carga',
+    chargeSpeedRegulator: 'Regulador de Velocidad de Carga',
+    chargeSpeedDesc: 'Limita la corriente máxima de carga para proteger la vida útil de la batería y evitar sobrecalentamiento',
+    currentSpeed: 'Corriente',
+    currentVoltage: 'Voltaje',
+    currentPower: 'Potencia',
+    chargeStatus: 'Estado',
+    unlimitedTurbo: 'Turbo / Máx (67W)',
+    fastChargePreset: 'Rápida (3000 mA)',
+    balancedChargePreset: 'Equilibrada (2000 mA)',
+    gentleChargePreset: 'Nocturna / Suave (1000 mA)',
+    customLimit: 'Límite Personalizado',
+    chargeLimitPct: 'Límite de Corte',
+    chargingCurrent: 'Corriente de Carga',
+    dischargingCurrent: 'Consumo Actual',
+    batteryHealthGood: 'Salud de Batería',
+    fastChargeStatus: 'Carga Rápida',
+    batteryHealthTitle: 'Salud y Longevidad de la Batería',
+    batteryHealthDesc: 'Degradación de celda verificada por el BMS, ciclos de vida y capacidad de diseño',
+    batteryCycles: 'Ciclos de Carga',
+    batteryDesignCapacity: 'Capacidad de Diseño',
+    batteryActualCapacity: 'Capacidad Actual',
+    batterySoh: 'Salud de la Celda (SOH)',
+    timeToFull: 'Hasta carga completa (100%)',
+    timeToProtection: 'Hasta corte de protección',
+    timeRemaining: 'Autonomía Restante Estimada',
+    dischargeRate: 'Ritmo de Descarga',
+    chargingSpeed: 'Ritmo de Carga',
+    backupManager: 'Copias de Seguridad',
+    backupTitle: 'Snapshots de Perfiles',
+    backupSubtitle: 'Guarda snapshots de tus configuraciones personalizadas del kernel y restáuralas en cualquier momento con un solo toque',
+    createBackup: 'Crear Copia de Seguridad',
+    createBackupDesc: 'Comprime y almacena todos los perfiles .conf actuales en un archivo fechado .tar.gz',
+    creatingBackup: 'Creando copia...',
+    backupCreatedSuccess: '¡Copia de seguridad creada correctamente!',
+    backupCreateError: 'Error al generar la copia de seguridad',
+    restoreBackup: 'Restaurar',
+    restoringBackup: 'Restaurando perfiles...',
+    restoreSuccess: '¡Perfiles restaurados y aplicados correctamente!',
+    restoreError: 'Error al restaurar el archivo de copia',
+    confirmRestoreTitle: '¿Restaurar esta Copia?',
+    confirmRestoreMessage: 'Todas las configuraciones actuales de los perfiles serán reemplazadas por este snapshot y aplicadas de inmediato.',
+    resetStockTitle: 'Restablecer Valores de Fábrica',
+    resetStockDesc: 'Regenera los perfiles predeterminados óptimos para tu MediaTek Dimensity 8300 (se guardará una copia de seguridad automática antes de restablecer).',
+    resetStockConfirm: '¿Seguro que deseas volver a los valores de fábrica? Se creará una copia de seguridad automática de tus perfiles actuales antes de restablecer.',
+    resetStockSuccess: '¡Perfiles de fábrica restablecidos y cargados con éxito!',
+    noBackupsFound: 'No hay Copias Guardadas',
+    noBackupsDesc: 'Crea tu primera copia de seguridad para resguardar tus configuraciones personalizadas de hardware.',
   };
 
   static String getValue(String key) {

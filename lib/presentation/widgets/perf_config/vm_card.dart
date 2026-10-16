@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/localization/app_locales.dart';
@@ -167,7 +168,10 @@ class VmCard extends StatelessWidget {
         Switch(
           value: value,
           activeThumbColor: color,
-          onChanged: onChanged,
+          onChanged: (v) {
+            HapticFeedback.lightImpact();
+            onChanged(v);
+          },
         ),
       ],
     );
@@ -237,7 +241,13 @@ class VmCard extends StatelessWidget {
             value: value.clamp(min, max).toDouble(),
             min: min.toDouble(),
             max: max.toDouble(),
-            onChanged: (v) => onChanged(v.round()),
+            onChanged: (v) {
+              final nv = v.round();
+              if (nv != value && ((nv - min) % 10 == 0 || nv == min || nv == max)) {
+                HapticFeedback.selectionClick();
+              }
+              onChanged(nv);
+            },
           ),
         ),
       ],

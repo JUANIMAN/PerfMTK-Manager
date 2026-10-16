@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:manager/config/app_constants.dart';
 
 /// Dropdown for selecting a kernel governor from a list.
@@ -78,7 +79,10 @@ class GovernorDropdown extends StatelessWidget {
               .map((g) => DropdownMenuItem(value: g, child: Text(g)))
               .toList(),
           onChanged: (v) {
-            if (v != null) onChanged(v);
+            if (v != null) {
+              HapticFeedback.selectionClick();
+              onChanged(v);
+            }
           },
         ),
       ],

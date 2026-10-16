@@ -47,6 +47,10 @@ final isChangingChargeBypassProvider = NotifierProvider<BooleanNotifier, bool>(
 final isChangingBatteryCareProvider = NotifierProvider<BooleanNotifier, bool>(
   BooleanNotifier.new,
 );
+final isChangingChargeCurrentLimitProvider =
+    NotifierProvider<BooleanNotifier, bool>(
+  BooleanNotifier.new,
+);
 
 /// Verificación de acceso root
 final rootAccessProvider = FutureProvider<bool>((ref) async {
@@ -84,70 +88,125 @@ class SystemStateNotifier extends AsyncNotifier<SystemState> {
     return _repository.getSystemState();
   }
 
-  /// Aplica un perfil al sistema.
+  /// Aplica un perfil al sistema con actualización optimista inmediata.
   Future<void> setProfile(ProfileType profile) async {
     ref.read(isChangingProfileProvider.notifier).state = true;
+    final current = state.value;
+    if (current != null) {
+      final optimistic = current.copyWith(currentProfile: profile);
+      state = AsyncData(optimistic);
+      ref.read(telemetryStreamServiceProvider).updateLatest(optimistic);
+    }
 
     try {
       await _repository.setProfile(profile);
-
-      // Atomic read-modify-write: this does not depend on the installed-apps
-      // provider having completed its asynchronous initialization.
       await ref.read(configRepositoryProvider).updateDefaultProfile(profile);
-
-      // Recargar estado del sistema para reflejar el valor real
-      state = AsyncData(await build());
     } catch (error, stackTrace) {
-      // Recover the displayed state, but let the UI report the failed action.
-      state = await AsyncValue.guard(build);
+      if (current != null) {
+        state = AsyncData(current);
+        ref.read(telemetryStreamServiceProvider).updateLatest(current);
+      }
       Error.throwWithStackTrace(error, stackTrace);
     } finally {
       ref.read(isChangingProfileProvider.notifier).state = false;
     }
   }
 
-  /// Aplica el estado térmico al sistema.
+  /// Aplica el estado térmico al sistema con actualización optimista inmediata.
   Future<void> setThermalState(ThermalState thermalState) async {
     ref.read(isChangingThermalProvider.notifier).state = true;
+    final current = state.value;
+    if (current != null) {
+      final optimistic = current.copyWith(thermalState: thermalState);
+      state = AsyncData(optimistic);
+      ref.read(telemetryStreamServiceProvider).updateLatest(optimistic);
+    }
 
     try {
       await _repository.setThermal(thermalState);
-      state = AsyncData(await build());
     } catch (error, stackTrace) {
-      state = await AsyncValue.guard(build);
+      if (current != null) {
+        state = AsyncData(current);
+        ref.read(telemetryStreamServiceProvider).updateLatest(current);
+      }
       Error.throwWithStackTrace(error, stackTrace);
     } finally {
       ref.read(isChangingThermalProvider.notifier).state = false;
     }
   }
 
-  /// Activa o desactiva el Smart Fast Charge Bypass.
+  /// Activa o desactiva el Smart Fast Charge Bypass con actualización optimista inmediata.
   Future<void> setChargeBypass(bool enabled) async {
     ref.read(isChangingChargeBypassProvider.notifier).state = true;
+    final current = state.value;
+    if (current != null) {
+      final optimistic = current.copyWith(
+        chargeBypass: enabled,
+        chargeMode: enabled ? 'bypass' : 'normal',
+      );
+      state = AsyncData(optimistic);
+      ref.read(telemetryStreamServiceProvider).updateLatest(optimistic);
+    }
 
     try {
       await _repository.setChargeBypass(enabled);
-      state = AsyncData(await build());
     } catch (error, stackTrace) {
-      state = await AsyncValue.guard(build);
+      if (current != null) {
+        state = AsyncData(current);
+        ref.read(telemetryStreamServiceProvider).updateLatest(current);
+      }
       Error.throwWithStackTrace(error, stackTrace);
     } finally {
       ref.read(isChangingChargeBypassProvider.notifier).state = false;
     }
   }
 
-  /// Activa o desactiva el Battery Care con un límite porcentual.
+  /// Activa o desactiva el Battery Care con un límite porcentual (actualización optimista).
   Future<void> setBatteryCare(bool enabled, int limitPct) async {
     ref.read(isChangingBatteryCareProvider.notifier).state = true;
+    final current = state.value;
+    if (current != null) {
+      final optimistic = current.copyWith(
+        batteryCareEnabled: enabled,
+        batteryCareLimitPct: limitPct,
+      );
+      state = AsyncData(optimistic);
+      ref.read(telemetryStreamServiceProvider).updateLatest(optimistic);
+    }
 
     try {
       await _repository.setBatteryCare(enabled, limitPct);
-      state = AsyncData(await build());
     } catch (error, stackTrace) {
-      state = await AsyncValue.guard(build);
+      if (current != null) {
+        state = AsyncData(current);
+        ref.read(telemetryStreamServiceProvider).updateLatest(current);
+      }
       Error.throwWithStackTrace(error, stackTrace);
     } finally {
       ref.read(isChangingBatteryCareProvider.notifier).state = false;
+    }
+  }
+
+  /// Regula el límite de corriente de carga en mA con actualización optimista inmediata (0 = Turbo).
+  Future<void> setChargeCurrentLimit(int ma) async {
+    ref.read(isChangingChargeCurrentLimitProvider.notifier).state = true;
+    final current = state.value;
+    if (current != null) {
+      final optimistic = current.copyWith(chargeCurrentLimitMa: ma);
+      state = AsyncData(optimistic);
+      ref.read(telemetryStreamServiceProvider).updateLatest(optimistic);
+    }
+
+    try {
+      await _repository.setChargeCurrentLimit(ma);
+    } catch (error, stackTrace) {
+      if (current != null) {
+        state = AsyncData(current);
+        ref.read(telemetryStreamServiceProvider).updateLatest(current);
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    } finally {
+      ref.read(isChangingChargeCurrentLimitProvider.notifier).state = false;
     }
   }
 
@@ -184,4 +243,9 @@ final currentChargeBypassProvider = Provider<bool?>((ref) {
 /// Estado de Battery Care actual (null mientras carga o en error)
 final currentBatteryCareProvider = Provider<bool?>((ref) {
   return ref.watch(systemStateProvider).value?.batteryCareEnabled;
+});
+
+/// Límite de corriente de carga configurado (null mientras carga o en error)
+final currentChargeCurrentLimitProvider = Provider<int?>((ref) {
+  return ref.watch(systemStateProvider).value?.chargeCurrentLimitMa;
 });

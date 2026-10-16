@@ -8,6 +8,7 @@ import 'package:manager/localization/app_locales.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/presentation/widgets/language_selection_sheet.dart';
 import 'package:manager/presentation/widgets/theme_selection_sheet.dart';
+import 'package:manager/presentation/screens/backup_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -80,6 +81,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   context,
                   children: [
                     _buildLanguageSelector(context, localization),
+                  ],
+                ),
+                const SizedBox(height: AppConstants.spacing24),
+                SectionHeader(
+                  title: AppLocale.backupManager.getString(context),
+                  icon: Icons.security_rounded,
+                ),
+                const SizedBox(height: AppConstants.spacing12),
+                _buildSettingsCard(
+                  context,
+                  children: [
+                    _buildBackupTile(context),
                   ],
                 ),
                 const SizedBox(height: AppConstants.spacing24),
@@ -206,6 +219,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     Text(
                       _getLanguageText(
                           context, localization.currentLocale as Locale),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackupTile(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const BackupScreen()),
+          );
+        },
+        child: Padding(
+          padding: AppConstants.paddingNormal,
+          child: Row(
+            children: [
+              IconContainer(
+                icon: Icons.backup_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: AppConstants.spacing16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocale.backupManager.getString(context),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spacing4),
+                    Text(
+                      AppLocale.backupTitle.getString(context),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

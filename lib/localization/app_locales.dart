@@ -413,6 +413,18 @@ mixin AppLocale {
   static const String resetStockSuccess = 'resetStockSuccess';
   static const String noBackupsFound = 'noBackupsFound';
   static const String noBackupsDesc = 'noBackupsDesc';
+  static const String deleteBackupTitle = 'deleteBackupTitle';
+  static const String deleteBackupConfirm = 'deleteBackupConfirm';
+  static const String deleteAllBackupsTitle = 'deleteAllBackupsTitle';
+  static const String deleteAllBackupsConfirm = 'deleteAllBackupsConfirm';
+  static const String backupDeletedSuccess = 'backupDeletedSuccess';
+  static const String backupDeleteError = 'backupDeleteError';
+  static const String allBackupsDeletedSuccess = 'allBackupsDeletedSuccess';
+  static const String backupLatestBadge = 'backupLatestBadge';
+  static const String backupProfilesCount = 'backupProfilesCount';
+  static const String storageUsed = 'storageUsed';
+  static const String backupsCountLabel = 'backupsCountLabel';
+  static const String delete = 'delete';
 
   static const Map<String, dynamic> en = {
     profiles: 'Profiles',
@@ -805,6 +817,18 @@ mixin AppLocale {
     resetStockSuccess: 'Factory profiles restored and reloaded!',
     noBackupsFound: 'No Backups Found',
     noBackupsDesc: 'Create your first profile backup snapshot to keep your custom configurations safe.',
+    deleteBackupTitle: 'Delete Backup?',
+    deleteBackupConfirm: 'Are you sure you want to permanently delete this profile snapshot? This action cannot be undone.',
+    deleteAllBackupsTitle: 'Delete All Backups?',
+    deleteAllBackupsConfirm: 'Are you sure you want to delete all saved profile backup snapshots? This action cannot be undone.',
+    backupDeletedSuccess: 'Backup deleted successfully',
+    backupDeleteError: 'Failed to delete backup snapshot',
+    allBackupsDeletedSuccess: 'All backups have been deleted',
+    backupLatestBadge: 'LATEST SNAPSHOT',
+    backupProfilesCount: '8 profiles (.conf)',
+    storageUsed: 'Total Storage',
+    backupsCountLabel: 'Snapshots',
+    delete: 'Delete',
   };
 
   static const Map<String, dynamic> es = {
@@ -1198,6 +1222,18 @@ mixin AppLocale {
     resetStockSuccess: '¡Perfiles de fábrica restablecidos y cargados con éxito!',
     noBackupsFound: 'No hay Copias Guardadas',
     noBackupsDesc: 'Crea tu primera copia de seguridad para resguardar tus configuraciones personalizadas de hardware.',
+    deleteBackupTitle: '¿Eliminar esta Copia?',
+    deleteBackupConfirm: '¿Estás seguro de que deseas eliminar permanentemente este snapshot de perfiles? Esta acción no se puede deshacer.',
+    deleteAllBackupsTitle: '¿Eliminar todas las Copias?',
+    deleteAllBackupsConfirm: '¿Estás seguro de que deseas eliminar todas las copias de seguridad de perfiles guardadas? Esta acción no se puede deshacer.',
+    backupDeletedSuccess: 'Copia de seguridad eliminada con éxito',
+    backupDeleteError: 'Error al eliminar la copia de seguridad',
+    allBackupsDeletedSuccess: 'Todas las copias de seguridad fueron eliminadas',
+    backupLatestBadge: 'ÚLTIMA COPIA',
+    backupProfilesCount: '8 perfiles (.conf)',
+    storageUsed: 'Espacio Ocupado',
+    backupsCountLabel: 'Copias Guardadas',
+    delete: 'Eliminar',
   };
 
   static String getValue(String key) {

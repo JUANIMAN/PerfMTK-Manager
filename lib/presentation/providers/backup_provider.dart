@@ -74,6 +74,34 @@ class BackupListNotifier extends AsyncNotifier<List<BackupEntry>> {
       ref.read(isPerformingBackupActionProvider.notifier).state = false;
     }
   }
+
+  Future<bool> deleteBackup(String filename) async {
+    final repo = ref.read(backupRepositoryProvider);
+    ref.read(isPerformingBackupActionProvider.notifier).state = true;
+    try {
+      final success = await repo.deleteBackup(filename);
+      if (success) {
+        state = await AsyncValue.guard(() => _fetchBackups());
+      }
+      return success;
+    } finally {
+      ref.read(isPerformingBackupActionProvider.notifier).state = false;
+    }
+  }
+
+  Future<bool> deleteAllBackups() async {
+    final repo = ref.read(backupRepositoryProvider);
+    ref.read(isPerformingBackupActionProvider.notifier).state = true;
+    try {
+      final success = await repo.deleteAllBackups();
+      if (success) {
+        state = await AsyncValue.guard(() => _fetchBackups());
+      }
+      return success;
+    } finally {
+      ref.read(isPerformingBackupActionProvider.notifier).state = false;
+    }
+  }
 }
 
 final backupListProvider =

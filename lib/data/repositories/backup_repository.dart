@@ -122,4 +122,38 @@ class BackupRepository {
       return false;
     }
   }
+
+  /// Deletes a specific backup snapshot by filename.
+  Future<bool> deleteBackup(String filename) async {
+    try {
+      final resp = await _ipc.sendCommand('DELETE_BACKUP', filename);
+      if (resp != null && resp.trim().startsWith('OK:')) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      await _shell.executeCommand('rm -f "/data/adb/modules/perfmtk/config/backups/$filename"');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Deletes all backup snapshots in the repository.
+  Future<bool> deleteAllBackups() async {
+    try {
+      final resp = await _ipc.sendCommand('DELETE_BACKUP', 'all');
+      if (resp != null && resp.trim().startsWith('OK:')) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      await _shell.executeCommand('rm -f /data/adb/modules/perfmtk/config/backups/profiles_*.tar.gz');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

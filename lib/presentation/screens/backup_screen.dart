@@ -4,6 +4,7 @@ import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/backup_entry.dart';
+import 'package:manager/data/models/profile.dart';
 import 'package:manager/localization/app_locales.dart';
 import 'package:manager/presentation/providers/backup_provider.dart';
 
@@ -499,8 +500,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                               child: _buildStatItem(
                                 icon: Icons.tune_rounded,
                                 color: const Color(0xFF2979FF),
-                                title: '8 .conf',
-                                subtitle: 'Profiles',
+                                title: '${ProfileType.values.length} .conf',
+                                subtitle: AppLocale.profiles.getString(context),
                               ),
                             ),
                           ],

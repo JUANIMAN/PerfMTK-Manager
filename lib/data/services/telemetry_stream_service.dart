@@ -60,11 +60,6 @@ class TelemetryStreamService with WidgetsBindingObserver {
   /// Whether Zero-Copy Shared Memory mode is currently active.
   bool get isZeroCopyShmActive => _shmAddress != 0 && _shmPollTimer != null;
 
-  /// Optimistically updates latest cached state so actions reflect immediately.
-  void updateLatest(SystemState state) {
-    _latestState = state;
-  }
-
   /// Whether the streaming service is currently running.
   bool get isRunning =>
       (_shmPollTimer != null ||

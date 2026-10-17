@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/data/models/backup_entry.dart';
 import 'package:manager/core/providers/daemon_providers.dart';
+import 'package:manager/data/models/backup_entry.dart';
 import 'package:manager/data/repositories/backup_repository.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
@@ -9,103 +11,75 @@ final backupRepositoryProvider = Provider<BackupRepository>((ref) {
   return BackupRepositoryImpl(gateway: ref.watch(daemonGatewayProvider));
 });
 
-final isPerformingBackupActionProvider =
-    NotifierProvider<BooleanNotifier, bool>(BooleanNotifier.new);
+/// True while a backup mutation (create/restore/delete/reset) is running.
+class BusyNotifier extends Notifier<bool> {
+  int _running = 0;
+
+  @override
+  bool build() => false;
+
+  /// Runs [task] keeping [state] true until every overlapping task is done.
+  Future<T> run<T>(Future<T> Function() task) async {
+    _running++;
+    state = true;
+    try {
+      return await task();
+    } finally {
+      _running--;
+      if (_running == 0 && ref.mounted) state = false;
+    }
+  }
+}
+
+final isPerformingBackupActionProvider = NotifierProvider<BusyNotifier, bool>(
+  BusyNotifier.new,
+);
 
 class BackupListNotifier extends AsyncNotifier<List<BackupEntry>> {
-  @override
-  Future<List<BackupEntry>> build() async {
-    return _fetchBackups();
-  }
+  BackupRepository get _repo => ref.read(backupRepositoryProvider);
 
-  Future<List<BackupEntry>> _fetchBackups() async {
-    final repo = ref.read(backupRepositoryProvider);
-    return repo.getBackups();
-  }
+  @override
+  Future<List<BackupEntry>> build() => _repo.getBackups();
 
   Future<void> refresh() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _fetchBackups());
+    state = await AsyncValue.guard(_repo.getBackups);
   }
 
-  Future<bool> createBackup() async {
-    final repo = ref.read(backupRepositoryProvider);
-    ref.read(isPerformingBackupActionProvider.notifier).state = true;
-    try {
-      final success = await repo.createBackup();
-      if (success) {
-        state = await AsyncValue.guard(() => _fetchBackups());
-      }
-      return success;
-    } finally {
-      ref.read(isPerformingBackupActionProvider.notifier).state = false;
-    }
-  }
+  Future<bool> createBackup() => _mutate(_repo.createBackup);
 
-  Future<bool> restoreBackup(String filename) async {
-    final repo = ref.read(backupRepositoryProvider);
-    ref.read(isPerformingBackupActionProvider.notifier).state = true;
-    try {
-      final success = await repo.restoreBackup(filename);
-      if (success) {
-        // Invalidate configuration and system caches
-        ref.invalidate(deviceConfigProvider);
-        ref.read(systemStateProvider.notifier).refresh();
-        state = await AsyncValue.guard(() => _fetchBackups());
-      }
-      return success;
-    } finally {
-      ref.read(isPerformingBackupActionProvider.notifier).state = false;
-    }
-  }
+  Future<bool> restoreBackup(String filename) =>
+      _mutate(() => _repo.restoreBackup(filename), reloadsSystem: true);
 
-  Future<bool> resetStockProfiles() async {
-    final repo = ref.read(backupRepositoryProvider);
-    ref.read(isPerformingBackupActionProvider.notifier).state = true;
-    try {
-      final success = await repo.resetStockProfiles();
-      if (success) {
-        // Invalidate configuration and system caches
-        ref.invalidate(deviceConfigProvider);
-        ref.read(systemStateProvider.notifier).refresh();
-        state = await AsyncValue.guard(() => _fetchBackups());
-      }
-      return success;
-    } finally {
-      ref.read(isPerformingBackupActionProvider.notifier).state = false;
-    }
-  }
+  Future<bool> resetStockProfiles() =>
+      _mutate(_repo.resetStockProfiles, reloadsSystem: true);
 
-  Future<bool> deleteBackup(String filename) async {
-    final repo = ref.read(backupRepositoryProvider);
-    ref.read(isPerformingBackupActionProvider.notifier).state = true;
-    try {
-      final success = await repo.deleteBackup(filename);
-      if (success) {
-        state = await AsyncValue.guard(() => _fetchBackups());
-      }
-      return success;
-    } finally {
-      ref.read(isPerformingBackupActionProvider.notifier).state = false;
-    }
-  }
+  Future<bool> deleteBackup(String filename) =>
+      _mutate(() => _repo.deleteBackup(filename));
 
-  Future<bool> deleteAllBackups() async {
-    final repo = ref.read(backupRepositoryProvider);
-    ref.read(isPerformingBackupActionProvider.notifier).state = true;
-    try {
-      final success = await repo.deleteAllBackups();
+  Future<bool> deleteAllBackups() => _mutate(_repo.deleteAllBackups);
+
+  /// Runs a repository mutation, then refreshes the list (and, when profiles
+  /// changed on disk, invalidates cached device/system state).
+  Future<bool> _mutate(
+    Future<bool> Function() operation, {
+    bool reloadsSystem = false,
+  }) {
+    return ref.read(isPerformingBackupActionProvider.notifier).run(() async {
+      final success = await operation();
       if (success) {
-        state = await AsyncValue.guard(() => _fetchBackups());
+        if (reloadsSystem) {
+          ref.invalidate(deviceConfigProvider);
+          unawaited(ref.read(systemStateProvider.notifier).refresh());
+        }
+        state = await AsyncValue.guard(_repo.getBackups);
       }
       return success;
-    } finally {
-      ref.read(isPerformingBackupActionProvider.notifier).state = false;
-    }
+    });
   }
 }
 
 final backupListProvider =
     AsyncNotifierProvider<BackupListNotifier, List<BackupEntry>>(
-  BackupListNotifier.new,
-);
+      BackupListNotifier.new,
+    );

@@ -1,6 +1,7 @@
-import 'dart:convert';
-import 'package:manager/core/native_ipc_channel.dart';
-import 'package:manager/core/root_shell_manager.dart';
+import 'package:manager/core/errors/app_exception.dart';
+import 'package:manager/core/logging/app_logger.dart';
+import 'package:manager/core/platform/daemon_gateway.dart';
+import 'package:manager/core/platform/perfmtk_paths.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
 
@@ -12,235 +13,172 @@ abstract class SystemRepository {
   Future<void> setProfile(ProfileType profile);
   Future<void> setThermal(ThermalState thermalState);
   Future<void> setChargeBypass(bool enabled);
-  Future<bool> getChargeBypassStatus();
   Future<void> setBatteryCare(bool enabled, int limitPct);
   Future<void> setChargeCurrentLimit(int ma);
-  Future<bool> checkRootAccess();
 }
 
 /// Implementación del repositorio
 class SystemRepositoryImpl implements SystemRepository {
-  final ShellCommandExecutor _shellManager;
-  final NativeIpcChannel _nativeIpc;
+  static const String _tag = 'SystemRepository';
 
-  SystemRepositoryImpl({
-    ShellCommandExecutor? shellManager,
-    NativeIpcChannel? nativeIpc,
-  })  : _shellManager = shellManager ?? RootShellManager(),
-        _nativeIpc = nativeIpc ?? NativeIpcChannel();
+  final DaemonGateway _gateway;
+
+  const SystemRepositoryImpl({required DaemonGateway gateway})
+    : _gateway = gateway;
 
   @override
   Future<SystemState> getSystemState() async {
-    ThermalState thermal = ThermalState.enabled;
+    var thermal = ThermalState.enabled;
     try {
       thermal = await getCurrentThermal();
-    } catch (_) {}
+    } on SystemCommandException catch (e) {
+      AppLogger.warn(_tag, 'thermal state unavailable, assuming enabled', e);
+    }
 
     // 1. Direct LocalSocket IPC first (< 0.5ms, 0 processes)
-    try {
-      final jsonStr = await _nativeIpc.sendCommand('STATUS_JSON');
-      if (jsonStr != null) {
-        final trimmed = jsonStr.trim();
-        final start = trimmed.indexOf('{');
-        final end = trimmed.lastIndexOf('}');
-        if (start != -1 && end != -1 && end > start) {
-          final extracted = trimmed.substring(start, end + 1);
-          final decoded = jsonDecode(extracted) as Map<String, dynamic>;
-          return SystemState.fromJson(decoded, thermalState: thermal);
-        }
-      }
-    } catch (_) {}
+    final ipcJson = await _gateway.ipcJson('STATUS_JSON');
+    final fromIpc = ipcJson == null ? null : _tryParse(ipcJson, thermal);
+    if (fromIpc != null) return fromIpc;
 
-    // 2. Fallback to shell execution
-    try {
-      final jsonStr = await _shellManager.executeCommand(
-        'perfmtk -s --json',
-        timeout: const Duration(seconds: 6),
-      );
-      final trimmed = jsonStr.trim();
-      final start = trimmed.indexOf('{');
-      final end = trimmed.lastIndexOf('}');
-      if (start != -1 && end != -1 && end > start) {
-        final extracted = trimmed.substring(start, end + 1);
-        final decoded = jsonDecode(extracted) as Map<String, dynamic>;
-        return SystemState.fromJson(decoded, thermalState: thermal);
-      }
-    } catch (_) {
-      // Fallback if daemon is older or -s --json is not ready
-    }
+    // 2. Fallback to shell execution (older daemons may lack `-s --json`)
+    final shellJson = await _gateway.shellJson(
+      'perfmtk -s --json',
+      timeout: const Duration(seconds: 6),
+    );
+    final fromShell = shellJson == null ? null : _tryParse(shellJson, thermal);
+    if (fromShell != null) return fromShell;
 
     final profile = await getCurrentProfile();
     return SystemState(currentProfile: profile, thermalState: thermal);
   }
 
+  SystemState? _tryParse(Map<String, dynamic> json, ThermalState thermal) {
+    try {
+      return SystemState.fromJson(json, thermalState: thermal);
+    } on TypeError catch (e) {
+      AppLogger.warn(_tag, 'unexpected status payload shape', e);
+      return null;
+    }
+  }
+
   @override
   Future<ProfileType> getCurrentProfile() async {
-    try {
-      final result = await _shellManager.executeCommand(
-        'getprop sys.perfmtk.current_profile',
-      );
-      return ProfileType.fromString(result.trim());
-    } on RootShellException catch (e) {
-      throw SystemCommandException('Failed to get profile: $e');
-    } catch (e) {
-      throw SystemCommandException('Unexpected error getting profile: $e');
-    }
+    return ProfileType.fromString(
+      (await _getProp('sys.perfmtk.current_profile', 'profile')).trim(),
+    );
   }
 
   @override
   Future<ThermalState> getCurrentThermal() async {
+    return ThermalState.fromString(
+      (await _getProp('sys.perfmtk.thermal_state', 'thermal state')).trim(),
+    );
+  }
+
+  Future<String> _getProp(String key, String label) async {
     try {
-      final result = await _shellManager.executeCommand(
-        'getprop sys.perfmtk.thermal_state',
-      );
-      return ThermalState.fromString(result.trim());
+      return await _gateway.shell('getprop $key');
     } on RootShellException catch (e) {
-      throw SystemCommandException('Failed to get thermal state: $e');
-    } catch (e) {
-      throw SystemCommandException('Unexpected error getting thermal state: $e');
+      throw SystemCommandException('Failed to get $label: $e');
+    } on Exception catch (e) {
+      throw SystemCommandException('Unexpected error getting $label: $e');
     }
   }
 
   @override
-  Future<void> setProfile(ProfileType profile) async {
-    try {
-      // Fast-path via direct LocalSocket
-      final resp = await _nativeIpc.sendCommand('APPLY', profile.value);
-      if (resp == null || !resp.startsWith('OK')) {
-        await _shellManager.executeCommand(
-          'perfmtk ${profile.value}',
-          timeout: const Duration(seconds: 20),
+  Future<void> setProfile(ProfileType profile) => _run(
+    'setting profile',
+    () async {
+      await _gateway.command(
+        'APPLY',
+        arg: profile.value,
+        shellFallback: 'perfmtk ${profile.value}',
+        timeout: const Duration(seconds: 20),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      if (await getCurrentProfile() != profile) {
+        throw const SystemCommandException('Profile was not applied correctly');
+      }
+    },
+  );
+
+  @override
+  Future<void> setThermal(ThermalState thermalState) => _run(
+    'setting thermal state',
+    () async {
+      final arg = thermalState == ThermalState.enabled ? 'enable' : 'disable';
+      await _gateway.command(
+        'THERMAL_LIMIT',
+        arg: arg,
+        shellFallback:
+            '${PerfMtkPaths.binary} -t $arg || '
+            'perfmtk -t $arg || '
+            '${PerfMtkPaths.moduleDir}/system/bin/thermal_limit $arg || '
+            'thermal_limit $arg',
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (await getCurrentThermal() != thermalState) {
+        throw const SystemCommandException(
+          'Thermal state was not applied correctly',
         );
       }
-
-      await Future.delayed(const Duration(milliseconds: 250));
-      final current = await getCurrentProfile();
-
-      if (current != profile) {
-        throw SystemCommandException('Profile was not applied correctly');
-      }
-    } on SystemCommandException {
-      rethrow;
-    } catch (e) {
-      throw SystemCommandException('Unexpected error setting profile: $e');
-    }
-  }
+    },
+  );
 
   @override
-  Future<void> setThermal(ThermalState thermalState) async {
-    try {
-      final command =
-          thermalState == ThermalState.enabled ? 'enable' : 'disable';
-      final resp = await _nativeIpc.sendCommand('THERMAL_LIMIT', command);
-      if (resp == null || !resp.startsWith('OK')) {
-        await _shellManager.executeCommand(
-          '/data/adb/modules/perfmtk/system/bin/perfmtk -t $command || '
-          'perfmtk -t $command || '
-          '/data/adb/modules/perfmtk/system/bin/thermal_limit $command || '
-          'thermal_limit $command',
-        );
-      }
-
-      await Future.delayed(const Duration(milliseconds: 300));
-      final current = await getCurrentThermal();
-
-      if (current != thermalState) {
-        throw SystemCommandException('Thermal state was not applied correctly');
-      }
-    } on SystemCommandException {
-      rethrow;
-    } catch (e) {
-      throw SystemCommandException('Unexpected error setting thermal state: $e');
-    }
-  }
-
-  @override
-  Future<void> setChargeBypass(bool enabled) async {
-    try {
+  Future<void> setChargeBypass(bool enabled) => _run(
+    'setting charge bypass',
+    () {
       final arg = enabled ? 'on' : 'off';
-      final resp = await _nativeIpc.sendCommand('CHARGE_BYPASS', arg);
-      if (resp == null || !resp.startsWith('OK')) {
-        await _shellManager.executeCommand(
-          'perfmtk -c $arg',
-          timeout: const Duration(seconds: 10),
-        );
-      }
-    } on RootShellException catch (e) {
-      throw SystemCommandException('Failed to set charge bypass: $e');
-    } catch (e) {
-      throw SystemCommandException('Unexpected error setting charge bypass: $e');
-    }
-  }
-
-  @override
-  Future<bool> getChargeBypassStatus() async {
-    try {
-      final resp = await _nativeIpc.sendCommand('CHARGE_BYPASS', 'status');
-      if (resp != null && resp.isNotEmpty) {
-        return resp.toUpperCase().contains('CHARGE_BYPASS=ON');
-      }
-      final result = await _shellManager.executeCommand(
-        'perfmtk -c status',
-        timeout: const Duration(seconds: 5),
+      return _gateway.command(
+        'CHARGE_BYPASS',
+        arg: arg,
+        shellFallback: 'perfmtk -c $arg',
+        timeout: const Duration(seconds: 10),
       );
-      return result.toUpperCase().contains('CHARGE_BYPASS=ON');
-    } catch (_) {
-      return false;
-    }
-  }
+    },
+  );
 
   @override
-  Future<void> setBatteryCare(bool enabled, int limitPct) async {
-    try {
+  Future<void> setBatteryCare(bool enabled, int limitPct) => _run(
+    'setting battery care',
+    () {
       final arg = enabled ? 'on $limitPct' : 'off';
-      final resp = await _nativeIpc.sendCommand('BATTERY_CARE', arg);
-      if (resp == null || !resp.startsWith('OK')) {
-        await _shellManager.executeCommand(
-          'perfmtk -b $arg',
-          timeout: const Duration(seconds: 10),
-        );
-      }
-    } on RootShellException catch (e) {
-      throw SystemCommandException('Failed to set battery care: $e');
-    } catch (e) {
-      throw SystemCommandException('Unexpected error setting battery care: $e');
-    }
-  }
+      return _gateway.command(
+        'BATTERY_CARE',
+        arg: arg,
+        shellFallback: 'perfmtk -b $arg',
+        timeout: const Duration(seconds: 10),
+      );
+    },
+  );
 
   @override
-  Future<void> setChargeCurrentLimit(int ma) async {
-    try {
+  Future<void> setChargeCurrentLimit(int ma) => _run(
+    'setting charge current limit',
+    () {
       final arg = ma.toString();
-      final resp = await _nativeIpc.sendCommand('CHARGE_CURRENT', arg);
-      if (resp == null || !resp.startsWith('OK')) {
-        await _shellManager.executeCommand(
-          'perfmtk -cc $arg',
-          timeout: const Duration(seconds: 10),
-        );
-      }
-    } on RootShellException catch (e) {
-      throw SystemCommandException('Failed to set charge current limit: $e');
-    } catch (e) {
-      throw SystemCommandException('Unexpected error setting charge current limit: $e');
-    }
-  }
+      return _gateway.command(
+        'CHARGE_CURRENT',
+        arg: arg,
+        shellFallback: 'perfmtk -cc $arg',
+        timeout: const Duration(seconds: 10),
+      );
+    },
+  );
 
-  @override
-  Future<bool> checkRootAccess() async {
+  /// Normalizes every failure into [SystemCommandException].
+  Future<void> _run(String what, Future<void> Function() action) async {
     try {
-      await _shellManager.initialize();
-      return true;
-    } catch (_) {
-      return false;
+      await action();
+    } on SystemCommandException {
+      rethrow;
+    } on RootShellException catch (e) {
+      throw SystemCommandException('Failed $what: $e');
+    } on Exception catch (e) {
+      throw SystemCommandException('Unexpected error $what: $e');
     }
   }
-}
-
-/// Excepción personalizada para errores de comandos del sistema.
-class SystemCommandException implements Exception {
-  final String message;
-  const SystemCommandException(this.message);
-
-  @override
-  String toString() => 'SystemCommandException: $message';
 }

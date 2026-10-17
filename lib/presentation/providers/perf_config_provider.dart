@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/core/providers/shell_provider.dart';
+import 'package:manager/core/providers/daemon_providers.dart';
 import 'package:manager/data/models/device_config.dart';
 import 'package:manager/data/models/profile_config.dart';
 import 'package:manager/data/models/profile.dart';
@@ -8,9 +8,7 @@ import 'package:manager/data/repositories/perf_config_repository.dart';
 // ── Repository provider ───────────────────────────────────────────────────────
 
 final perfConfigRepositoryProvider = Provider<PerfConfigRepository>((ref) {
-  return PerfConfigRepository(
-    shellManager: ref.watch(shellExecutorProvider),
-  );
+  return PerfConfigRepository(gateway: ref.watch(daemonGatewayProvider));
 });
 
 // ── Device config ─────────────────────────────────────────────────────────────

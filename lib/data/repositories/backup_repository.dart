@@ -1,158 +1,117 @@
 import 'dart:convert';
-import 'package:manager/core/native_ipc_channel.dart';
-import 'package:manager/core/root_shell_manager.dart';
+
+import 'package:manager/core/errors/app_exception.dart';
+import 'package:manager/core/logging/app_logger.dart';
+import 'package:manager/core/platform/daemon_gateway.dart';
+import 'package:manager/core/platform/perfmtk_paths.dart';
 import 'package:manager/data/models/backup_entry.dart';
+import 'package:manager/data/parsers/backup_list_parser.dart';
 
-class BackupRepository {
-  final NativeIpcChannel _ipc = NativeIpcChannel();
-  final RootShellManager _shell = RootShellManager();
+/// Profile backup snapshots (`profiles_YYYYMMDD_HHMMSS.tar.gz`).
+abstract class BackupRepository {
+  /// Backups sorted newest to oldest.
+  Future<List<BackupEntry>> getBackups();
 
-  /// Retrieves the list of available profile backup snapshots sorted newest to oldest.
+  /// Each mutating call returns true on success and false on failure
+  /// (the failure reason is logged).
+  Future<bool> createBackup();
+  Future<bool> restoreBackup(String filename);
+  Future<bool> resetStockProfiles();
+  Future<bool> deleteBackup(String filename);
+  Future<bool> deleteAllBackups();
+}
+
+class BackupRepositoryImpl implements BackupRepository {
+  static const String _tag = 'BackupRepository';
+  static const String _okPrefix = 'OK:';
+  static const String _cli = PerfMtkPaths.binary;
+
+  final DaemonGateway _gateway;
+
+  const BackupRepositoryImpl({required DaemonGateway gateway})
+    : _gateway = gateway;
+
+  @override
   Future<List<BackupEntry>> getBackups() async {
     // Tier 1: Fast Native Socket IPC (Zero Process Fork)
-    try {
-      final jsonStr = await _ipc.sendCommand('LIST_BACKUPS');
-      if (jsonStr != null && jsonStr.trim().startsWith('[')) {
-        final List<dynamic> list = jsonDecode(jsonStr.trim()) as List<dynamic>;
-        if (list.isNotEmpty) {
-          return list.map((e) => BackupEntry.fromJson(e as Map<String, dynamic>)).toList();
-        }
+    final resp = await _gateway.ipc('LIST_BACKUPS');
+    final trimmed = resp?.trim();
+    if (trimmed != null && trimmed.startsWith('[')) {
+      try {
+        final list = (jsonDecode(trimmed) as List<dynamic>)
+            .map((e) => BackupEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
+        if (list.isNotEmpty) return list;
+      } on FormatException catch (e) {
+        AppLogger.warn(_tag, 'invalid LIST_BACKUPS payload', e);
+      } on TypeError catch (e) {
+        AppLogger.warn(_tag, 'unexpected LIST_BACKUPS payload shape', e);
       }
-    } catch (_) {}
+    }
 
-    // Tier 2: Direct Directory File Scan (Completely independent of CLI ANSI / Daemons)
+    // Tier 2: Direct directory scan (independent of CLI ANSI output / daemon).
     try {
-      final lsOutput = await _shell.executeCommand('ls -l /data/adb/modules/perfmtk/config/backups/');
-      final lines = lsOutput.split('\n');
-      final entries = <BackupEntry>[];
-      for (final line in lines) {
-        final match = RegExp(r'profiles_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})\.tar\.gz').firstMatch(line);
-        if (match != null) {
-          final year = match.group(1);
-          final mon = match.group(2);
-          final day = match.group(3);
-          final hour = match.group(4);
-          final min = match.group(5);
-          final sec = match.group(6);
-          final filename = match.group(0)!;
-          
-          final parts = line.trim().split(RegExp(r'\s+'));
-          int size = 1600;
-          if (parts.length >= 5) {
-            size = int.tryParse(parts[4]) ?? 1600;
-          }
-
-          entries.add(
-            BackupEntry(
-              index: 0,
-              filename: filename,
-              date: '$year-$mon-$day $hour:$min:$sec',
-              sizeBytes: size,
-            ),
-          );
-        }
-      }
-
-      if (entries.isNotEmpty) {
-        entries.sort((a, b) => b.filename.compareTo(a.filename));
-        return List.generate(
-          entries.length,
-          (i) => BackupEntry(
-            index: i + 1,
-            filename: entries[i].filename,
-            date: entries[i].date,
-            sizeBytes: entries[i].sizeBytes,
-          ),
-        );
-      }
-    } catch (_) {}
-
-    return [];
-  }
-
-  /// Creates a new timestamped backup archive of all current .conf profiles.
-  Future<bool> createBackup() async {
-    try {
-      final resp = await _ipc.sendCommand('BACKUP');
-      if (resp != null && resp.trim().startsWith('OK:')) {
-        return true;
-      }
-    } catch (_) {}
-
-    try {
-      await _shell.executeCommand('/data/adb/modules/perfmtk/system/bin/perfmtk --backup');
-      return true;
-    } catch (_) {
-      return false;
+      final lsOutput = await _gateway.shell(
+        'ls -l ${PerfMtkPaths.backupsDir}/',
+      );
+      return BackupListParser.parseLsOutput(lsOutput);
+    } on RootShellException catch (e) {
+      AppLogger.warn(_tag, 'listing backups via shell failed', e);
+      return [];
     }
   }
 
-  /// Restores a selected backup archive by filename.
-  Future<bool> restoreBackup(String filename) async {
-    try {
-      final resp = await _ipc.sendCommand('RESTORE', filename);
-      if (resp != null && resp.trim().startsWith('OK:')) {
-        return true;
-      }
-    } catch (_) {}
+  @override
+  Future<bool> createBackup() =>
+      _run('create', 'BACKUP', shell: '$_cli --backup');
 
-    try {
-      await _shell.executeCommand('/data/adb/modules/perfmtk/system/bin/perfmtk --restore "$filename"');
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
+  @override
+  Future<bool> restoreBackup(String filename) => _run(
+    'restore',
+    'RESTORE',
+    arg: filename,
+    shell: '$_cli --restore "$filename"',
+  );
 
-  /// Restores stock factory configuration profiles with an automatic safety backup.
-  Future<bool> resetStockProfiles() async {
-    try {
-      final resp = await _ipc.sendCommand('RESET_STOCK');
-      if (resp != null && resp.trim().startsWith('OK:')) {
-        return true;
-      }
-    } catch (_) {}
+  @override
+  Future<bool> resetStockProfiles() => _run(
+    'reset to stock',
+    'RESET_STOCK',
+    shell: '$_cli --backup && $_cli -g && $_cli -r',
+  );
 
+  @override
+  Future<bool> deleteBackup(String filename) => _run(
+    'delete',
+    'DELETE_BACKUP',
+    arg: filename,
+    shell: 'rm -f "${PerfMtkPaths.backupsDir}/$filename"',
+  );
+
+  @override
+  Future<bool> deleteAllBackups() => _run(
+    'delete all',
+    'DELETE_BACKUP',
+    arg: 'all',
+    shell: 'rm -f ${PerfMtkPaths.backupsDir}/profiles_*.tar.gz',
+  );
+
+  Future<bool> _run(
+    String label,
+    String ipcCommand, {
+    String? arg,
+    required String shell,
+  }) async {
     try {
-      await _shell.executeCommand(
-        '/data/adb/modules/perfmtk/system/bin/perfmtk --backup && /data/adb/modules/perfmtk/system/bin/perfmtk -g && /data/adb/modules/perfmtk/system/bin/perfmtk -r',
+      await _gateway.command(
+        ipcCommand,
+        arg: arg,
+        shellFallback: shell,
+        okPrefix: _okPrefix,
       );
       return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Deletes a specific backup snapshot by filename.
-  Future<bool> deleteBackup(String filename) async {
-    try {
-      final resp = await _ipc.sendCommand('DELETE_BACKUP', filename);
-      if (resp != null && resp.trim().startsWith('OK:')) {
-        return true;
-      }
-    } catch (_) {}
-
-    try {
-      await _shell.executeCommand('rm -f "/data/adb/modules/perfmtk/config/backups/$filename"');
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Deletes all backup snapshots in the repository.
-  Future<bool> deleteAllBackups() async {
-    try {
-      final resp = await _ipc.sendCommand('DELETE_BACKUP', 'all');
-      if (resp != null && resp.trim().startsWith('OK:')) {
-        return true;
-      }
-    } catch (_) {}
-
-    try {
-      await _shell.executeCommand('rm -f /data/adb/modules/perfmtk/config/backups/profiles_*.tar.gz');
-      return true;
-    } catch (_) {
+    } on RootShellException catch (e) {
+      AppLogger.warn(_tag, 'backup $label failed', e);
       return false;
     }
   }

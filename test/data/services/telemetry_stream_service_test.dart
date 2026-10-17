@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
 import 'package:manager/data/services/telemetry_stream_service.dart';
+import 'package:manager/data/telemetry/shm_telemetry_decoder.dart';
+import '../../support/fakes.dart';
 
 class FakeProcess implements Process {
   final StreamController<List<int>> stdoutController = StreamController<List<int>>();
@@ -49,6 +51,7 @@ void main() {
       late FakeProcess fakeProcess;
       final service = TelemetryStreamService(
         intervalMs: 1000,
+        ipcChannel: FakeNativeIpc(),
         processStarter: (exe, args) async {
           fakeProcess = FakeProcess();
           return fakeProcess;
@@ -83,6 +86,7 @@ void main() {
       final createdProcesses = <FakeProcess>[];
       final service = TelemetryStreamService(
         intervalMs: 1000,
+        ipcChannel: FakeNativeIpc(),
         processStarter: (exe, args) async {
           final p = FakeProcess();
           createdProcesses.add(p);
@@ -110,6 +114,7 @@ void main() {
       late FakeProcess fakeProcess;
       final service = TelemetryStreamService(
         intervalMs: 1000,
+        ipcChannel: FakeNativeIpc(),
         processStarter: (exe, args) async {
           fakeProcess = FakeProcess();
           return fakeProcess;
@@ -137,6 +142,7 @@ void main() {
       final createdProcesses = <FakeProcess>[];
       final service = TelemetryStreamService(
         intervalMs: 1000,
+        ipcChannel: FakeNativeIpc(),
         processStarter: (exe, args) async {
           final p = FakeProcess();
           createdProcesses.add(p);
@@ -159,8 +165,8 @@ void main() {
       service.dispose();
     });
 
-    test('SystemState.fromShmBytes decodes 2784-byte PerfMTKSharedTelemetry binary snapshot', () {
-      final bytes = Uint8List(SystemState.shmStructSize);
+    test('ShmTelemetryDecoder decodes 2784-byte PerfMTKSharedTelemetry binary snapshot', () {
+      final bytes = Uint8List(ShmLayout.structSize);
       final bd = ByteData.sublistView(bytes);
 
       void writeStr(int offset, int maxLen, String val) {
@@ -170,8 +176,8 @@ void main() {
         bytes[offset + len] = 0;
       }
 
-      bd.setUint32(0, SystemState.shmMagic, Endian.host);
-      bd.setUint32(4, SystemState.shmVersion, Endian.host);
+      bd.setUint32(0, ShmLayout.magic, Endian.host);
+      bd.setUint32(4, ShmLayout.version, Endian.host);
       bd.setUint32(8, 42, Endian.host); // even seq
       bd.setUint32(12, (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5), Endian.host);
       bd.setUint64(16, 123456789, Endian.host);
@@ -213,7 +219,7 @@ void main() {
       writeStr(736 + 4, 28, 'UnityMain');
       writeStr(736 + 32, 32, 'Prime Core (CPU7)');
 
-      final state = SystemState.fromShmBytes(bytes, bd);
+      final state = ShmTelemetryDecoder.decode(bytes, bd);
       expect(state, isNotNull);
       expect(state!.version, '17.2');
       expect(state.currentProfile, ProfileType.performance);

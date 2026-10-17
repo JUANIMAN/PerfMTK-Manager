@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:manager/core/errors/app_exception.dart';
+import 'package:manager/core/logging/app_logger.dart';
+
 abstract interface class ShellCommandExecutor {
   Future<String> executeCommand(
     String command, {
@@ -12,6 +15,8 @@ abstract interface class ShellCommandExecutor {
 
 /// Long-lived, serialized root shell used by all repositories.
 class RootShellManager implements ShellCommandExecutor {
+  static const String _tag = 'RootShell';
+
   static final RootShellManager _instance = RootShellManager._internal();
   factory RootShellManager() => _instance;
   RootShellManager._internal();
@@ -84,7 +89,7 @@ class RootShellManager implements ShellCommandExecutor {
       if (result.trim() != 'shell_ready') {
         throw const RootShellException('Shell verification failed');
       }
-    } catch (_) {
+    } on Object {
       await _cleanup();
       rethrow;
     }
@@ -178,14 +183,15 @@ class RootShellManager implements ShellCommandExecutor {
       }
 
       return commandOutput;
-    } catch (error) {
+    } on Object catch (error) {
       commandSubscription.cancel();
       if (error is TimeoutException) {
         if (restartOnTimeout) {
           try {
             await restart();
-          } catch (_) {
+          } on Exception catch (e) {
             // Keep the timeout as the actionable error for the caller.
+            AppLogger.warn(_tag, 'restart after timeout failed', e);
           }
         }
         throw RootShellException('Command timeout: $command');
@@ -199,7 +205,8 @@ class RootShellManager implements ShellCommandExecutor {
     try {
       await initialize();
       return true;
-    } catch (_) {
+    } on Exception catch (e) {
+      AppLogger.warn(_tag, 'root access unavailable', e);
       return false;
     }
   }
@@ -225,16 +232,10 @@ class RootShellManager implements ShellCommandExecutor {
     try {
       process?.stdin.writeln('exit');
       await process?.stdin.close();
-    } catch (_) {}
+    } on Exception catch (e) {
+      AppLogger.debug(_tag, 'closing shell stdin failed: $e');
+    }
 
     process?.kill();
   }
-}
-
-class RootShellException implements Exception {
-  final String message;
-  const RootShellException(this.message);
-
-  @override
-  String toString() => 'RootShellException: $message';
 }

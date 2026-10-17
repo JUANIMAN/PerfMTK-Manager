@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:manager/core/native_ipc_channel.dart';
 import 'package:manager/data/models/system_state.dart';
+import 'package:manager/data/telemetry/shm_telemetry_decoder.dart';
 
 typedef ProcessStarter = Future<Process> Function(String executable, List<String> arguments);
 
@@ -20,7 +21,7 @@ typedef ProcessStarter = Future<Process> Function(String executable, List<String
 class TelemetryStreamService with WidgetsBindingObserver {
   final int intervalMs;
   final ProcessStarter? _processStarter;
-  final NativeIpcChannel _ipcChannel;
+  final NativeIpc _ipcChannel;
 
   Process? _process;
   StreamSubscription<String>? _stdoutSubscription;
@@ -32,7 +33,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
   int _shmAddress = 0;
   int _lastShmSeq = 0;
   int _staleShmTicks = 0;
-  final Uint8List _shmScratchBuffer = Uint8List(SystemState.shmStructSize);
+  final Uint8List _shmScratchBuffer = Uint8List(ShmLayout.structSize);
   late final ByteData _shmScratchView = ByteData.sublistView(_shmScratchBuffer);
 
   bool _isDisposed = false;
@@ -46,9 +47,9 @@ class TelemetryStreamService with WidgetsBindingObserver {
   TelemetryStreamService({
     this.intervalMs = 1000,
     ProcessStarter? processStarter,
-    NativeIpcChannel? ipcChannel,
+    required NativeIpc ipcChannel,
   })  : _processStarter = processStarter,
-        _ipcChannel = ipcChannel ?? NativeIpcChannel();
+        _ipcChannel = ipcChannel;
 
   /// Stream of live system states emitted continuously by the native daemon.
   Stream<SystemState> get stream => _controller.stream;
@@ -141,12 +142,12 @@ class TelemetryStreamService with WidgetsBindingObserver {
 
     try {
       final ptr = ffi.Pointer<ffi.Uint8>.fromAddress(addr);
-      final liveBytes = ptr.asTypedList(SystemState.shmStructSize);
+      final liveBytes = ptr.asTypedList(ShmLayout.structSize);
       final liveView = ByteData.sublistView(liveBytes);
 
       // Lockless Seqlock read retry loop (up to 3 attempts if writer is mid-transaction)
       for (int attempt = 0; attempt < 3; attempt++) {
-        final seq1 = liveView.getUint32(8, Endian.host);
+        final seq1 = liveView.getUint32(ShmLayout.seqOffset, Endian.host);
         if (seq1 == 0 || (seq1 & 1) != 0) {
           continue; // Writer is currently updating SHM (seq is odd)
         }
@@ -162,11 +163,11 @@ class TelemetryStreamService with WidgetsBindingObserver {
           return;
         }
 
-        _shmScratchBuffer.setRange(0, SystemState.shmStructSize, liveBytes);
-        final seq2 = liveView.getUint32(8, Endian.host);
+        _shmScratchBuffer.setRange(0, ShmLayout.structSize, liveBytes);
+        final seq2 = liveView.getUint32(ShmLayout.seqOffset, Endian.host);
 
         if (seq1 == seq2) {
-          final state = SystemState.fromShmBytes(
+          final state = ShmTelemetryDecoder.decode(
             _shmScratchBuffer,
             _shmScratchView,
           );

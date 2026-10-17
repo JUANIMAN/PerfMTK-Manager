@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/core/providers/shell_provider.dart';
+import 'package:manager/core/providers/daemon_providers.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
 import 'package:manager/data/repositories/system_repository.dart';
@@ -9,14 +9,15 @@ import 'package:manager/presentation/providers/config_repository_provider.dart';
 
 /// Provider del repositorio del sistema
 final systemRepositoryProvider = Provider<SystemRepository>((ref) {
-  return SystemRepositoryImpl(
-    shellManager: ref.watch(shellExecutorProvider),
-  );
+  return SystemRepositoryImpl(gateway: ref.watch(daemonGatewayProvider));
 });
 
 /// Provider del servicio de streaming persistente de telemetría (Zero-Fork).
 final telemetryStreamServiceProvider = Provider<TelemetryStreamService>((ref) {
-  final service = TelemetryStreamService(intervalMs: 2000);
+  final service = TelemetryStreamService(
+    intervalMs: 2000,
+    ipcChannel: ref.watch(nativeIpcProvider),
+  );
   service.start();
   ref.onDispose(service.dispose);
   return service;
@@ -51,11 +52,6 @@ final isChangingChargeCurrentLimitProvider =
     NotifierProvider<BooleanNotifier, bool>(
   BooleanNotifier.new,
 );
-
-/// Verificación de acceso root
-final rootAccessProvider = FutureProvider<bool>((ref) async {
-  return ref.read(systemRepositoryProvider).checkRootAccess();
-});
 
 /// Provider del estado del sistema (perfil activo + telemetría + estado térmico + bypass).
 final systemStateProvider =

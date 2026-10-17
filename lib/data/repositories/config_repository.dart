@@ -1,6 +1,8 @@
 import 'dart:io';
-import 'package:manager/core/native_ipc_channel.dart';
-import 'package:manager/core/root_shell_manager.dart';
+import 'package:manager/core/errors/app_exception.dart';
+import 'package:manager/core/logging/app_logger.dart';
+import 'package:manager/core/platform/daemon_gateway.dart';
+import 'package:manager/core/platform/perfmtk_paths.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
@@ -60,27 +62,25 @@ class ConfigData {
 }
 
 class ConfigRepositoryImpl implements ConfigRepository {
-  static const String _primaryConfigPath =
-      '/data/adb/modules/perfmtk/config/app_profiles.conf';
-  static const String _fallbackConfigPath = '/data/local/app_profiles.conf';
-  final ShellCommandExecutor _shellManager;
-  final NativeIpcChannel _nativeIpc;
+  static const String _tag = 'ConfigRepository';
+  static const String _primaryConfigPath = PerfMtkPaths.appProfilesConf;
+  static const String _fallbackConfigPath = PerfMtkPaths.appProfilesFallbackConf;
+
+  final DaemonGateway _gateway;
   final Future<Directory> Function() _getTemporaryDirectory;
   Future<void> _writeQueue = Future.value();
   ProfileType? _latestDefaultProfile;
 
   ConfigRepositoryImpl({
-    ShellCommandExecutor? shellManager,
-    NativeIpcChannel? nativeIpc,
+    required DaemonGateway gateway,
     Future<Directory> Function()? getTempDirectory,
-  }) : _shellManager = shellManager ?? RootShellManager(),
-       _nativeIpc = nativeIpc ?? NativeIpcChannel(),
+  }) : _gateway = gateway,
        _getTemporaryDirectory = getTempDirectory ?? getTemporaryDirectory;
 
   @override
   Future<bool> configExists() async {
     try {
-      final result = await _shellManager.executeCommand(
+      final result = await _gateway.shell(
         'test -f $_primaryConfigPath && echo "exists" || (test -f $_fallbackConfigPath && echo "exists" || echo "not_exists")',
       );
       return result.trim() == 'exists';
@@ -96,7 +96,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
       final exists = await configExists();
       if (!exists) return ConfigData.empty();
 
-      final content = await _shellManager.executeCommand(
+      final content = await _gateway.shell(
         'cat $_primaryConfigPath 2>/dev/null || cat $_fallbackConfigPath',
       );
       return _parseConfig(content);
@@ -205,6 +205,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
     final operationId = DateTime.now().microsecondsSinceEpoch;
     final tempFile = File('${tempDir.path}/app_profiles_$operationId.conf');
     final destinationTemp = '$_primaryConfigPath.$operationId.tmp';
+    const q = PerfMtkShell.quote;
 
     try {
       final buffer = StringBuffer()
@@ -228,17 +229,15 @@ class ConfigRepositoryImpl implements ConfigRepository {
 
       await tempFile.writeAsString(buffer.toString(), flush: true);
 
-      await _shellManager.executeCommand(
-        'cp ${_shellQuote(tempFile.path)} ${_shellQuote(destinationTemp)} '
-        '&& chmod 644 ${_shellQuote(destinationTemp)} '
-        '&& mv -f ${_shellQuote(destinationTemp)} ${_shellQuote(_primaryConfigPath)} '
-        '&& (cp -f ${_shellQuote(_primaryConfigPath)} ${_shellQuote(_fallbackConfigPath)} || true) '
+      await _gateway.shell(
+        'cp ${q(tempFile.path)} ${q(destinationTemp)} '
+        '&& chmod 644 ${q(destinationTemp)} '
+        '&& mv -f ${q(destinationTemp)} ${q(_primaryConfigPath)} '
+        '&& (cp -f ${q(_primaryConfigPath)} ${q(_fallbackConfigPath)} || true) '
         '&& sync '
-        '&& (/data/adb/modules/perfmtk/system/bin/perfmtk --reload || /data/adb/modules/perfmtk/perfmtk --reload || /data/adb/ksu/bin/perfmtk --reload || perfmtk --reload || true)',
+        '&& ${PerfMtkShell.reload}',
       );
-      try {
-        await _nativeIpc.sendCommand('RELOAD');
-      } catch (_) {}
+      await _notifyReload();
     } on FileSystemException catch (e) {
       throw ConfigWriteException('Error writing temp file: ${e.message}');
     } on RootShellException catch (e) {
@@ -255,15 +254,14 @@ class ConfigRepositoryImpl implements ConfigRepository {
   @override
   Future<void> deleteConfig() {
     return _enqueueWrite(() async {
+      const q = PerfMtkShell.quote;
       try {
-        await _shellManager.executeCommand(
-          'rm -f ${_shellQuote(_primaryConfigPath)} ${_shellQuote(_fallbackConfigPath)} '
+        await _gateway.shell(
+          'rm -f ${q(_primaryConfigPath)} ${q(_fallbackConfigPath)} '
           '&& sync '
-          '&& (/data/adb/modules/perfmtk/system/bin/perfmtk --reload || /data/adb/modules/perfmtk/perfmtk --reload || /data/adb/ksu/bin/perfmtk --reload || perfmtk --reload || true)',
+          '&& ${PerfMtkShell.reload}',
         );
-        try {
-          await _nativeIpc.sendCommand('RELOAD');
-        } catch (_) {}
+        await _notifyReload();
         _latestDefaultProfile = null;
       } on RootShellException catch (e) {
         throw ConfigWriteException('Error deleting config: $e');
@@ -271,34 +269,16 @@ class ConfigRepositoryImpl implements ConfigRepository {
     });
   }
 
+  /// Best-effort live reload through the daemon socket (the shell command
+  /// already asked the CLI to reload, so a missing reply is not an error).
+  Future<void> _notifyReload() async {
+    final resp = await _gateway.ipc('RELOAD');
+    if (resp == null) AppLogger.debug(_tag, 'RELOAD not acknowledged over IPC');
+  }
+
   Future<T> _enqueueWrite<T>(Future<T> Function() operation) {
     final result = _writeQueue.then((_) => operation());
     _writeQueue = result.then((_) {}, onError: (_) {});
     return result;
   }
-
-  String _shellQuote(String value) {
-    final escaped = value
-        .replaceAll(r'\', r'\\')
-        .replaceAll('"', r'\"')
-        .replaceAll(r'$', r'\$')
-        .replaceAll(String.fromCharCode(96), r'\`');
-    return '"$escaped"';
-  }
-}
-
-class ConfigReadException implements Exception {
-  final String message;
-  const ConfigReadException(this.message);
-
-  @override
-  String toString() => 'ConfigReadException: $message';
-}
-
-class ConfigWriteException implements Exception {
-  final String message;
-  const ConfigWriteException(this.message);
-
-  @override
-  String toString() => 'ConfigWriteException: $message';
 }

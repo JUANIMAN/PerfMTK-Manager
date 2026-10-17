@@ -1,0 +1,1 @@
+[error] The argument type 'int' can't be assigned to the parameter type 'ScrollCacheExtent?'.  (C:\Users\JUANIMAN\Desktop\dev\PerfMTK-Manager\lib\presentation\screens\app_profiles_screen.dart:335:28)

@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/data/models/backup_entry.dart';
+import 'package:manager/core/providers/daemon_providers.dart';
 import 'package:manager/data/repositories/backup_repository.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
 
 final backupRepositoryProvider = Provider<BackupRepository>((ref) {
-  return BackupRepository();
+  return BackupRepositoryImpl(gateway: ref.watch(daemonGatewayProvider));
 });
 
 final isPerformingBackupActionProvider =

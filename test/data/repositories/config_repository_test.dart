@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manager/core/root_shell_manager.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/repositories/config_repository.dart';
+import '../../support/fakes.dart';
 
 void main() {
   test('a stale app save cannot overwrite a newer global profile', () async {
@@ -20,7 +21,7 @@ APP_DEBOUNCE_MS=3000
 com.example.existing=powersave
 ''');
     final repository = ConfigRepositoryImpl(
-      shellManager: shell,
+      gateway: fakeGateway(shell: shell),
       getTempDirectory: () async => tempDirectory,
     );
 
@@ -63,7 +64,7 @@ com.whatsapp=powersave;uclamp_max=40
     addTearDown(() => tempDirectory.delete(recursive: true));
 
     final repository = ConfigRepositoryImpl(
-      shellManager: shell,
+      gateway: fakeGateway(shell: shell),
       getTempDirectory: () async => tempDirectory,
     );
 

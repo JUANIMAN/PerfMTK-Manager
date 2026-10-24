@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/system_state.dart';
+import 'package:manager/core/ui/action_runner.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/perf_config/presentation/perf_config_provider.dart';
 import 'package:manager/features/system/presentation/system_provider.dart';
@@ -20,6 +22,10 @@ class BatteryScreen extends ConsumerStatefulWidget {
 }
 
 class _BatteryScreenState extends ConsumerState<BatteryScreen> {
+  /// Runs a daemon action, surfacing failures to the user.
+  void _run(Future<void> Function() action) =>
+      unawaited(runUiAction(context, action));
+
   @override
   Widget build(BuildContext context) {
     final systemState = ref.watch(systemStateProvider);
@@ -80,9 +86,7 @@ class _BatteryScreenState extends ConsumerState<BatteryScreen> {
                     liveCurrentMa: state.chargeCurrentNowMa,
                     isChanging: isChangingSpeed,
                     onLimitChanged: (ma) {
-                      ref
-                          .read(systemStateProvider.notifier)
-                          .setChargeCurrentLimit(ma);
+                      _run(() => ref.read(systemStateProvider.notifier).setChargeCurrentLimit(ma));
                     },
                   ),
                   const SizedBox(height: AppConstants.spacing20),
@@ -97,21 +101,17 @@ class _BatteryScreenState extends ConsumerState<BatteryScreen> {
                     isChanging: isChangingCare,
                     onToggle: (enabled) {
                       HapticFeedback.selectionClick();
-                      ref
-                          .read(systemStateProvider.notifier)
-                          .setBatteryCare(
+                      _run(() => ref.read(systemStateProvider.notifier).setBatteryCare(
                             enabled,
                             state.batteryCareLimitPct,
-                          );
+                          ));
                     },
                     onLimitChanged: (limit) {
                       HapticFeedback.lightImpact();
-                      ref
-                          .read(systemStateProvider.notifier)
-                          .setBatteryCare(
+                      _run(() => ref.read(systemStateProvider.notifier).setBatteryCare(
                             state.batteryCareEnabled,
                             limit,
-                          );
+                          ));
                     },
                   ),
                   const SizedBox(height: AppConstants.spacing20),
@@ -124,9 +124,7 @@ class _BatteryScreenState extends ConsumerState<BatteryScreen> {
                     batteryTempC: state.batteryTempC,
                     isChanging: isChangingBypass,
                     onChanged: (enabled) {
-                      ref
-                          .read(systemStateProvider.notifier)
-                          .setChargeBypass(enabled);
+                      _run(() => ref.read(systemStateProvider.notifier).setChargeBypass(enabled));
                     },
                   ),
                   const SizedBox(height: AppConstants.spacing20),
@@ -139,9 +137,7 @@ class _BatteryScreenState extends ConsumerState<BatteryScreen> {
                     onChanged: (enabled) {
                       final target =
                           enabled ? ThermalState.enabled : ThermalState.disabled;
-                      ref
-                          .read(systemStateProvider.notifier)
-                          .setThermalState(target);
+                      _run(() => ref.read(systemStateProvider.notifier).setThermalState(target));
                     },
                   ),
                 ],
@@ -167,7 +163,7 @@ class _BatteryScreenState extends ConsumerState<BatteryScreen> {
             ),
             const SizedBox(height: AppConstants.spacing16),
             Text(
-              'Error loading battery state: $error',
+              context.l10n.errorLoadingBattery('$error'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -355,7 +351,7 @@ class LiveBatteryHeroCard extends StatelessWidget {
               const SizedBox(width: AppConstants.spacing12),
               Expanded(
                 child: _MetricTile(
-                  label: 'Voltaje',
+                  label: context.l10n.currentVoltage,
                   value: '${(voltageMv / 1000.0).toStringAsFixed(2)} V',
                   icon: Icons.electric_bolt_rounded,
                   iconColor: AppPalette.neonAmber,
@@ -368,7 +364,7 @@ class LiveBatteryHeroCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _MetricTile(
-                  label: 'Potencia',
+                  label: context.l10n.currentPower,
                   value: '${powerW.toStringAsFixed(2)} W',
                   icon: Icons.speed_rounded,
                   iconColor: AppPalette.neonCyan,
@@ -377,7 +373,7 @@ class LiveBatteryHeroCard extends StatelessWidget {
               const SizedBox(width: AppConstants.spacing12),
               Expanded(
                 child: _MetricTile(
-                  label: 'Temperatura',
+                  label: context.l10n.temperature,
                   value: '$temp °C',
                   icon: Icons.thermostat_rounded,
                   iconColor: tempColor,

@@ -1212,4 +1212,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String updateVersionAvailable(String version) {
     return 'Version $version available for download';
   }
+
+  @override
+  String actionFailed(String reason) {
+    return 'Action failed: $reason';
+  }
+
+  @override
+  String errorLoadingBattery(String error) {
+    return 'Error loading battery state: $error';
+  }
+
+  @override
+  String get temperature => 'Temperature';
+
+  @override
+  String get storedEnergy => 'Stored Energy';
+
+  @override
+  String get refresh => 'Refresh';
 }

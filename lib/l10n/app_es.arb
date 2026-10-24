@@ -375,5 +375,10 @@
   "storageUsed": "Espacio Ocupado",
   "backupsCountLabel": "Copias Guardadas",
   "delete": "Eliminar",
-  "updateVersionAvailable": "Versión {version} disponible para descargar"
+  "updateVersionAvailable": "Versión {version} disponible para descargar",
+  "actionFailed": "La acción falló: {reason}",
+  "errorLoadingBattery": "Error al cargar el estado de la batería: {error}",
+  "temperature": "Temperatura",
+  "storedEnergy": "Energía almacenada",
+  "refresh": "Actualizar"
 }

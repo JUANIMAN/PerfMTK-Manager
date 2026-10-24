@@ -211,7 +211,7 @@ class BatteryHealthCard extends StatelessWidget {
               const SizedBox(width: AppConstants.spacing12),
               Expanded(
                 child: _HealthMetricTile(
-                  label: 'Energía Almacenada',
+                  label: context.l10n.storedEnergy,
                   value: '$counterMah mAh',
                   badge: '${state.batteryCapacityPct ?? 0}%',
                   icon: Icons.energy_savings_leaf_rounded,

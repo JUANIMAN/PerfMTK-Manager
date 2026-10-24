@@ -437,5 +437,24 @@
         "type": "String"
       }
     }
-  }
+  },
+  "actionFailed": "Action failed: {reason}",
+  "@actionFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "errorLoadingBattery": "Error loading battery state: {error}",
+  "@errorLoadingBattery": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "temperature": "Temperature",
+  "storedEnergy": "Stored Energy",
+  "refresh": "Refresh"
 }

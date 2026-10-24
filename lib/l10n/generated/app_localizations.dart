@@ -2353,6 +2353,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version} available for download'**
   String updateVersionAvailable(String version);
+
+  /// No description provided for @actionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed: {reason}'**
+  String actionFailed(String reason);
+
+  /// No description provided for @errorLoadingBattery.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading battery state: {error}'**
+  String errorLoadingBattery(String error);
+
+  /// No description provided for @temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Temperature'**
+  String get temperature;
+
+  /// No description provided for @storedEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored Energy'**
+  String get storedEnergy;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
 }
 
 class _AppLocalizationsDelegate

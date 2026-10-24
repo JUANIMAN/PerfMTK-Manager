@@ -422,7 +422,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                     HapticFeedback.lightImpact();
                     ref.read(backupListProvider.notifier).refresh();
                   },
-            tooltip: 'Refresh',
+            tooltip: context.l10n.refresh,
           ),
           backupsAsync.maybeWhen(
             data: (list) => list.isNotEmpty

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manager/app/routes.dart';
+import 'package:manager/core/app_info.dart';
 import 'package:manager/core/design/theme.dart';
 import 'package:manager/core/design/theme_provider.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/app_profiles/presentation/app_profile_provider.dart';
-import 'package:manager/app/shell/app_navigator.dart' as app_navigator;
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
@@ -27,15 +28,15 @@ class _MyAppState extends ConsumerState<MyApp> {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
-    return MaterialApp(
-      title: 'PerfMTK Manager',
+    return MaterialApp.router(
+      title: AppInfo.name,
+      routerConfig: ref.watch(routerProvider),
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const app_navigator.AppNavigator(),
       debugShowCheckedModeBanner: false,
     );
   }

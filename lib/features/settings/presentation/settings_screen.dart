@@ -7,7 +7,8 @@ import 'package:manager/l10n/l10n.dart';
 import 'package:manager/core/design/design.dart';
 import 'package:manager/features/settings/presentation/widgets/language_selection_sheet.dart';
 import 'package:manager/features/settings/presentation/widgets/theme_selection_sheet.dart';
-import 'package:manager/features/backup/presentation/backup_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:manager/app/routes.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -240,9 +241,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         onTap: () {
           HapticFeedback.lightImpact();
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const BackupScreen()),
-          );
+          context.push(AppRoutes.backup);
         },
         child: Padding(
           padding: AppConstants.paddingNormal,

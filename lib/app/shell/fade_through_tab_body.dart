@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manager/app/shell/app_navigator.dart';
+import 'package:manager/app/shell/nav_tab.dart';
 
 /// State-preserving container that animates transitions between top-level
 /// navigation destinations using Material 3 Fade-Through motion.
@@ -13,16 +13,16 @@ import 'package:manager/app/shell/app_navigator.dart';
 /// - Power-efficient: Inactive tabs have [TickerMode(enabled: false)] and [Offstage(offstage: true)].
 /// - High-performance: Zero unnecessary child rebuilds during animation frames (120 FPS fluid).
 class FadeThroughTabBody extends StatefulWidget {
-  final NavScreens currentScreen;
+  final NavTab currentTab;
   final bool showAppProfiles;
-  final Widget Function(NavScreens screen) screenBuilder;
+  final Widget Function(NavTab screen) tabBuilder;
   final Duration duration;
 
   const FadeThroughTabBody({
     super.key,
-    required this.currentScreen,
+    required this.currentTab,
     required this.showAppProfiles,
-    required this.screenBuilder,
+    required this.tabBuilder,
     this.duration = const Duration(milliseconds: 280),
   });
 
@@ -33,9 +33,9 @@ class FadeThroughTabBody extends StatefulWidget {
 class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  final Set<NavScreens> _visitedScreens = {};
-  late NavScreens _activeScreen;
-  NavScreens? _previousScreen;
+  final Set<NavTab> _visitedScreens = {};
+  late NavTab _activeScreen;
+  NavTab? _previousScreen;
 
   // Material 3 Fade-Through Cubic curves
   static final CurveTween _inCurve = CurveTween(
@@ -97,8 +97,8 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
   @override
   void initState() {
     super.initState();
-    _activeScreen = widget.currentScreen;
-    _visitedScreens.add(widget.currentScreen);
+    _activeScreen = widget.currentTab;
+    _visitedScreens.add(widget.currentTab);
 
     _controller = AnimationController(
       vsync: this,
@@ -122,10 +122,10 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
   @override
   void didUpdateWidget(covariant FadeThroughTabBody oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.currentScreen != oldWidget.currentScreen) {
-      _visitedScreens.add(widget.currentScreen);
+    if (widget.currentTab != oldWidget.currentTab) {
+      _visitedScreens.add(widget.currentTab);
       _previousScreen = _activeScreen;
-      _activeScreen = widget.currentScreen;
+      _activeScreen = widget.currentTab;
       _controller.forward(from: 0.0);
     }
   }
@@ -143,15 +143,15 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
     return Stack(
       fit: StackFit.expand,
       children: [
-        for (final screen in NavScreens.values)
+        for (final screen in NavTab.values)
           if (_visitedScreens.contains(screen) &&
-              (screen != NavScreens.appProfiles || widget.showAppProfiles))
+              (screen != NavTab.appProfiles || widget.showAppProfiles))
             _buildTab(screen, isAnimating),
       ],
     );
   }
 
-  Widget _buildTab(NavScreens screen, bool isAnimating) {
+  Widget _buildTab(NavTab screen, bool isAnimating) {
     final isActive = screen == _activeScreen;
     final isPrevious = screen == _previousScreen;
 
@@ -162,7 +162,7 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
           offstage: true,
           child: TickerMode(
             enabled: false,
-            child: widget.screenBuilder(screen),
+            child: widget.tabBuilder(screen),
           ),
         ),
       );
@@ -176,7 +176,7 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
           offstage: !isActive,
           child: TickerMode(
             enabled: isActive,
-            child: widget.screenBuilder(screen),
+            child: widget.tabBuilder(screen),
           ),
         ),
       );
@@ -199,7 +199,7 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
           },
           child: TickerMode(
             enabled: true,
-            child: widget.screenBuilder(screen),
+            child: widget.tabBuilder(screen),
           ),
         ),
       );
@@ -220,7 +220,7 @@ class _FadeThroughTabBodyState extends State<FadeThroughTabBody>
           },
           child: TickerMode(
             enabled: false,
-            child: widget.screenBuilder(screen),
+            child: widget.tabBuilder(screen),
           ),
         ),
       );

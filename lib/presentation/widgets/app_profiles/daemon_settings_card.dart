@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
 
@@ -115,13 +114,13 @@ class _DaemonSettingsCardState extends State<DaemonSettingsCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AppLocale.screenOffProfile.getString(context),
+                    context.l10n.screenOffProfile,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   Text(
-                    AppLocale.screenOffProfileDesc.getString(context),
+                    context.l10n.screenOffProfileDesc,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -193,13 +192,13 @@ class _DaemonSettingsCardState extends State<DaemonSettingsCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.appDebounceMs.getString(context),
+                      context.l10n.appDebounceMs,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
-                      AppLocale.appDebounceMsDesc.getString(context),
+                      context.l10n.appDebounceMsDesc,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                       ),

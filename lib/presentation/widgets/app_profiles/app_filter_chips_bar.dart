@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
 
 /// Horizontal bar showing App filter chips (All, Configured, Not Configured) and system apps toggle.
@@ -51,7 +50,7 @@ class AppFilterChipsBar extends StatelessWidget {
                   _buildFilterChip(
                     context,
                     AppFilterType.all,
-                    AppLocale.allApps.getString(context),
+                    context.l10n.allApps,
                     Icons.apps_rounded,
                     totalCount,
                   ),
@@ -59,7 +58,7 @@ class AppFilterChipsBar extends StatelessWidget {
                   _buildFilterChip(
                     context,
                     AppFilterType.configured,
-                    AppLocale.configuredApps.getString(context),
+                    context.l10n.configuredApps,
                     Icons.check_circle_outline_rounded,
                     configuredCount,
                   ),
@@ -67,7 +66,7 @@ class AppFilterChipsBar extends StatelessWidget {
                   _buildFilterChip(
                     context,
                     AppFilterType.notConfigured,
-                    AppLocale.notConfiguredApps.getString(context),
+                    context.l10n.notConfiguredApps,
                     Icons.pending_outlined,
                     notConfiguredCount,
                   ),
@@ -80,7 +79,7 @@ class AppFilterChipsBar extends StatelessWidget {
 
           // System apps toggle — modern glowing icon button
           Tooltip(
-            message: AppLocale.includeSystemApps.getString(context),
+            message: context.l10n.includeSystemApps,
             child: AnimatedContainer(
               duration: AppConstants.animationFast,
               decoration: BoxDecoration(

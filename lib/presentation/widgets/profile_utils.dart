@@ -1,49 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 
 /// Utilidad centralizada para propiedades visuales de perfiles.
 /// Elimina la lógica duplicada que existía en 5+ widgets.
 abstract final class ProfileUtils {
   static String nameFor(BuildContext context, ProfileType profile) {
-    final key = switch (profile) {
-      ProfileType.performance => AppLocale.performance,
-      ProfileType.balanced => AppLocale.balanced,
-      ProfileType.powersave => AppLocale.powersave,
-      ProfileType.powersavePlus => AppLocale.powersavePlus,
+    final l = context.l10n;
+    return switch (profile) {
+      ProfileType.performance => l.performance,
+      ProfileType.balanced => l.balanced,
+      ProfileType.powersave => l.powersave,
+      ProfileType.powersavePlus => l.powersavePlus,
     };
-    return key.getString(context);
   }
 
   static String shortNameFor(BuildContext context, ProfileType profile) {
-    final key = switch (profile) {
-      ProfileType.performance => AppLocale.tabPerf,
-      ProfileType.balanced => AppLocale.tabBalanced,
-      ProfileType.powersave => AppLocale.tabPowersave,
-      ProfileType.powersavePlus => AppLocale.tabPowersavePlus,
+    final l = context.l10n;
+    return switch (profile) {
+      ProfileType.performance => l.tabPerf,
+      ProfileType.balanced => l.tabBalanced,
+      ProfileType.powersave => l.tabPowersave,
+      ProfileType.powersavePlus => l.tabPowersavePlus,
     };
-    return key.getString(context);
   }
 
   static String cardNameFor(BuildContext context, ProfileType profile) {
-    final key = switch (profile) {
-      ProfileType.performance => AppLocale.cardPerformance,
-      ProfileType.balanced => AppLocale.cardBalanced,
-      ProfileType.powersave => AppLocale.cardPowersave,
-      ProfileType.powersavePlus => AppLocale.cardPowersavePlus,
+    final l = context.l10n;
+    return switch (profile) {
+      ProfileType.performance => l.cardPerformance,
+      ProfileType.balanced => l.cardBalanced,
+      ProfileType.powersave => l.cardPowersave,
+      ProfileType.powersavePlus => l.cardPowersavePlus,
     };
-    return key.getString(context);
   }
 
   static String tagFor(BuildContext context, ProfileType profile) {
-    final key = switch (profile) {
-      ProfileType.performance => AppLocale.cardTagPerformance,
-      ProfileType.balanced => AppLocale.cardTagBalanced,
-      ProfileType.powersave => AppLocale.cardTagPowersave,
-      ProfileType.powersavePlus => AppLocale.cardTagPowersavePlus,
+    final l = context.l10n;
+    return switch (profile) {
+      ProfileType.performance => l.cardTagPerformance,
+      ProfileType.balanced => l.cardTagBalanced,
+      ProfileType.powersave => l.cardTagPowersave,
+      ProfileType.powersavePlus => l.cardTagPowersavePlus,
     };
-    return key.getString(context);
   }
 
   // ── Color ─────────────────────────────────────────────────────────────────

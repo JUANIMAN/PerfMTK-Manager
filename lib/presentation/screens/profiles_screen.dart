@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/system_state.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
@@ -67,7 +66,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
                   // 2. Selector Táctil de Perfiles 2x2
                   _buildSectionHeader(
                     context,
-                    AppLocale.switchProfileHeader.getString(context),
+                    context.l10n.switchProfileHeader,
                   ),
                   const SizedBox(height: AppConstants.spacing8),
                   _ProfileGridSection(onSelectProfile: _setProfile),
@@ -108,7 +107,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
             ),
             const SizedBox(height: AppConstants.spacing20),
             Text(
-              AppLocale.snackBarText.getString(context),
+              context.l10n.snackBarText,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -128,13 +127,13 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
               children: [
                 FilledButton.icon(
                   icon: const Icon(Icons.refresh_rounded),
-                  label: Text(AppLocale.retry.getString(context)),
+                  label: Text(context.l10n.retry),
                   onPressed: () => ref.refresh(systemStateProvider),
                 ),
                 const SizedBox(width: AppConstants.spacing12),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.open_in_new_rounded),
-                  label: Text(AppLocale.snackBarLabel.getString(context)),
+                  label: Text(context.l10n.snackBarLabel),
                   onPressed: () => _launchUrl(),
                 ),
               ],
@@ -154,12 +153,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
         ..showSnackBar(
           SnackBar(
             content: Text(
-              AppLocale.profileApplied
-                  .getString(context)
-                  .replaceAll(
-                    '{profile}',
-                    ProfileUtils.nameFor(context, profile),
-                  ),
+              context.l10n.profileApplied(ProfileUtils.nameFor(context, profile)),
             ),
           ),
         );
@@ -169,7 +163,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
         ..clearSnackBars()
         ..showSnackBar(
           SnackBar(
-            content: Text(AppLocale.snackBarText.getString(context)),
+            content: Text(context.l10n.snackBarText),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -185,7 +179,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocale.downloadMess.getString(context))),
+          SnackBar(content: Text(context.l10n.downloadMess)),
         );
       }
     }
@@ -302,7 +296,7 @@ class _HardwareTelemetrySection extends ConsumerWidget {
       children: [
         _buildSectionHeader(
           context,
-          AppLocale.hardwareMonitorHeader.getString(context),
+          context.l10n.hardwareMonitorHeader,
         ),
         const SizedBox(height: AppConstants.spacing8),
         HardwareTelemetryCard(
@@ -381,7 +375,7 @@ class _ActiveProfileBanner extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  AppLocale.currentProfile.getString(context).toUpperCase(),
+                  context.l10n.currentProfile.toUpperCase(),
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
@@ -394,7 +388,7 @@ class _ActiveProfileBanner extends ConsumerWidget {
                   duration: AppConstants.animationNormal,
                   child: Text(
                     isChanging
-                        ? AppLocale.applying.getString(context)
+                        ? context.l10n.applying
                         : ProfileUtils.nameFor(context, profile),
                     key: ValueKey(isChanging ? 'loading' : profile.value),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -453,7 +447,7 @@ class _ActiveProfileBanner extends ConsumerWidget {
       app.isEmpty || app == 'com.perfmtk.manager';
 
   String _displayAppName(BuildContext context, String app) {
-    if (_isGlobalApp(app)) return AppLocale.modeGlobal.getString(context);
+    if (_isGlobalApp(app)) return context.l10n.modeGlobal;
     return app;
   }
 }

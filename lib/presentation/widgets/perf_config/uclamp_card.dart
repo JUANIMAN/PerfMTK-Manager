@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// EAS UCLAMP configuration card — Min / Max clamping for Top-App & Foreground
@@ -35,7 +34,7 @@ class UclampCard extends StatelessWidget {
     final cs = theme.colorScheme;
 
     return SectionCard(
-      title: AppLocale.uclamp.getString(context),
+      title: context.l10n.uclamp,
       icon: Icons.compress_rounded,
       color: color,
       child: Column(
@@ -43,7 +42,7 @@ class UclampCard extends StatelessWidget {
         children: [
           _buildSlider(
             context: context,
-            label: AppLocale.uclampTopAppMin.getString(context),
+            label: context.l10n.uclampTopAppMin,
             value: minTopApp,
             min: 0,
             max: 100,
@@ -57,7 +56,7 @@ class UclampCard extends StatelessWidget {
           const SizedBox(height: AppConstants.spacing12),
           _buildSlider(
             context: context,
-            label: AppLocale.uclampTopAppMax.getString(context),
+            label: context.l10n.uclampTopAppMax,
             value: maxTopApp,
             min: 0,
             max: 100,
@@ -73,7 +72,7 @@ class UclampCard extends StatelessWidget {
           const SizedBox(height: AppConstants.spacing8),
           _buildSlider(
             context: context,
-            label: AppLocale.uclampFgMin.getString(context),
+            label: context.l10n.uclampFgMin,
             value: minFg,
             min: 0,
             max: 100,
@@ -87,7 +86,7 @@ class UclampCard extends StatelessWidget {
           const SizedBox(height: AppConstants.spacing12),
           _buildSlider(
             context: context,
-            label: AppLocale.uclampFgMax.getString(context),
+            label: context.l10n.uclampFgMax,
             value: maxFg,
             min: 0,
             max: 100,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/custom_selection_tile.dart';
 
 class ThemeSelectionSheet extends StatelessWidget {
@@ -21,20 +20,20 @@ class ThemeSelectionSheet extends StatelessWidget {
       (
       mode: ThemeMode.system,
       icon: Icons.brightness_auto_rounded,
-      title: AppLocale.themeSystem.getString(context),
-      subtitle: AppLocale.themeSystemDesc.getString(context),
+      title: context.l10n.themeSystem,
+      subtitle: context.l10n.themeSystemDesc,
       ),
       (
       mode: ThemeMode.light,
       icon: Icons.light_mode_rounded,
-      title: AppLocale.themeLight.getString(context),
-      subtitle: AppLocale.themeLightDesc.getString(context),
+      title: context.l10n.themeLight,
+      subtitle: context.l10n.themeLightDesc,
       ),
       (
       mode: ThemeMode.dark,
       icon: Icons.dark_mode_rounded,
-      title: AppLocale.themeDark.getString(context),
-      subtitle: AppLocale.themeDarkDesc.getString(context),
+      title: context.l10n.themeDark,
+      subtitle: context.l10n.themeDarkDesc,
       ),
     ];
 
@@ -69,7 +68,7 @@ class ThemeSelectionSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: AppConstants.spacing12),
                   Text(
-                    AppLocale.selectTheme.getString(context),
+                    context.l10n.selectTheme,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

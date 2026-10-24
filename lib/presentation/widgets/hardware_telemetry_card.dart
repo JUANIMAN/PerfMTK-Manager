@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/system_state.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 
 /// Cyber-Engine Unified Hardware Telemetry HUD with multi-segment LED rev meters.
 class HardwareTelemetryCard extends StatelessWidget {
@@ -61,7 +60,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.siliconState.getString(context),
+                      context.l10n.siliconState,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.3,
@@ -69,7 +68,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      AppLocale.siliconStateSubtitle.getString(context),
+                      context.l10n.siliconStateSubtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                         fontSize: 11,
@@ -101,7 +100,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      AppLocale.liveBadge.getString(context),
+                      context.l10n.liveBadge,
                       style: TextStyle(
                         fontSize: 9.5,
                         fontWeight: FontWeight.bold,
@@ -153,7 +152,7 @@ class HardwareTelemetryCard extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             Text(
-              AppLocale.cpuClustersHeader.getString(context),
+              context.l10n.cpuClustersHeader,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -285,7 +284,7 @@ class HardwareTelemetryCard extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             Text(
-              AppLocale.gpuAndDramHeader.getString(context),
+              context.l10n.gpuAndDramHeader,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -325,7 +324,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              AppLocale.gpuCore.getString(context),
+                              context.l10n.gpuCore,
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
@@ -395,7 +394,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              AppLocale.busDram.getString(context),
+                              context.l10n.busDram,
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
@@ -466,7 +465,7 @@ class HardwareTelemetryCard extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             Text(
-              AppLocale.thermalAndPowerHeader.getString(context),
+              context.l10n.thermalAndPowerHeader,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -506,7 +505,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              AppLocale.socSilicon.getString(context),
+                              context.l10n.socSilicon,
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
@@ -578,11 +577,10 @@ class HardwareTelemetryCard extends StatelessWidget {
                         Text(
                           state.chargeBypass
                               ? (hasHardwareBypass
-                                  ? AppLocale.smartBypass.getString(context)
-                                  : AppLocale.smartFastChargeTitle
-                                      .getString(context)
+                                  ? context.l10n.smartBypass
+                                  : context.l10n.smartFastChargeTitle
                                       .toUpperCase())
-                              : AppLocale.powerRail.getString(context),
+                              : context.l10n.powerRail,
                           style: TextStyle(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
@@ -598,14 +596,11 @@ class HardwareTelemetryCard extends StatelessWidget {
                     Text(
                       state.chargeBypass
                           ? (hasHardwareBypass
-                              ? AppLocale.directSilicon.getString(context)
-                              : AppLocale.smartFastChargeTelemetry
-                                  .getString(context))
+                              ? context.l10n.directSilicon
+                              : context.l10n.smartFastChargeTelemetry)
                           : (state.batteryCapacityPct != null
-                              ? AppLocale.batteryPct
-                                  .getString(context)
-                                  .replaceAll('{pct}', state.batteryCapacityPct.toString())
-                              : AppLocale.batteryOk.getString(context)),
+                              ? context.l10n.batteryPct(state.batteryCapacityPct.toString())
+                              : context.l10n.batteryOk),
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         fontSize: 12.5,
@@ -620,14 +615,11 @@ class HardwareTelemetryCard extends StatelessWidget {
                     Text(
                       state.chargeBypass
                           ? (hasHardwareBypass
-                              ? AppLocale.cellIsolated.getString(context)
-                              : AppLocale.smartFastChargeTelemetryDesc
-                                  .getString(context))
+                              ? context.l10n.cellIsolated
+                              : context.l10n.smartFastChargeTelemetryDesc)
                           : (state.batteryTempC != null
-                              ? AppLocale.batteryTempCell
-                                  .getString(context)
-                                  .replaceAll('{temp}', state.batteryTempC.toString())
-                              : AppLocale.standardConsumption.getString(context)),
+                              ? context.l10n.batteryTempCell(state.batteryTempC.toString())
+                              : context.l10n.standardConsumption),
                       style: TextStyle(
                         fontSize: 9.5,
                         color: cs.onSurfaceVariant.withValues(alpha: 0.75),

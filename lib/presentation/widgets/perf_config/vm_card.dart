@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// Virtual Memory (VM), ZRAM, and MGLRU configuration card.
@@ -42,7 +41,7 @@ class VmCard extends StatelessWidget {
     final cs = theme.colorScheme;
 
     return SectionCard(
-      title: AppLocale.vmTitle.getString(context),
+      title: context.l10n.vmTitle,
       icon: Icons.memory_rounded,
       color: color,
       child: Column(
@@ -51,8 +50,8 @@ class VmCard extends StatelessWidget {
           // ── Swappiness ──────────────────────────────────────────────────
           _buildSlider(
             context: context,
-            label: AppLocale.swappiness.getString(context),
-            desc: AppLocale.swappinessDesc.getString(context),
+            label: context.l10n.swappiness,
+            desc: context.l10n.swappinessDesc,
             value: swappiness,
             min: 0,
             max: 200,
@@ -66,8 +65,8 @@ class VmCard extends StatelessWidget {
           // ── MGLRU ───────────────────────────────────────────────────────
           _buildSwitch(
             context: context,
-            title: AppLocale.mglru.getString(context),
-            desc: AppLocale.mglruDesc.getString(context),
+            title: context.l10n.mglru,
+            desc: context.l10n.mglruDesc,
             value: mglru,
             onChanged: (v) => onChanged(mglru: v),
           ),
@@ -78,8 +77,8 @@ class VmCard extends StatelessWidget {
           // ── Watermark Scale Factor ──────────────────────────────────────
           _buildSlider(
             context: context,
-            label: AppLocale.watermarkScale.getString(context),
-            desc: AppLocale.watermarkScaleDesc.getString(context),
+            label: context.l10n.watermarkScale,
+            desc: context.l10n.watermarkScaleDesc,
             value: watermarkScaleFactor,
             min: 10,
             max: 300,
@@ -93,8 +92,8 @@ class VmCard extends StatelessWidget {
           // ── Compaction Proactiveness ────────────────────────────────────
           _buildSlider(
             context: context,
-            label: AppLocale.compactionProactiveness.getString(context),
-            desc: AppLocale.compactionProactivenessDesc.getString(context),
+            label: context.l10n.compactionProactiveness,
+            desc: context.l10n.compactionProactivenessDesc,
             value: compactionProactiveness,
             min: 0,
             max: 100,
@@ -108,8 +107,8 @@ class VmCard extends StatelessWidget {
           // ── Compact On Launch ───────────────────────────────────────────
           _buildSwitch(
             context: context,
-            title: AppLocale.compactOnLaunch.getString(context),
-            desc: AppLocale.compactOnLaunchDesc.getString(context),
+            title: context.l10n.compactOnLaunch,
+            desc: context.l10n.compactOnLaunchDesc,
             value: compactOnLaunch,
             onChanged: (v) => onChanged(compactOnLaunch: v),
           ),
@@ -120,7 +119,7 @@ class VmCard extends StatelessWidget {
           // ── Stat Interval ───────────────────────────────────────────────
           _buildSlider(
             context: context,
-            label: AppLocale.statInterval.getString(context),
+            label: context.l10n.statInterval,
             value: statInterval,
             min: 1,
             max: 60,

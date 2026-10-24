@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/device_config.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/profile_config.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/widgets/perf_config/charge_thermal_card.dart';
 import 'package:manager/presentation/widgets/perf_config/cpu_policy_card.dart';
@@ -417,7 +416,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
     sections.add(const SizedBox(height: AppConstants.spacing20));
     sections.add(
       SectionLabel(
-        label: AppLocale.displayTitle.getString(context),
+        label: context.l10n.displayTitle,
         color: profileColor,
       ),
     );
@@ -552,7 +551,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
     sections.add(const SizedBox(height: AppConstants.spacing20));
     sections.add(
       SectionLabel(
-        label: AppLocale.vmTitle.getString(context),
+        label: context.l10n.vmTitle,
         color: profileColor,
       ),
     );
@@ -598,8 +597,8 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
     sections.add(
       SectionLabel(
         label: device.hasHardwareBypass
-            ? AppLocale.thermalChargeTitle.getString(context)
-            : AppLocale.thermalFastChargeTitle.getString(context),
+            ? context.l10n.thermalChargeTitle
+            : context.l10n.thermalFastChargeTitle,
         color: profileColor,
       ),
     );
@@ -645,7 +644,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
     sections.add(const SizedBox(height: AppConstants.spacing20));
     sections.add(
       SectionLabel(
-        label: AppLocale.touchBoosterTitle.getString(context),
+        label: context.l10n.touchBoosterTitle,
         color: profileColor,
       ),
     );
@@ -696,7 +695,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
               ),
             ),
             Text(
-              AppLocale.perfConfigError.getString(context),
+              context.l10n.perfConfigError,
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -713,7 +712,7 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
             const SizedBox(height: AppConstants.spacing16),
             FilledButton.icon(
               icon: const Icon(Icons.refresh_rounded),
-              label: Text(AppLocale.retry.getString(context)),
+              label: Text(context.l10n.retry),
               onPressed: () {
                 ref.invalidate(profileConfigProvider(widget.profile));
                 ref.invalidate(deviceConfigProvider);

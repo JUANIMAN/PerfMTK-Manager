@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/custom_selection_tile.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
 
@@ -70,7 +69,7 @@ class ScreenOffProfileSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: AppConstants.spacing12),
                   Text(
-                    AppLocale.screenOffProfile.getString(context),
+                    context.l10n.screenOffProfile,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),

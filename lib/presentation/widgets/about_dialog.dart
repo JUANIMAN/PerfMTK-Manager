@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -62,7 +61,7 @@ class _CustomAboutDialogState extends State<CustomAboutDialog>
               child: Column(
                 children: [
                   Text(
-                    AppLocale.aboutDescription.getString(context),
+                    context.l10n.aboutDescription,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       height: 1.5,
                       letterSpacing: 0.2,
@@ -73,14 +72,14 @@ class _CustomAboutDialogState extends State<CustomAboutDialog>
                   _buildInfoRow(
                     context,
                     Icons.memory,
-                    AppLocale.compDevices.getString(context),
+                    context.l10n.compDevices,
                     'MediaTek™',
                   ),
                   const SizedBox(height: AppConstants.spacing16),
                   _buildInfoRow(
                     context,
                     Icons.developer_mode,
-                    AppLocale.developer.getString(context),
+                    context.l10n.developer,
                     'JUANIMAN',
                   ),
                 ],

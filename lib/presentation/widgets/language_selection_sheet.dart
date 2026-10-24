@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/custom_selection_tile.dart';
 
 class LanguageSelectionSheet extends StatelessWidget {
@@ -53,7 +52,7 @@ class LanguageSelectionSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: AppConstants.spacing12),
                   Text(
-                    AppLocale.selectLanguage.getString(context),
+                    context.l10n.selectLanguage,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

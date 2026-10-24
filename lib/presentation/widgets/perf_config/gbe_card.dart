@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// MediaTek Game Turbo (GBE) card — frame forecasting & thermal headroom
@@ -27,7 +26,7 @@ class GbeCard extends StatelessWidget {
     final isEnabled = gbeEnable == 1;
 
     return SectionCard(
-      title: AppLocale.gbeTitle.getString(context),
+      title: context.l10n.gbeTitle,
       icon: Icons.sports_esports_rounded,
       color: color,
       child: Column(
@@ -40,7 +39,7 @@ class GbeCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.gbeEnable.getString(context),
+                      context.l10n.gbeEnable,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -49,8 +48,8 @@ class GbeCard extends StatelessWidget {
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
                       isEnabled
-                          ? AppLocale.gbeActiveDesc.getString(context)
-                          : AppLocale.gbeInactiveDesc.getString(context),
+                          ? context.l10n.gbeActiveDesc
+                          : context.l10n.gbeInactiveDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: isEnabled ? color : cs.onSurfaceVariant,
                       ),
@@ -76,7 +75,7 @@ class GbeCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  AppLocale.gbeThermalHeadroom.getString(context),
+                  context.l10n.gbeThermalHeadroom,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: cs.onSurfaceVariant,
                     fontWeight: FontWeight.w500,

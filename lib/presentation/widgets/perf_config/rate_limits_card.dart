@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/device_config.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// Card for configuring scheduler CPU frequency transition rate limits.
@@ -43,7 +42,7 @@ class RateLimitsCard extends StatelessWidget {
     final ups = pad(upRateLimitUs);
 
     return SectionCard(
-      title: AppLocale.rateLimits.getString(context),
+      title: context.l10n.rateLimits,
       icon: Icons.timer_outlined,
       color: color,
       initiallyExpanded: false,
@@ -92,7 +91,7 @@ class RateLimitsCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: RateField(
-                    label: AppLocale.downRateLimit.getString(context),
+                    label: context.l10n.downRateLimit,
                     hint: '10000',
                     value: downs[i],
                     color: color,
@@ -105,7 +104,7 @@ class RateLimitsCard extends StatelessWidget {
                 const SizedBox(width: AppConstants.spacing12),
                 Expanded(
                   child: RateField(
-                    label: AppLocale.upRateLimit.getString(context),
+                    label: context.l10n.upRateLimit,
                     hint: '1000',
                     value: ups[i],
                     color: color,

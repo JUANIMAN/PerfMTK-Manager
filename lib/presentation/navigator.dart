@@ -2,8 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/app_profile_visibility_provider.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
 import 'package:manager/presentation/screens/app_profiles_screen.dart';
@@ -28,7 +27,6 @@ class AppNavigator extends ConsumerStatefulWidget {
 
 class _AppNavigatorState extends ConsumerState<AppNavigator>
     with WidgetsBindingObserver {
-  final FlutterLocalization localization = FlutterLocalization.instance;
   NavScreens _currentScreen = NavScreens.profiles;
   DateTime? _lastResumeRefresh;
 
@@ -74,7 +72,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
         owner: 'JUANIMAN',
         repo: 'PerfMTK-Manager',
         currentVersion: packageInfo.version,
-        currentLanguage: localization.currentLocale?.languageCode ?? 'en',
+        currentLanguage: ref.read(localeProvider).languageCode,
       );
       await updateChecker.checkForUpdates(context);
     } catch (_) {
@@ -114,9 +112,9 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
           child: Text(
             switch (currentScreen) {
               NavScreens.profiles => 'PerfMTK Manager',
-              NavScreens.battery => AppLocale.titleBattery.getString(context),
-              NavScreens.appProfiles => AppLocale.appProfiles.getString(context),
-              NavScreens.perfConfig => AppLocale.perfConfig.getString(context),
+              NavScreens.battery => context.l10n.titleBattery,
+              NavScreens.appProfiles => context.l10n.appProfiles,
+              NavScreens.perfConfig => context.l10n.perfConfig,
             },
             key: ValueKey(currentScreen),
           ),
@@ -179,7 +177,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
                   MaterialPageRoute(builder: (_) => const BackupScreen()),
                 );
               },
-              tooltip: AppLocale.backupManager.getString(context),
+              tooltip: context.l10n.backupManager,
             ),
           IconButton(
             icon: const Icon(Icons.settings_rounded),
@@ -288,31 +286,31 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final (selectedIcon, unselectedIcon, labelKey) = switch (screen) {
+    final l = context.l10n;
+    final (selectedIcon, unselectedIcon, label) = switch (screen) {
       NavScreens.profiles => (
         Icons.tune_rounded,
         Icons.tune,
-        AppLocale.profiles,
+        l.profiles,
       ),
       NavScreens.battery => (
         Icons.battery_charging_full_rounded,
         Icons.battery_charging_full_outlined,
-        AppLocale.battery,
+        l.battery,
       ),
       NavScreens.appProfiles => (
         Icons.apps_rounded,
         Icons.apps_outlined,
-        AppLocale.appProfiles,
+        l.appProfiles,
       ),
       NavScreens.perfConfig => (
         Icons.speed_rounded,
         Icons.speed_outlined,
-        AppLocale.perfConfig,
+        l.perfConfig,
       ),
     };
 
     final accentColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
-    final label = AppLocale.getValue(labelKey).getString(context);
 
     return InkWell(
       onTap: () {

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// Hardware Touch & Digitizer Booster card — Game Mode & 480Hz/2160Hz sample rate
@@ -29,7 +28,7 @@ class TouchCard extends StatelessWidget {
     final cs = theme.colorScheme;
 
     return SectionCard(
-      title: AppLocale.touchBoosterTitle.getString(context),
+      title: context.l10n.touchBoosterTitle,
       icon: Icons.touch_app_rounded,
       color: color,
       child: Column(
@@ -38,8 +37,8 @@ class TouchCard extends StatelessWidget {
           // ── Switch 1: Game Mode & 480Hz Report Rate ───────────────────────
           _buildSwitchRow(
             context: context,
-            title: AppLocale.touchGameMode.getString(context),
-            subtitle: AppLocale.touchGameModeDesc.getString(context),
+            title: context.l10n.touchGameMode,
+            subtitle: context.l10n.touchGameModeDesc,
             value: gameMode,
             onChanged: (v) => onChanged(
               gameMode: v,
@@ -54,8 +53,8 @@ class TouchCard extends StatelessWidget {
           // ── Switch 2: Host Processing (THP) Smoothing ─────────────────────
           _buildSwitchRow(
             context: context,
-            title: AppLocale.touchThpSmooth.getString(context),
-            subtitle: AppLocale.touchThpSmoothDesc.getString(context),
+            title: context.l10n.touchThpSmooth,
+            subtitle: context.l10n.touchThpSmoothDesc,
             value: thpSmooth,
             onChanged: (v) => onChanged(
               gameMode: gameMode,

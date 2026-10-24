@@ -1,35 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/charge_thermal_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Widget _wrapWithLocalization(Widget child) {
-  final localization = FlutterLocalization.instance;
   return MaterialApp(
-    supportedLocales: localization.supportedLocales,
-    localizationsDelegates: localization.localizationsDelegates,
-    home: Scaffold(
-      body: SingleChildScrollView(
-        child: child,
-      ),
-    ),
+    locale: const Locale('es'),
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    home: Scaffold(body: SingleChildScrollView(child: child)),
   );
 }
 
 void main() {
-  setUpAll(() async {
+  setUpAll(() {
     WidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
-    await FlutterLocalization.instance.ensureInitialized();
-    FlutterLocalization.instance.init(
-      mapLocales: [
-        MapLocale('en', AppLocale.en),
-        MapLocale('es', AppLocale.es),
-      ],
-      initLanguageCode: 'es',
-    );
   });
 
   group('ChargeThermalCard Adaptive Naming and Sliders', () {
@@ -57,9 +44,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show Hardware Bypass title in Spanish ('Bypass de Carga (Hardware)')
-      expect(find.text(AppLocale.hwChargeBypassTitle.getString(tester.element(find.byType(ChargeThermalCard)))), findsOneWidget);
+      expect(find.text(tester.element(find.byType(ChargeThermalCard)).l10n.hwChargeBypassTitle), findsOneWidget);
       // Should show min battery level text
-      expect(find.text(AppLocale.bypassMinBatt.getString(tester.element(find.byType(ChargeThermalCard)))), findsOneWidget);
+      expect(find.text(tester.element(find.byType(ChargeThermalCard)).l10n.bypassMinBatt), findsOneWidget);
     });
 
     testWidgets('displays Smart Fast Charge title and HIDES min battery slider when hasHardwareBypass is false', (tester) async {
@@ -86,9 +73,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show Smart Fast Charge title in Spanish ('Carga Rápida en Juegos')
-      expect(find.text(AppLocale.smartFastChargeTitle.getString(tester.element(find.byType(ChargeThermalCard)))), findsOneWidget);
+      expect(find.text(tester.element(find.byType(ChargeThermalCard)).l10n.smartFastChargeTitle), findsOneWidget);
       // Min battery slider should be HIDDEN
-      expect(find.text(AppLocale.bypassMinBatt.getString(tester.element(find.byType(ChargeThermalCard)))), findsNothing);
+      expect(find.text(tester.element(find.byType(ChargeThermalCard)).l10n.bypassMinBatt), findsNothing);
     });
   });
 }

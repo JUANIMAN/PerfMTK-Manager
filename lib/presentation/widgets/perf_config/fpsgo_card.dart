@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// FPSGO configuration card — FORCE_ONOFF segmented control + BOOST_TA & rescue toggles.
@@ -66,7 +65,7 @@ class FpsgoCard extends StatelessWidget {
         children: [
           // ── FORCE_ONOFF ──────────────────────────────────────────────────
           Text(
-            AppLocale.forceOnOff.getString(context),
+            context.l10n.forceOnOff,
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w500,
@@ -77,17 +76,17 @@ class FpsgoCard extends StatelessWidget {
             options: [
               (
                 value: 0,
-                label: AppLocale.offOption.getString(context),
+                label: context.l10n.offOption,
                 icon: Icons.block_rounded,
               ),
               (
                 value: 1,
-                label: AppLocale.onOption.getString(context),
+                label: context.l10n.onOption,
                 icon: Icons.check_circle_rounded,
               ),
               (
                 value: 2,
-                label: AppLocale.freeOption.getString(context),
+                label: context.l10n.freeOption,
                 icon: Icons.auto_mode_rounded,
               ),
             ],
@@ -107,7 +106,7 @@ class FpsgoCard extends StatelessWidget {
 
           // ── FSTB_TUNE_QUANTILE ───────────────────────────────────────────
           Text(
-            AppLocale.fstbTuneQuantileTitle.getString(context),
+            context.l10n.fstbTuneQuantileTitle,
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w500,
@@ -115,7 +114,7 @@ class FpsgoCard extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacing4),
           Text(
-            AppLocale.fstbTuneQuantileSubtitle.getString(context),
+            context.l10n.fstbTuneQuantileSubtitle,
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant.withValues(alpha: 0.75),
               fontSize: 11,
@@ -126,17 +125,17 @@ class FpsgoCard extends StatelessWidget {
             options: [
               (
                 value: 50,
-                label: AppLocale.quantileP50.getString(context),
+                label: context.l10n.quantileP50,
                 icon: Icons.graphic_eq_rounded,
               ),
               (
                 value: 95,
-                label: AppLocale.quantileP95.getString(context),
+                label: context.l10n.quantileP95,
                 icon: Icons.auto_graph_rounded,
               ),
               (
                 value: 99,
-                label: AppLocale.quantileP99.getString(context),
+                label: context.l10n.quantileP99,
                 icon: Icons.rocket_launch_rounded,
               ),
             ],
@@ -162,7 +161,7 @@ class FpsgoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.taBoost.getString(context),
+                      context.l10n.taBoost,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
@@ -170,8 +169,8 @@ class FpsgoCard extends StatelessWidget {
                     ),
                     Text(
                       taOn
-                          ? AppLocale.taBoostEnabled.getString(context)
-                          : AppLocale.taBoostDisabled.getString(context),
+                          ? context.l10n.taBoostEnabled
+                          : context.l10n.taBoostDisabled,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: taOn ? color : cs.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
@@ -210,7 +209,7 @@ class FpsgoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.rescueEnable.getString(context),
+                      context.l10n.rescueEnable,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -218,7 +217,7 @@ class FpsgoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.rescueEnableDesc.getString(context),
+                      context.l10n.rescueEnableDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: rescueOn ? color : cs.onSurfaceVariant,
                       ),
@@ -256,7 +255,7 @@ class FpsgoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.ultraRescue.getString(context),
+                      context.l10n.ultraRescue,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -264,7 +263,7 @@ class FpsgoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.ultraRescueDesc.getString(context),
+                      context.l10n.ultraRescueDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: ultraOn ? color : cs.onSurfaceVariant,
                       ),
@@ -302,7 +301,7 @@ class FpsgoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.downThrottle.getString(context),
+                      context.l10n.downThrottle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -310,7 +309,7 @@ class FpsgoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.downThrottleDesc.getString(context),
+                      context.l10n.downThrottleDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: downThrottleOn ? color : cs.onSurfaceVariant,
                       ),

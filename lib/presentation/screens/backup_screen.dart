@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/backup_entry.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/backup_provider.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
@@ -53,10 +52,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
     if (!mounted) return;
     if (success) {
       HapticFeedback.lightImpact();
-      _showSnackBar(AppLocale.backupCreatedSuccess.getString(context));
+      _showSnackBar(context.l10n.backupCreatedSuccess);
     } else {
       HapticFeedback.heavyImpact();
-      _showSnackBar(AppLocale.backupCreateError.getString(context), isError: true);
+      _showSnackBar(context.l10n.backupCreateError, isError: true);
     }
   }
 
@@ -74,7 +73,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
             const SizedBox(width: AppConstants.spacing12),
             Expanded(
               child: Text(
-                AppLocale.confirmRestoreTitle.getString(ctx),
+                ctx.l10n.confirmRestoreTitle,
                 style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -87,7 +86,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocale.confirmRestoreMessage.getString(ctx),
+              ctx.l10n.confirmRestoreMessage,
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppConstants.spacing16),
@@ -137,11 +136,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(AppLocale.updateCancel.getString(ctx)),
+            child: Text(ctx.l10n.updateCancel),
           ),
           FilledButton.icon(
             icon: const Icon(Icons.restore_rounded, size: 18),
-            label: Text(AppLocale.restoreBackup.getString(ctx)),
+            label: Text(ctx.l10n.restoreBackup),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ],
@@ -154,10 +153,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       if (!mounted) return;
       if (success) {
         HapticFeedback.lightImpact();
-        _showSnackBar(AppLocale.restoreSuccess.getString(context));
+        _showSnackBar(context.l10n.restoreSuccess);
       } else {
         HapticFeedback.heavyImpact();
-        _showSnackBar(AppLocale.restoreError.getString(context), isError: true);
+        _showSnackBar(context.l10n.restoreError, isError: true);
       }
     }
   }
@@ -177,7 +176,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
             const SizedBox(width: AppConstants.spacing12),
             Expanded(
               child: Text(
-                AppLocale.deleteBackupTitle.getString(ctx),
+                ctx.l10n.deleteBackupTitle,
                 style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -190,7 +189,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocale.deleteBackupConfirm.getString(ctx),
+              ctx.l10n.deleteBackupConfirm,
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppConstants.spacing16),
@@ -240,7 +239,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(AppLocale.updateCancel.getString(ctx)),
+            child: Text(ctx.l10n.updateCancel),
           ),
           FilledButton.icon(
             style: FilledButton.styleFrom(
@@ -248,7 +247,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
               foregroundColor: cs.onError,
             ),
             icon: const Icon(Icons.delete_forever_rounded, size: 18),
-            label: Text(AppLocale.delete.getString(ctx)),
+            label: Text(ctx.l10n.delete),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ],
@@ -261,10 +260,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       if (!mounted) return;
       if (success) {
         HapticFeedback.lightImpact();
-        _showSnackBar(AppLocale.backupDeletedSuccess.getString(context));
+        _showSnackBar(context.l10n.backupDeletedSuccess);
       } else {
         HapticFeedback.heavyImpact();
-        _showSnackBar(AppLocale.backupDeleteError.getString(context), isError: true);
+        _showSnackBar(context.l10n.backupDeleteError, isError: true);
       }
     }
   }
@@ -284,7 +283,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
             const SizedBox(width: AppConstants.spacing12),
             Expanded(
               child: Text(
-                AppLocale.deleteAllBackupsTitle.getString(ctx),
+                ctx.l10n.deleteAllBackupsTitle,
                 style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -293,13 +292,13 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
           ],
         ),
         content: Text(
-          AppLocale.deleteAllBackupsConfirm.getString(ctx),
+          ctx.l10n.deleteAllBackupsConfirm,
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(AppLocale.updateCancel.getString(ctx)),
+            child: Text(ctx.l10n.updateCancel),
           ),
           FilledButton.icon(
             style: FilledButton.styleFrom(
@@ -307,7 +306,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
               foregroundColor: cs.onError,
             ),
             icon: const Icon(Icons.delete_forever_rounded, size: 18),
-            label: Text(AppLocale.delete.getString(ctx)),
+            label: Text(ctx.l10n.delete),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ],
@@ -320,10 +319,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       if (!mounted) return;
       if (success) {
         HapticFeedback.lightImpact();
-        _showSnackBar(AppLocale.allBackupsDeletedSuccess.getString(context));
+        _showSnackBar(context.l10n.allBackupsDeletedSuccess);
       } else {
         HapticFeedback.heavyImpact();
-        _showSnackBar(AppLocale.backupDeleteError.getString(context), isError: true);
+        _showSnackBar(context.l10n.backupDeleteError, isError: true);
       }
     }
   }
@@ -342,7 +341,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
             const SizedBox(width: AppConstants.spacing12),
             Expanded(
               child: Text(
-                AppLocale.resetStockTitle.getString(ctx),
+                ctx.l10n.resetStockTitle,
                 style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -351,13 +350,13 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
           ],
         ),
         content: Text(
-          AppLocale.resetStockConfirm.getString(ctx),
+          ctx.l10n.resetStockConfirm,
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(AppLocale.updateCancel.getString(ctx)),
+            child: Text(ctx.l10n.updateCancel),
           ),
           FilledButton.icon(
             style: FilledButton.styleFrom(
@@ -365,7 +364,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
               foregroundColor: Colors.black,
             ),
             icon: const Icon(Icons.restore_page_rounded, size: 18),
-            label: Text(AppLocale.resetStockTitle.getString(ctx)),
+            label: Text(ctx.l10n.resetStockTitle),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ],
@@ -378,10 +377,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       if (!mounted) return;
       if (success) {
         HapticFeedback.lightImpact();
-        _showSnackBar(AppLocale.resetStockSuccess.getString(context));
+        _showSnackBar(context.l10n.resetStockSuccess);
       } else {
         HapticFeedback.heavyImpact();
-        _showSnackBar(AppLocale.restoreError.getString(context), isError: true);
+        _showSnackBar(context.l10n.restoreError, isError: true);
       }
     }
   }
@@ -405,14 +404,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocale.backupManager.getString(context)),
+        title: Text(context.l10n.backupManager),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             HapticFeedback.lightImpact();
             Navigator.of(context).pop();
           },
-          tooltip: AppLocale.back.getString(context),
+          tooltip: context.l10n.back,
         ),
         actions: [
           IconButton(
@@ -433,7 +432,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                       color: cs.error.withValues(alpha: isPerformingAction ? 0.4 : 0.9),
                     ),
                     onPressed: isPerformingAction ? null : _confirmDeleteAll,
-                    tooltip: AppLocale.deleteAllBackupsTitle.getString(context),
+                    tooltip: context.l10n.deleteAllBackupsTitle,
                   )
                 : const SizedBox.shrink(),
             orElse: () => const SizedBox.shrink(),
@@ -475,7 +474,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                 icon: Icons.folder_zip_rounded,
                                 color: cs.primary,
                                 title: '${list.length} / 16',
-                                subtitle: AppLocale.backupsCountLabel.getString(context),
+                                subtitle: context.l10n.backupsCountLabel,
                               ),
                             ),
                             Container(
@@ -488,7 +487,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                 icon: Icons.data_usage_rounded,
                                 color: const Color(0xFF00E676),
                                 title: _formatTotalStorage(list),
-                                subtitle: AppLocale.storageUsed.getString(context),
+                                subtitle: context.l10n.storageUsed,
                               ),
                             ),
                             Container(
@@ -501,7 +500,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                 icon: Icons.tune_rounded,
                                 color: const Color(0xFF2979FF),
                                 title: '${ProfileType.values.length} .conf',
-                                subtitle: AppLocale.profiles.getString(context),
+                                subtitle: context.l10n.profiles,
                               ),
                             ),
                           ],
@@ -548,14 +547,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      AppLocale.createBackup.getString(context),
+                                      context.l10n.createBackup,
                                       style: theme.textTheme.titleSmall?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      AppLocale.createBackupDesc.getString(context),
+                                      context.l10n.createBackupDesc,
                                       style: theme.textTheme.bodySmall?.copyWith(
                                         color: cs.onSurfaceVariant,
                                         fontSize: 12,
@@ -584,8 +583,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                   : const Icon(Icons.add_circle_outline_rounded, size: 18),
                               label: Text(
                                 isPerformingAction
-                                    ? AppLocale.creatingBackup.getString(context)
-                                    : AppLocale.createBackup.getString(context),
+                                    ? context.l10n.creatingBackup
+                                    : context.l10n.createBackup,
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -616,7 +615,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                             ),
                             const SizedBox(width: AppConstants.spacing10),
                             Text(
-                              AppLocale.backupTitle.getString(context),
+                              context.l10n.backupTitle,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -668,14 +667,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                 ),
                                 const SizedBox(height: AppConstants.spacing12),
                                 Text(
-                                  AppLocale.noBackupsFound.getString(context),
+                                  context.l10n.noBackupsFound,
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: AppConstants.spacing6),
                                 Text(
-                                  AppLocale.noBackupsDesc.getString(context),
+                                  context.l10n.noBackupsDesc,
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: cs.onSurfaceVariant,
@@ -685,7 +684,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                 OutlinedButton.icon(
                                   onPressed: isPerformingAction ? null : _handleCreateBackup,
                                   icon: const Icon(Icons.add_rounded, size: 18),
-                                  label: Text(AppLocale.createBackup.getString(context)),
+                                  label: Text(context.l10n.createBackup),
                                 ),
                               ],
                             ),
@@ -770,7 +769,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                                         ),
                                                       ),
                                                       child: Text(
-                                                        AppLocale.backupLatestBadge.getString(context),
+                                                        context.l10n.backupLatestBadge,
                                                         style: TextStyle(
                                                           fontSize: 9,
                                                           fontWeight: FontWeight.w800,
@@ -813,7 +812,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                         const SizedBox(width: AppConstants.spacing8),
                                         _buildTag(
                                           icon: Icons.tune_rounded,
-                                          label: AppLocale.backupProfilesCount.getString(context),
+                                          label: context.l10n.backupProfilesCount,
                                           color: cs.onSurfaceVariant,
                                           context: context,
                                         ),
@@ -826,7 +825,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                             color: cs.error.withValues(alpha: isPerformingAction ? 0.3 : 0.8),
                                           ),
                                           visualDensity: VisualDensity.compact,
-                                          tooltip: AppLocale.delete.getString(context),
+                                          tooltip: context.l10n.delete,
                                           onPressed: isPerformingAction ? null : () => _confirmDelete(entry),
                                         ),
                                         const SizedBox(width: AppConstants.spacing4),
@@ -841,7 +840,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                           ),
                                           icon: const Icon(Icons.settings_backup_restore_rounded, size: 16),
                                           label: Text(
-                                            AppLocale.restoreBackup.getString(context),
+                                            context.l10n.restoreBackup,
                                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                           ),
                                           onPressed: isPerformingAction ? null : () => _confirmRestore(entry),
@@ -897,7 +896,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                               ),
                               const SizedBox(width: AppConstants.spacing10),
                               Text(
-                                AppLocale.resetStockTitle.getString(context),
+                                context.l10n.resetStockTitle,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFFFF9100),
@@ -907,7 +906,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                           ),
                           const SizedBox(height: AppConstants.spacing8),
                           Text(
-                            AppLocale.resetStockDesc.getString(context),
+                            context.l10n.resetStockDesc,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: cs.onSurfaceVariant,
                             ),
@@ -921,7 +920,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                               ),
                             ),
                             icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                            label: Text(AppLocale.resetStockTitle.getString(context)),
+                            label: Text(context.l10n.resetStockTitle),
                             onPressed: isPerformingAction ? null : _confirmResetStock,
                           ),
                         ],

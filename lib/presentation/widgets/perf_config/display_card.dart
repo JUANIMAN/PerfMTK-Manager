@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// Display refresh rate configuration card.
@@ -33,43 +32,43 @@ class DisplayCard extends StatelessWidget {
     final options = <({int value, String label, IconData icon})>[
       (
         value: 0,
-        label: AppLocale.refreshRateAuto.getString(context),
+        label: context.l10n.refreshRateAuto,
         icon: Icons.auto_mode_rounded,
       ),
       (
         value: 60,
-        label: AppLocale.refreshRate60.getString(context),
+        label: context.l10n.refreshRate60,
         icon: Icons.speed_rounded,
       ),
       if (maxFps >= 90)
         (
           value: 90,
-          label: AppLocale.refreshRate90.getString(context),
+          label: context.l10n.refreshRate90,
           icon: Icons.speed_rounded,
         ),
       if (maxFps >= 120)
         (
           value: 120,
-          label: AppLocale.refreshRate120.getString(context),
+          label: context.l10n.refreshRate120,
           icon: Icons.speed_rounded,
         ),
       if (maxFps >= 144)
         (
           value: 144,
-          label: AppLocale.refreshRate144.getString(context),
+          label: context.l10n.refreshRate144,
           icon: Icons.speed_rounded,
         ),
     ];
 
     return SectionCard(
-      title: AppLocale.displayTitle.getString(context),
+      title: context.l10n.displayTitle,
       icon: Icons.smartphone_rounded,
       color: color,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocale.displayRefreshDesc.getString(context),
+            context.l10n.displayRefreshDesc,
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant,
             ),

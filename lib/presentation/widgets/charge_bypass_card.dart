@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/config/app_constants.dart';
 
 class ChargeBypassCard extends StatefulWidget {
@@ -118,8 +117,8 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
                       children: [
                         Text(
                           widget.hasHardwareBypass
-                              ? AppLocale.hwChargeBypassTitle.getString(context)
-                              : AppLocale.smartFastChargeTitle.getString(context),
+                              ? context.l10n.hwChargeBypassTitle
+                              : context.l10n.smartFastChargeTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -129,14 +128,14 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
                           duration: AppConstants.animationFast,
                           child: Text(
                             widget.isChanging
-                                ? AppLocale.applying.getString(context)
+                                ? context.l10n.applying
                                 : (widget.isEnabled
                                     ? (widget.hasHardwareBypass
-                                        ? AppLocale.hwBypassActive.getString(context)
-                                        : AppLocale.smartFastChargeActive.getString(context))
+                                        ? context.l10n.hwBypassActive
+                                        : context.l10n.smartFastChargeActive)
                                     : (widget.hasHardwareBypass
-                                        ? AppLocale.hwBypassInactive.getString(context)
-                                        : AppLocale.smartFastChargeInactive.getString(context))),
+                                        ? context.l10n.hwBypassInactive
+                                        : context.l10n.smartFastChargeInactive)),
                             key: ValueKey(
                                 '${widget.isEnabled}-${widget.isChanging}-${widget.hasHardwareBypass}'),
                             style: theme.textTheme.bodySmall?.copyWith(
@@ -178,8 +177,8 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
               const SizedBox(height: AppConstants.spacing12),
               Text(
                 widget.hasHardwareBypass
-                    ? AppLocale.hwChargeBypassDesc.getString(context)
-                    : AppLocale.smartFastChargeDesc.getString(context),
+                    ? context.l10n.hwChargeBypassDesc
+                    : context.l10n.smartFastChargeDesc,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
                 ),
@@ -220,8 +219,8 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
                         const SizedBox(width: 4),
                         Text(
                           widget.batteryTempC != null
-                              ? '${AppLocale.batteryTemp.getString(context)}: ${widget.batteryTempC}°C'
-                              : '${AppLocale.batteryTemp.getString(context)}: --',
+                              ? '${context.l10n.batteryTemp}: ${widget.batteryTempC}°C'
+                              : '${context.l10n.batteryTemp}: --',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: cs.onSurface,
                             fontWeight: FontWeight.w600,
@@ -251,7 +250,7 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${AppLocale.safetyGuardLimit.getString(context)}: 48°C',
+                          '${context.l10n.safetyGuardLimit}: 48°C',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: cs.onSurface,
                             fontWeight: FontWeight.w600,

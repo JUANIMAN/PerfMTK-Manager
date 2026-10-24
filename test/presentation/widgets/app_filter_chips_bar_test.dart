@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
 import 'package:manager/presentation/widgets/app_profiles/app_filter_chips_bar.dart';
 
@@ -7,6 +8,9 @@ void main() {
   testWidgets('AppFilterChipsBar renders count badges correctly', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
         home: Scaffold(
           body: AppFilterChipsBar(
             selectedFilter: AppFilterType.all,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/freq_slider.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
@@ -55,7 +54,7 @@ class DevfreqCard extends StatelessWidget {
         children: [
           if (availableFreqs.isNotEmpty) ...[
             FreqSlider(
-              label: AppLocale.minFreqDram.getString(context),
+              label: context.l10n.minFreqDram,
               availableFreqs: availableFreqs,
               currentFreq: effectiveMin,
               color: color,
@@ -67,7 +66,7 @@ class DevfreqCard extends StatelessWidget {
             ),
             const SizedBox(height: AppConstants.spacing16),
             FreqSlider(
-              label: AppLocale.maxFreqDram.getString(context),
+              label: context.l10n.maxFreqDram,
               availableFreqs: availableFreqs,
               currentFreq: effectiveMax,
               color: color,
@@ -82,7 +81,7 @@ class DevfreqCard extends StatelessWidget {
             const SizedBox(height: AppConstants.spacing16),
           ],
           GovernorDropdown(
-            label: AppLocale.governor.getString(context),
+            label: context.l10n.governor,
             currentValue: dvfGovernor,
             governors: govs,
             color: color,
@@ -100,7 +99,7 @@ class DevfreqCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.dvfsrcTurboQosTitle.getString(context),
+                      context.l10n.dvfsrcTurboQosTitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -108,7 +107,7 @@ class DevfreqCard extends StatelessWidget {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.dvfsrcTurboQosSubtitle.getString(context),
+                      context.l10n.dvfsrcTurboQosSubtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: turboQosOn ? color : cs.onSurfaceVariant,
                       ),

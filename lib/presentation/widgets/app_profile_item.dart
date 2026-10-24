@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:manager/core/utils/app_icon_cache.dart';
 import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/profile_selection_sheet.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
 import 'package:manager/config/app_constants.dart';
@@ -173,7 +172,7 @@ class AppProfileItem extends StatelessWidget {
     final isConfigured = currentProfile != null;
     final label = isConfigured
         ? ProfileUtils.nameFor(context, currentProfile!)
-        : AppLocale.defaultProfile.getString(context);
+        : context.l10n.defaultProfile;
 
     final profileChip = Container(
       padding: const EdgeInsets.symmetric(

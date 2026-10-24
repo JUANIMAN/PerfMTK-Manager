@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/system_state.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 
 /// Card displaying hardware-verified battery health, degradation, cycle count, and BMS metrics.
 class BatteryHealthCard extends StatelessWidget {
@@ -91,7 +90,7 @@ class BatteryHealthCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.batteryHealthTitle.getString(context),
+                      context.l10n.batteryHealthTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -142,7 +141,7 @@ class BatteryHealthCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    AppLocale.batterySoh.getString(context),
+                    context.l10n.batterySoh,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: cs.onSurfaceVariant,
                       fontSize: 11,
@@ -178,7 +177,7 @@ class BatteryHealthCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _HealthMetricTile(
-                  label: AppLocale.batteryCycles.getString(context),
+                  label: context.l10n.batteryCycles,
                   value: cycles > 0 ? '$cycles' : 'N/A',
                   badge: cycleBadgeText,
                   icon: Icons.loop_rounded,
@@ -188,7 +187,7 @@ class BatteryHealthCard extends StatelessWidget {
               const SizedBox(width: AppConstants.spacing12),
               Expanded(
                 child: _HealthMetricTile(
-                  label: AppLocale.batteryActualCapacity.getString(context),
+                  label: context.l10n.batteryActualCapacity,
                   value: '$fullMah mAh',
                   badge: '${((fullMah / designMah) * 100).round()}%',
                   icon: Icons.battery_charging_full_rounded,
@@ -202,7 +201,7 @@ class BatteryHealthCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _HealthMetricTile(
-                  label: AppLocale.batteryDesignCapacity.getString(context),
+                  label: context.l10n.batteryDesignCapacity,
                   value: '$designMah mAh',
                   badge: 'Diseño',
                   icon: Icons.precision_manufacturing_rounded,
@@ -226,7 +225,7 @@ class BatteryHealthCard extends StatelessWidget {
 
           // ── Subtitle Info Note ───────────────────────────────────────
           Text(
-            AppLocale.batteryHealthDesc.getString(context),
+            context.l10n.batteryHealthDesc,
             style: theme.textTheme.bodySmall?.copyWith(
               color: cs.onSurfaceVariant.withValues(alpha: 0.8),
               fontSize: 11,

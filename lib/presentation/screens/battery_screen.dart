@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/system_state.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/providers/system_provider.dart';
 import 'package:manager/presentation/widgets/battery_care_card.dart';
@@ -175,7 +174,7 @@ class _BatteryScreenState extends ConsumerState<BatteryScreen> {
             const SizedBox(height: AppConstants.spacing16),
             FilledButton.tonal(
               onPressed: () => ref.read(systemStateProvider.notifier).refresh(),
-              child: Text(AppLocale.retry.getString(context)),
+              child: Text(context.l10n.retry),
             ),
           ],
         ),

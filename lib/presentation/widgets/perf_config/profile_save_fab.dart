@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/profile.dart';
 import 'package:manager/data/models/profile_config.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
 
 /// Floating Action Button with Revert and Save actions for hardware profile edits.
@@ -57,7 +56,7 @@ class ProfileSaveFab extends ConsumerWidget {
                       .read(profileEditorProvider(profile).notifier)
                       .revert(savedConfig);
                 },
-          tooltip: AppLocale.revertChanges.getString(context),
+          tooltip: context.l10n.revertChanges,
           child: const Icon(Icons.undo_rounded),
         ),
         const SizedBox(width: AppConstants.spacing8),
@@ -87,11 +86,9 @@ class ProfileSaveFab extends ConsumerWidget {
                       SnackBar(
                         content: Text(
                           ok
-                              ? AppLocale.configSaved.getString(context)
+                              ? context.l10n.configSaved
                               : (saveError ??
-                                    AppLocale.configSaveError.getString(
-                                      context,
-                                    )),
+                                    context.l10n.configSaveError),
                         ),
                         behavior: SnackBarBehavior.floating,
                         backgroundColor: ok ? null : theme.colorScheme.error,
@@ -111,8 +108,8 @@ class ProfileSaveFab extends ConsumerWidget {
               : const Icon(Icons.save_rounded, size: 20),
           label: Text(
             isSaving
-                ? AppLocale.savingConfig.getString(context)
-                : AppLocale.saveChanges.getString(context),
+                ? context.l10n.savingConfig
+                : context.l10n.saveChanges,
             style: theme.textTheme.labelLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w700,

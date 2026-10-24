@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/config/app_constants.dart';
 
 class ThermalSwitch extends StatefulWidget {
@@ -120,7 +119,7 @@ class _ThermalSwitchState extends State<ThermalSwitch>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocale.thermalControl.getString(context),
+                          context.l10n.thermalControl,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

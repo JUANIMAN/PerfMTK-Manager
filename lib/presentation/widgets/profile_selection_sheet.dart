@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/presentation/widgets/app_profile_item.dart';
 import 'package:manager/presentation/widgets/profile_utils.dart';
@@ -257,7 +256,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                           ),
                         ),
                         child: Text(
-                          AppLocale.systemAppTag.getString(context),
+                          context.l10n.systemAppTag,
                           style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
@@ -341,7 +340,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                       ),
                     ),
                     child: Text(
-                      AppLocale.done.getString(context),
+                      context.l10n.done,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -410,7 +409,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.appOverridesTitle.getString(context),
+                      context.l10n.appOverridesTitle,
                       style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -419,7 +418,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      AppLocale.appOverridesSubtitle.getString(context),
+                      context.l10n.appOverridesSubtitle,
                       style: TextStyle(
                         fontSize: 11,
                         color: cs.onSurfaceVariant.withValues(alpha: 0.75),
@@ -445,8 +444,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                 ),
                 child: Text(
                   hasActive
-                      ? '$count ${AppLocale.appOverridesActiveCount.getString(context)}'
-                      : AppLocale.appOverridesInherited.getString(context),
+                      ? '$count ${context.l10n.appOverridesActiveCount}'
+                      : context.l10n.appOverridesInherited,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -515,7 +514,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    AppLocale.appOverridesNotice.getString(context),
+                    context.l10n.appOverridesNotice,
                     style: TextStyle(
                       fontSize: 11.5,
                       height: 1.35,
@@ -528,7 +527,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                   GestureDetector(
                     onTap: _clearDirectives,
                     child: Text(
-                      AppLocale.appOverridesReset.getString(context),
+                      context.l10n.appOverridesReset,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -548,7 +547,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
               Icon(Icons.flash_on_rounded, size: 14, color: cs.primary),
               const SizedBox(width: 6),
               Text(
-                AppLocale.perfAndTouchSection.getString(context).toUpperCase(),
+                context.l10n.perfAndTouchSection.toUpperCase(),
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
@@ -563,8 +562,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             context: context,
             icon: Icons.sports_esports_rounded,
             iconColor: const Color(0xFFE040FB),
-            title: AppLocale.gbeTitle.getString(context),
-            subtitle: AppLocale.gbeDirectiveSubtitle.getString(context),
+            title: context.l10n.gbeTitle,
+            subtitle: context.l10n.gbeDirectiveSubtitle,
             value: _gbe,
             onChanged: (v) {
               setState(() => _gbe = v);
@@ -576,8 +575,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             context: context,
             icon: Icons.touch_app_rounded,
             iconColor: const Color(0xFF00E5FF),
-            title: AppLocale.touchBoosterTitle.getString(context),
-            subtitle: AppLocale.touchBoosterSubtitle.getString(context),
+            title: context.l10n.touchBoosterTitle,
+            subtitle: context.l10n.touchBoosterSubtitle,
             value: _touchGameMode,
             onChanged: (v) {
               setState(() => _touchGameMode = v);
@@ -589,8 +588,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             context: context,
             icon: Icons.rocket_launch_rounded,
             iconColor: const Color(0xFFFF6D00),
-            title: AppLocale.renderBoost.getString(context),
-            subtitle: AppLocale.renderBoostDesc.getString(context),
+            title: context.l10n.renderBoost,
+            subtitle: context.l10n.renderBoostDesc,
             value: _renderBoost,
             onChanged: (v) {
               setState(() => _renderBoost = v);
@@ -611,7 +610,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
               Icon(Icons.thermostat_rounded, size: 14, color: const Color(0xFFFF5252)),
               const SizedBox(width: 6),
               Text(
-                AppLocale.thermalChargeSection.getString(context).toUpperCase(),
+                context.l10n.thermalChargeSection.toUpperCase(),
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
@@ -626,8 +625,8 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             context: context,
             icon: Icons.local_fire_department_rounded,
             iconColor: const Color(0xFFFF5252),
-            title: AppLocale.thermalBypassTitle.getString(context),
-            subtitle: AppLocale.thermalBypassSubtitle.getString(context),
+            title: context.l10n.thermalBypassTitle,
+            subtitle: context.l10n.thermalBypassSubtitle,
             value: _disableThermal,
             onChanged: (v) {
               setState(() => _disableThermal = v);
@@ -640,11 +639,11 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             icon: Icons.bolt_rounded,
             iconColor: const Color(0xFFFFB300),
             title: widget.hasHardwareBypass
-                ? AppLocale.hwChargeBypassTitle.getString(context)
-                : AppLocale.smartFastChargeTitle.getString(context),
+                ? context.l10n.hwChargeBypassTitle
+                : context.l10n.smartFastChargeTitle,
             subtitle: widget.hasHardwareBypass
-                ? AppLocale.hwBypassDirectiveSubtitle.getString(context)
-                : AppLocale.smartFastChargeDirectiveSubtitle.getString(context),
+                ? context.l10n.hwBypassDirectiveSubtitle
+                : context.l10n.smartFastChargeDirectiveSubtitle,
             value: _chargeBypass,
             onChanged: (v) {
               setState(() => _chargeBypass = v);
@@ -661,7 +660,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
               ),
               const SizedBox(width: 6),
               Text(
-                AppLocale.gentleCharge.getString(context).toUpperCase(),
+                context.l10n.gentleCharge.toUpperCase(),
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
@@ -701,7 +700,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
               ),
               const SizedBox(width: 6),
               Text(
-                AppLocale.fpsgoHeader.getString(context),
+                context.l10n.fpsgoHeader,
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
@@ -1027,28 +1026,28 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     return [
       _SheetProfileData(
         profileType: null,
-        name: AppLocale.defaultProfile.getString(context),
-        description: AppLocale.defaultProfileDesc.getString(context),
+        name: context.l10n.defaultProfile,
+        description: context.l10n.defaultProfileDesc,
       ),
       _SheetProfileData(
         profileType: ProfileType.performance,
         name: ProfileUtils.nameFor(context, ProfileType.performance),
-        description: AppLocale.performanceDesc.getString(context),
+        description: context.l10n.performanceDesc,
       ),
       _SheetProfileData(
         profileType: ProfileType.balanced,
         name: ProfileUtils.nameFor(context, ProfileType.balanced),
-        description: AppLocale.balancedDesc.getString(context),
+        description: context.l10n.balancedDesc,
       ),
       _SheetProfileData(
         profileType: ProfileType.powersave,
         name: ProfileUtils.nameFor(context, ProfileType.powersave),
-        description: AppLocale.powersaveDesc.getString(context),
+        description: context.l10n.powersaveDesc,
       ),
       _SheetProfileData(
         profileType: ProfileType.powersavePlus,
         name: ProfileUtils.nameFor(context, ProfileType.powersavePlus),
-        description: AppLocale.powersavePlusDesc.getString(context),
+        description: context.l10n.powersavePlusDesc,
       ),
     ];
   }

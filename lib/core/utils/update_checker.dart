@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:manager/core/utils/changelog_list.dart';
 import 'package:manager/core/utils/version_utils.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateChecker {
@@ -111,20 +110,18 @@ class UpdateChecker {
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text(AppLocale.updateMess.getString(dialogContext)),
+          title: Text(dialogContext.l10n.updateMess),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  currentLanguage.startsWith('en')
-                      ? 'Version $newVersion available for download'
-                      : 'Versión $newVersion disponible para descargar',
+                  dialogContext.l10n.updateVersionAvailable(newVersion),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  AppLocale.updateNew.getString(dialogContext),
+                  dialogContext.l10n.updateNew,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 _processChangelog(changelog),
@@ -134,7 +131,7 @@ class UpdateChecker {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(AppLocale.updateCancel.getString(dialogContext)),
+              child: Text(dialogContext.l10n.updateCancel),
             ),
             TextButton(
               onPressed: () {
@@ -144,7 +141,7 @@ class UpdateChecker {
                   mode: LaunchMode.externalApplication,
                 );
               },
-              child: Text(AppLocale.updateDown.getString(dialogContext)),
+              child: Text(dialogContext.l10n.updateDown),
             ),
           ],
         );

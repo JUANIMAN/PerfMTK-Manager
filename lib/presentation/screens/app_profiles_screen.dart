@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/core/utils/app_icon_cache.dart';
 import 'package:manager/data/models/app_profile.dart';
 import 'package:manager/data/models/profile.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/providers/app_profile_provider.dart';
 import 'package:manager/presentation/providers/perf_config_provider.dart';
 import 'package:manager/presentation/widgets/app_profile_item.dart';
@@ -169,7 +168,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    AppLocale.appProfilesDescription.getString(context),
+                    context.l10n.appProfilesDescription,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cs.onSurfaceVariant,
                     ),
@@ -388,8 +387,8 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
           const SizedBox(height: AppConstants.spacing16),
           Text(
             _searchQuery.isNotEmpty
-                ? AppLocale.noSearchResults.getString(context)
-                : AppLocale.noAppsFound.getString(context),
+                ? context.l10n.noSearchResults
+                : context.l10n.noAppsFound,
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ],
@@ -418,13 +417,13 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
             ),
             const SizedBox(height: AppConstants.spacing16),
             Text(
-              AppLocale.errorLoadingApps.getString(context),
+              context.l10n.errorLoadingApps,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppConstants.spacing16),
             FilledButton.icon(
               icon: const Icon(Icons.refresh_rounded),
-              label: Text(AppLocale.retry.getString(context)),
+              label: Text(context.l10n.retry),
               onPressed: () => ref.refresh(appProfileProvider),
             ),
           ],
@@ -471,7 +470,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: Text(AppLocale.configSaveError.getString(context)),
+          content: Text(context.l10n.configSaveError),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -483,16 +482,11 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
       SnackBar(
         content: Text(
           newProfile == null
-              ? AppLocale.profileReset
-                    .getString(context)
-                    .replaceAll('{app}', appName)
-              : AppLocale.profileSet
-                    .getString(context)
-                    .replaceAll('{app}', appName)
-                    .replaceAll(
-                      '{profile}',
-                      ProfileUtils.nameFor(context, newProfile),
-                    ),
+              ? context.l10n.profileReset(appName)
+              : context.l10n.profileSet(
+                  appName,
+                  ProfileUtils.nameFor(context, newProfile),
+                ),
         ),
         duration: const Duration(seconds: 3),
       ),

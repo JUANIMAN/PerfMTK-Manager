@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
 
 /// Thermal & Charging bypass configuration card
@@ -49,8 +48,8 @@ class ChargeThermalCard extends StatelessWidget {
 
     return SectionCard(
       title: hasHardwareBypass
-          ? AppLocale.thermalChargeTitle.getString(context)
-          : AppLocale.thermalFastChargeTitle.getString(context),
+          ? context.l10n.thermalChargeTitle
+          : context.l10n.thermalFastChargeTitle,
       icon: Icons.bolt_rounded,
       color: color,
       child: Column(
@@ -66,8 +65,8 @@ class ChargeThermalCard extends StatelessWidget {
                     children: [
                       Text(
                         hasHardwareBypass
-                            ? AppLocale.hwChargeBypassTitle.getString(context)
-                            : AppLocale.smartFastChargeTitle.getString(context),
+                            ? context.l10n.hwChargeBypassTitle
+                            : context.l10n.smartFastChargeTitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: cs.onSurface,
@@ -77,13 +76,11 @@ class ChargeThermalCard extends StatelessWidget {
                       Text(
                         hasHardwareBypass
                             ? (bypassChargeThrottle
-                                ? AppLocale.hwBypassActive.getString(context)
-                                : AppLocale.hwBypassInactive.getString(context))
+                                ? context.l10n.hwBypassActive
+                                : context.l10n.hwBypassInactive)
                             : (bypassChargeThrottle
-                                ? AppLocale.smartFastChargeActive
-                                    .getString(context)
-                                : AppLocale.smartFastChargeInactive
-                                    .getString(context)),
+                                ? context.l10n.smartFastChargeActive
+                                : context.l10n.smartFastChargeInactive),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color:
                               bypassChargeThrottle ? color : cs.onSurfaceVariant,
@@ -92,8 +89,8 @@ class ChargeThermalCard extends StatelessWidget {
                       const SizedBox(height: AppConstants.spacing4),
                       Text(
                         hasHardwareBypass
-                            ? AppLocale.hwChargeBypassDesc.getString(context)
-                            : AppLocale.smartFastChargeDesc.getString(context),
+                            ? context.l10n.hwChargeBypassDesc
+                            : context.l10n.smartFastChargeDesc,
                         style: TextStyle(
                           fontSize: 10.5,
                           height: 1.3,
@@ -126,7 +123,7 @@ class ChargeThermalCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    AppLocale.bypassMinBatt.getString(context),
+                    context.l10n.bypassMinBatt,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -185,7 +182,7 @@ class ChargeThermalCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.unlockFpsThermal.getString(context),
+                      context.l10n.unlockFpsThermal,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -194,8 +191,8 @@ class ChargeThermalCard extends StatelessWidget {
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
                       unlockFpsThermal
-                          ? AppLocale.unlockFpsActiveDesc.getString(context)
-                          : AppLocale.unlockFpsInactiveDesc.getString(context),
+                          ? context.l10n.unlockFpsActiveDesc
+                          : context.l10n.unlockFpsInactiveDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: unlockFpsThermal ? color : cs.onSurfaceVariant,
                       ),
@@ -232,7 +229,7 @@ class ChargeThermalCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.disableThermalServices.getString(context),
+                      context.l10n.disableThermalServices,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
@@ -240,7 +237,7 @@ class ChargeThermalCard extends StatelessWidget {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.disableThermalServicesDesc.getString(context),
+                      context.l10n.disableThermalServicesDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: disableThermalServices
                             ? color
@@ -276,7 +273,7 @@ class ChargeThermalCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocale.gentleCharge.getString(context),
+                context.l10n.gentleCharge,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: cs.onSurface,
@@ -284,7 +281,7 @@ class ChargeThermalCard extends StatelessWidget {
               ),
               const SizedBox(height: AppConstants.spacing4),
               Text(
-                AppLocale.gentleChargeDesc.getString(context),
+                context.l10n.gentleChargeDesc,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
                 ),
@@ -294,7 +291,7 @@ class ChargeThermalCard extends StatelessWidget {
                 children: gentleOptions.map((ma) {
                   final selected = gentleChargeMa == ma;
                   final label = ma == 0
-                      ? AppLocale.gentleChargeDisabled.getString(context)
+                      ? context.l10n.gentleChargeDisabled
                       : '${ma}mA';
                   return Expanded(
                     child: Padding(
@@ -364,7 +361,7 @@ class ChargeThermalCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocale.batterySafetyGuard.getString(context),
+                context.l10n.batterySafetyGuard,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,

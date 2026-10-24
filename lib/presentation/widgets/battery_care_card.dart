@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 
 class BatteryCareCard extends StatefulWidget {
   final bool isEnabled;
@@ -115,7 +114,7 @@ class _BatteryCareCardState extends State<BatteryCareCard>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocale.batteryCareTitle.getString(context),
+                          context.l10n.batteryCareTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -160,7 +159,7 @@ class _BatteryCareCardState extends State<BatteryCareCard>
               // ── Description ───────────────────────────────────────────────
               const SizedBox(height: AppConstants.spacing12),
               Text(
-                AppLocale.batteryCareDesc.getString(context),
+                context.l10n.batteryCareDesc,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant,
                 ),
@@ -182,7 +181,7 @@ class _BatteryCareCardState extends State<BatteryCareCard>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            AppLocale.batteryCareLimit.getString(context),
+                            context.l10n.batteryCareLimit,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -277,14 +276,14 @@ class _BatteryCareCardState extends State<BatteryCareCard>
 
   String _getStatusSubtitle(BuildContext context) {
     if (!widget.isEnabled) {
-      return AppLocale.batteryCareNormal.getString(context);
+      return context.l10n.batteryCareNormal;
     }
     if (widget.isSuspended) {
       final capStr = widget.currentCapacity != null
           ? ' (${widget.currentCapacity}%)'
           : '';
-      return '${AppLocale.batteryCareSuspended.getString(context)}$capStr';
+      return '${context.l10n.batteryCareSuspended}$capStr';
     }
-    return '${AppLocale.batteryCareLimit.getString(context)}: ${widget.limitPct}%';
+    return '${context.l10n.batteryCareLimit}: ${widget.limitPct}%';
   }
 }

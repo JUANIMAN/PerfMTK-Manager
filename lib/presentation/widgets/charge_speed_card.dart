@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 
 class ChargeSpeedCard extends StatefulWidget {
   final int currentLimitMa;
@@ -119,7 +118,7 @@ class _ChargeSpeedCardState extends State<ChargeSpeedCard> {
                     Row(
                       children: [
                         Text(
-                          AppLocale.chargeSpeedRegulator.getString(context),
+                          context.l10n.chargeSpeedRegulator,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -139,7 +138,7 @@ class _ChargeSpeedCardState extends State<ChargeSpeedCard> {
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.chargeSpeedDesc.getString(context),
+                      context.l10n.chargeSpeedDesc,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                         height: 1.3,
@@ -186,7 +185,7 @@ class _ChargeSpeedCardState extends State<ChargeSpeedCard> {
                     const SizedBox(width: AppConstants.spacing8),
                     Text(
                       isUnlimited
-                          ? AppLocale.unlimitedTurbo.getString(context)
+                          ? context.l10n.unlimitedTurbo
                           : '$_activeLimitMa mA  (~${(_activeLimitMa * 4.0 / 1000).toStringAsFixed(1)}W)',
                       style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w700,
@@ -272,7 +271,7 @@ class _ChargeSpeedCardState extends State<ChargeSpeedCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    AppLocale.customLimit.getString(context),
+                    context.l10n.customLimit,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: cs.onSurfaceVariant,
                       fontWeight: FontWeight.w600,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 
 /// Search input field for filtering installed applications.
 class AppSearchBar extends StatelessWidget {
@@ -29,7 +28,7 @@ class AppSearchBar extends StatelessWidget {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
-        hintText: AppLocale.searchApps.getString(context),
+        hintText: context.l10n.searchApps,
         hintStyle: theme.textTheme.bodyMedium?.copyWith(
           color: cs.onSurfaceVariant.withValues(alpha: 0.55),
           fontSize: 14,

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/data/models/device_config.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/presentation/widgets/perf_config/freq_slider.dart';
 import 'package:manager/presentation/widgets/perf_config/governor_dropdown.dart';
 import 'package:manager/presentation/widgets/perf_config/section_card.dart';
@@ -86,7 +85,7 @@ class CpuPolicyCard extends StatelessWidget {
         children: [
           // ── Frequency sliders ────────────────────────────────────────────
           FreqSlider(
-            label: AppLocale.minFreq.getString(context),
+            label: context.l10n.minFreq,
             availableFreqs: policy.freqs,
             currentFreq: currentMinFreq,
             color: color,
@@ -94,7 +93,7 @@ class CpuPolicyCard extends StatelessWidget {
           ),
           const SizedBox(height: AppConstants.spacing16),
           FreqSlider(
-            label: AppLocale.maxFreq.getString(context),
+            label: context.l10n.maxFreq,
             availableFreqs: policy.freqs,
             currentFreq: currentMaxFreq,
             color: color,
@@ -105,7 +104,7 @@ class CpuPolicyCard extends StatelessWidget {
           // ── Governor ─────────────────────────────────────────────────────
           if (policy.governors.isNotEmpty)
             GovernorDropdown(
-              label: AppLocale.governor.getString(context),
+              label: context.l10n.governor,
               currentValue: currentGovernor,
               governors: policy.governors,
               color: color,
@@ -116,7 +115,7 @@ class CpuPolicyCard extends StatelessWidget {
 
           // ── Online cores stepper ─────────────────────────────────────────
           _CoresStepper(
-            label: AppLocale.onlineCores.getString(context),
+            label: context.l10n.onlineCores,
             totalCores: totalCores,
             currentOnline: onlineCores,
             color: color,

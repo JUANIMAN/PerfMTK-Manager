@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_localization/flutter_localization.dart';
 import 'package:manager/presentation/widgets/about_dialog.dart';
 import 'package:manager/config/theme_provider.dart';
-import 'package:manager/localization/app_locales.dart';
+import 'package:manager/l10n/l10n.dart';
 import 'package:manager/config/app_constants.dart';
 import 'package:manager/presentation/widgets/language_selection_sheet.dart';
 import 'package:manager/presentation/widgets/theme_selection_sheet.dart';
@@ -35,12 +34,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
-    final FlutterLocalization localization = FlutterLocalization.instance;
-
+  
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          AppLocale.settings.getString(context),
+          context.l10n.settings,
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -48,7 +46,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             HapticFeedback.lightImpact();
             Navigator.of(context).pop();
           },
-          tooltip: AppLocale.back.getString(context),
+          tooltip: context.l10n.back,
         ),
       ),
       body: buildWithEntryAnimation(
@@ -61,7 +59,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               children: [
                 const SizedBox(height: AppConstants.spacing24),
                 SectionHeader(
-                  title: AppLocale.appearance.getString(context),
+                  title: context.l10n.appearance,
                   icon: Icons.palette_outlined,
                 ),
                 const SizedBox(height: AppConstants.spacing12),
@@ -73,19 +71,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 ),
                 const SizedBox(height: AppConstants.spacing24),
                 SectionHeader(
-                  title: AppLocale.language.getString(context),
+                  title: context.l10n.language,
                   icon: Icons.language_outlined,
                 ),
                 const SizedBox(height: AppConstants.spacing12),
                 _buildSettingsCard(
                   context,
                   children: [
-                    _buildLanguageSelector(context, localization),
+                    _buildLanguageSelector(context),
                   ],
                 ),
                 const SizedBox(height: AppConstants.spacing24),
                 SectionHeader(
-                  title: AppLocale.backupManager.getString(context),
+                  title: context.l10n.backupManager,
                   icon: Icons.security_rounded,
                 ),
                 const SizedBox(height: AppConstants.spacing12),
@@ -97,7 +95,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 ),
                 const SizedBox(height: AppConstants.spacing24),
                 SectionHeader(
-                  title: AppLocale.about.getString(context),
+                  title: context.l10n.about,
                   icon: Icons.info_outline,
                 ),
                 const SizedBox(height: AppConstants.spacing12),
@@ -163,7 +161,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.themeMode.getString(context),
+                      context.l10n.themeMode,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -189,13 +187,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
-  Widget _buildLanguageSelector(
-      BuildContext context, FlutterLocalization localization) {
+  Widget _buildLanguageSelector(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-        onTap: () => _showLanguageDialog(context, localization),
+        onTap: () => _showLanguageDialog(context),
         child: Padding(
           padding: AppConstants.paddingNormal,
           child: Row(
@@ -210,15 +207,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.language.getString(context),
+                      context.l10n.language,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      _getLanguageText(
-                          context, localization.currentLocale as Locale),
+                      _getLanguageText(context, ref.watch(localeProvider)),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -262,14 +258,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.backupManager.getString(context),
+                      context.l10n.backupManager,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: AppConstants.spacing4),
                     Text(
-                      AppLocale.backupTitle.getString(context),
+                      context.l10n.backupTitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -314,7 +310,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocale.about.getString(context),
+                      context.l10n.about,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -343,11 +339,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   String _getThemeModeText(BuildContext context, ThemeMode mode) {
     switch (mode) {
       case ThemeMode.system:
-        return AppLocale.themeSystem.getString(context);
+        return context.l10n.themeSystem;
       case ThemeMode.light:
-        return AppLocale.themeLight.getString(context);
+        return context.l10n.themeLight;
       case ThemeMode.dark:
-        return AppLocale.themeDark.getString(context);
+        return context.l10n.themeDark;
     }
   }
 
@@ -379,8 +375,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
-  void _showLanguageDialog(
-      BuildContext context, FlutterLocalization localization) {
+  void _showLanguageDialog(BuildContext context) {
     HapticFeedback.mediumImpact();
 
     showModalBottomSheet(
@@ -388,9 +383,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => LanguageSelectionSheet(
-        currentLanguage: localization.currentLocale?.languageCode ?? 'en',
+        currentLanguage: ref.read(localeProvider).languageCode,
         onLanguageSelected: (languageCode) {
-          localization.translate(languageCode);
+          ref.read(localeProvider.notifier).setLanguage(languageCode);
           Navigator.of(context).pop();
         },
       ),

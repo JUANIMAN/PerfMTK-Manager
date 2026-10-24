@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/system_state.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/perf_config/presentation/perf_config_provider.dart';
@@ -211,23 +211,23 @@ class LiveBatteryHeroCard extends StatelessWidget {
 
     Color primaryColor;
     if (isBypassActive) {
-      primaryColor = const Color(0xFFFF9100); // Vivid orange
+      primaryColor = AppPalette.vividOrange; // Vivid orange
     } else if (isCareSuspended) {
-      primaryColor = const Color(0xFF00E676); // Green (protected)
+      primaryColor = AppPalette.neonGreen; // Green (protected)
     } else if (isCharging) {
-      primaryColor = const Color(0xFF00E676); // Charging green
+      primaryColor = AppPalette.neonGreen; // Charging green
     } else {
-      primaryColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
+      primaryColor = context.perfColors.accent;
     }
 
     final temp = state.batteryTempC ?? 0;
     Color tempColor;
     if (temp >= 42) {
-      tempColor = const Color(0xFFFF5252);
+      tempColor = AppPalette.neonRed;
     } else if (temp >= 35) {
-      tempColor = const Color(0xFFFFAB00);
+      tempColor = AppPalette.amberAccent;
     } else {
-      tempColor = const Color(0xFF00E676);
+      tempColor = AppPalette.neonGreen;
     }
 
     final currentMa = state.chargeCurrentNowMa ?? 0;
@@ -349,7 +349,7 @@ class LiveBatteryHeroCard extends StatelessWidget {
                   label: isCharging ? 'Carga' : 'Consumo',
                   value: '${currentMa.abs()} mA',
                   icon: isCharging ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                  iconColor: isCharging ? const Color(0xFF00E676) : const Color(0xFF38BDF8),
+                  iconColor: isCharging ? AppPalette.neonGreen : AppPalette.sky400,
                 ),
               ),
               const SizedBox(width: AppConstants.spacing12),
@@ -358,7 +358,7 @@ class LiveBatteryHeroCard extends StatelessWidget {
                   label: 'Voltaje',
                   value: '${(voltageMv / 1000.0).toStringAsFixed(2)} V',
                   icon: Icons.electric_bolt_rounded,
-                  iconColor: const Color(0xFFFFB300),
+                  iconColor: AppPalette.neonAmber,
                 ),
               ),
             ],
@@ -371,7 +371,7 @@ class LiveBatteryHeroCard extends StatelessWidget {
                   label: 'Potencia',
                   value: '${powerW.toStringAsFixed(2)} W',
                   icon: Icons.speed_rounded,
-                  iconColor: const Color(0xFF00E5FF),
+                  iconColor: AppPalette.neonCyan,
                 ),
               ),
               const SizedBox(width: AppConstants.spacing12),

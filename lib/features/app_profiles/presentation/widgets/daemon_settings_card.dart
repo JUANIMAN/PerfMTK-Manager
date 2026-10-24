@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/app_profiles/presentation/app_profile_provider.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';

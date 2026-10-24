@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manager/l10n/l10n.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 class ChargeBypassCard extends StatefulWidget {
   final bool isEnabled;
@@ -58,7 +58,7 @@ class _ChargeBypassCardState extends State<ChargeBypassCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    const activeColor = Color(0xFFFF9100);
+    const activeColor = AppPalette.vividOrange;
 
     return AnimatedBuilder(
       animation: _t,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/perf_config/data/device_config.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/perf_config/presentation/widgets/freq_slider.dart';
@@ -10,14 +10,14 @@ import 'package:manager/features/perf_config/presentation/widgets/section_card.d
 /// Returns a distinct accent colour for each CPU cluster.
 Color _clusterColor(int policyIndex, {bool isDark = true}) {
   const darkColors = [
-    Color(0xFF38BDF8), // Little — sky blue
-    Color(0xFF60A5FA), // Mid — royal blue
-    Color(0xFF818CF8), // Prime — tech indigo
+    AppPalette.sky400, // Little — sky blue
+    AppPalette.blue400, // Mid — royal blue
+    AppPalette.indigo400, // Prime — tech indigo
   ];
   const lightColors = [
-    Color(0xFF0284C7), // Little — sky blue 600
-    Color(0xFF2563EB), // Mid — royal blue 600
-    Color(0xFF4F46E5), // Prime — indigo 600
+    AppPalette.sky600, // Little — sky blue 600
+    AppPalette.blue600, // Mid — royal blue 600
+    AppPalette.indigo600, // Prime — indigo 600
   ];
   final colors = isDark ? darkColors : lightColors;
   return colors[policyIndex.clamp(0, colors.length - 1)];

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 /// Collapsible section card used throughout the PerfConfig screen.
 ///

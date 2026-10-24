@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/l10n/l10n.dart';
 
 class ChargeSpeedCard extends StatefulWidget {
@@ -61,7 +61,7 @@ class _ChargeSpeedCardState extends State<ChargeSpeedCard> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    const speedColor = Color(0xFF00E5FF); // Electric cyan
+    const speedColor = AppPalette.neonCyan; // Electric cyan
 
     final isUnlimited = _activeLimitMa <= 0;
     final isCustom = !const [0, 3000, 2000, 1000].contains(_activeLimitMa);

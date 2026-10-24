@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:manager/l10n/l10n.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 class ThermalSwitch extends StatefulWidget {
   final bool isEnabled;
@@ -56,8 +56,8 @@ class _ThermalSwitchState extends State<ThermalSwitch>
     final isDark = theme.brightness == Brightness.dark;
 
     final activeColor = widget.isEnabled
-        ? const Color(0xFF00E676) // Green (Protection active)
-        : const Color(0xFFFF9100); // Amber (Throttling bypassed)
+        ? AppPalette.neonGreen // Green (Protection active)
+        : AppPalette.vividOrange; // Amber (Throttling bypassed)
 
     return AnimatedBuilder(
       animation: _t,
@@ -69,7 +69,7 @@ class _ThermalSwitchState extends State<ThermalSwitch>
             border: Border.all(
               color: widget.isEnabled
                   ? activeColor.withValues(alpha: 0.35)
-                  : const Color(0xFFFF9100).withValues(alpha: 0.35),
+                  : AppPalette.vividOrange.withValues(alpha: 0.35),
               width: 1.0,
             ),
           ),

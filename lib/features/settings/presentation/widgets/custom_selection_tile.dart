@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 class SelectionTile extends StatelessWidget {
   final IconData? icon;

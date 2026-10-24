@@ -12,7 +12,7 @@ import 'package:manager/features/profiles/presentation/profiles_screen.dart';
 import 'package:manager/features/settings/presentation/settings_screen.dart';
 import 'package:manager/features/backup/presentation/backup_screen.dart';
 import 'package:manager/core/utils/update_checker.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/app/shell/fade_through_tab_body.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -102,7 +102,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
     final systemState = ref.watch(systemStateProvider).value;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final engineColor = isDark ? const Color(0xFF00E676) : const Color(0xFF0A8754);
+    final engineColor = context.perfColors.engine;
 
     return Scaffold(
       extendBody: true,
@@ -234,7 +234,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF161618).withValues(alpha: 0.65)
+                    ? AppPalette.ink900.withValues(alpha: 0.65)
                     : Colors.white.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
@@ -310,7 +310,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
       ),
     };
 
-    final accentColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
+    final accentColor = context.perfColors.accent;
 
     return InkWell(
       onTap: () {
@@ -363,7 +363,7 @@ class _AppNavigatorState extends ConsumerState<AppNavigator>
                     ? accentColor
                     : (isDark
                         ? cs.onSurfaceVariant.withValues(alpha: 0.60)
-                        : const Color(0xFF334155).withValues(alpha: 0.75)), // Slate 700
+                        : AppPalette.slate700.withValues(alpha: 0.75)), // Slate 700
                 size: isSelected ? 20 : 21,
               ),
               if (isSelected) ...[

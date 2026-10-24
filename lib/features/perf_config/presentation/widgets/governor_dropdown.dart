@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 /// Dropdown for selecting a kernel governor from a list.
 class GovernorDropdown extends StatelessWidget {

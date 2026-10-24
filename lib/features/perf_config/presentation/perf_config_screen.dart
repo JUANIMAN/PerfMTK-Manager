@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/features/perf_config/presentation/widgets/profile_tab_bar.dart';
 import 'package:manager/features/perf_config/presentation/widgets/profile_tab_body.dart';

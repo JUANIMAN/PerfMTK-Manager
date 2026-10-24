@@ -7,7 +7,7 @@ import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/app_profiles/presentation/widgets/profile_selection_sheet.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 class AppProfileItem extends StatelessWidget {
   final AppInfo app;
@@ -241,10 +241,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFFD500F9).withValues(alpha: 0.16),
+              color: AppPalette.purple.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFFD500F9).withValues(alpha: 0.50),
+                color: AppPalette.purple.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -254,13 +254,13 @@ class AppProfileItem extends StatelessWidget {
                 Icon(
                   Icons.sports_esports_rounded,
                   size: 11,
-                  color: Color(0xFFE040FB),
+                  color: AppPalette.neonPurple,
                 ),
                 SizedBox(width: 3.5),
                 Text(
                   'GBE',
                   style: TextStyle(
-                    color: Color(0xFFE040FB),
+                    color: AppPalette.neonPurple,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.4,
@@ -273,10 +273,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFB300).withValues(alpha: 0.16),
+              color: AppPalette.neonAmber.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFFFFB300).withValues(alpha: 0.50),
+                color: AppPalette.neonAmber.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -286,13 +286,13 @@ class AppProfileItem extends StatelessWidget {
                 const Icon(
                   Icons.bolt_rounded,
                   size: 12,
-                  color: Color(0xFFFFC107),
+                  color: AppPalette.amber,
                 ),
                 const SizedBox(width: 2.5),
                 Text(
                   hasHardwareBypass ? 'HW Bypass' : 'Fast Chg',
                   style: const TextStyle(
-                    color: Color(0xFFFFC107),
+                    color: AppPalette.amber,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,
@@ -305,10 +305,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFFFF5252).withValues(alpha: 0.16),
+              color: AppPalette.neonRed.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFFFF5252).withValues(alpha: 0.50),
+                color: AppPalette.neonRed.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -318,13 +318,13 @@ class AppProfileItem extends StatelessWidget {
                 Icon(
                   Icons.local_fire_department_rounded,
                   size: 12,
-                  color: Color(0xFFFF5252),
+                  color: AppPalette.neonRed,
                 ),
                 SizedBox(width: 2.5),
                 Text(
                   'Thermal OFF',
                   style: TextStyle(
-                    color: Color(0xFFFF5252),
+                    color: AppPalette.neonRed,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,
@@ -337,10 +337,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFF00E676).withValues(alpha: 0.16),
+              color: AppPalette.neonGreen.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFF00E676).withValues(alpha: 0.50),
+                color: AppPalette.neonGreen.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -350,13 +350,13 @@ class AppProfileItem extends StatelessWidget {
                 const Icon(
                   Icons.speed_rounded,
                   size: 12,
-                  color: Color(0xFF00E676),
+                  color: AppPalette.neonGreen,
                 ),
                 const SizedBox(width: 2.5),
                 Text(
                   '${currentDirectives!.fps} FPS',
                   style: const TextStyle(
-                    color: Color(0xFF00E676),
+                    color: AppPalette.neonGreen,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,
@@ -369,10 +369,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFF00E5FF).withValues(alpha: 0.16),
+              color: AppPalette.neonCyan.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFF00E5FF).withValues(alpha: 0.50),
+                color: AppPalette.neonCyan.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -382,13 +382,13 @@ class AppProfileItem extends StatelessWidget {
                 Icon(
                   Icons.touch_app_rounded,
                   size: 12,
-                  color: Color(0xFF00E5FF),
+                  color: AppPalette.neonCyan,
                 ),
                 SizedBox(width: 2.5),
                 Text(
                   'Touch',
                   style: TextStyle(
-                    color: Color(0xFF00E5FF),
+                    color: AppPalette.neonCyan,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,
@@ -401,10 +401,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFFFF6D00).withValues(alpha: 0.16),
+              color: AppPalette.neonOrange.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFFFF6D00).withValues(alpha: 0.50),
+                color: AppPalette.neonOrange.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -414,13 +414,13 @@ class AppProfileItem extends StatelessWidget {
                 Icon(
                   Icons.rocket_launch_rounded,
                   size: 11,
-                  color: Color(0xFFFF6D00),
+                  color: AppPalette.neonOrange,
                 ),
                 SizedBox(width: 3.5),
                 Text(
                   'RenderBoost',
                   style: TextStyle(
-                    color: Color(0xFFFF6D00),
+                    color: AppPalette.neonOrange,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,
@@ -434,10 +434,10 @@ class AppProfileItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
             decoration: BoxDecoration(
-              color: const Color(0xFF26A69A).withValues(alpha: 0.16),
+              color: AppPalette.neonTeal.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: const Color(0xFF26A69A).withValues(alpha: 0.50),
+                color: AppPalette.neonTeal.withValues(alpha: 0.50),
                 width: 0.9,
               ),
             ),
@@ -447,13 +447,13 @@ class AppProfileItem extends StatelessWidget {
                 const Icon(
                   Icons.battery_charging_full_rounded,
                   size: 11,
-                  color: Color(0xFF26A69A),
+                  color: AppPalette.neonTeal,
                 ),
                 const SizedBox(width: 3.5),
                 Text(
                   'Gentle ${currentDirectives!.gentleCharge}mA',
                   style: const TextStyle(
-                    color: Color(0xFF26A69A),
+                    color: AppPalette.neonTeal,
                     fontWeight: FontWeight.w800,
                     fontSize: 10,
                     letterSpacing: 0.3,

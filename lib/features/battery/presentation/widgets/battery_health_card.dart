@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/system_state.dart';
 import 'package:manager/l10n/l10n.dart';
 
@@ -27,16 +27,16 @@ class BatteryHealthCard extends StatelessWidget {
     Color healthColor;
     String healthStatusText;
     if (soh >= 85) {
-      healthColor = const Color(0xFF00E676); // Vivid Green
+      healthColor = AppPalette.neonGreen; // Vivid Green
       healthStatusText = 'Excelente estado';
     } else if (soh >= 75) {
-      healthColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB); // Blue
+      healthColor = context.perfColors.accent; // Blue
       healthStatusText = 'Buen estado';
     } else if (soh >= 65) {
-      healthColor = const Color(0xFFFFB300); // Amber
+      healthColor = AppPalette.neonAmber; // Amber
       healthStatusText = 'Desgaste moderado';
     } else {
-      healthColor = const Color(0xFFFF5252); // Red / Orange
+      healthColor = AppPalette.neonRed; // Red / Orange
       healthStatusText = 'Desgaste significativo';
     }
 
@@ -181,7 +181,7 @@ class BatteryHealthCard extends StatelessWidget {
                   value: cycles > 0 ? '$cycles' : 'N/A',
                   badge: cycleBadgeText,
                   icon: Icons.loop_rounded,
-                  iconColor: const Color(0xFF38BDF8),
+                  iconColor: AppPalette.sky400,
                 ),
               ),
               const SizedBox(width: AppConstants.spacing12),
@@ -191,7 +191,7 @@ class BatteryHealthCard extends StatelessWidget {
                   value: '$fullMah mAh',
                   badge: '${((fullMah / designMah) * 100).round()}%',
                   icon: Icons.battery_charging_full_rounded,
-                  iconColor: const Color(0xFF00E676),
+                  iconColor: AppPalette.neonGreen,
                 ),
               ),
             ],
@@ -205,7 +205,7 @@ class BatteryHealthCard extends StatelessWidget {
                   value: '$designMah mAh',
                   badge: 'Diseño',
                   icon: Icons.precision_manufacturing_rounded,
-                  iconColor: const Color(0xFFFFB300),
+                  iconColor: AppPalette.neonAmber,
                 ),
               ),
               const SizedBox(width: AppConstants.spacing12),
@@ -215,7 +215,7 @@ class BatteryHealthCard extends StatelessWidget {
                   value: '$counterMah mAh',
                   badge: '${state.batteryCapacityPct ?? 0}%',
                   icon: Icons.energy_savings_leaf_rounded,
-                  iconColor: const Color(0xFF00E5FF),
+                  iconColor: AppPalette.neonCyan,
                 ),
               ),
             ],

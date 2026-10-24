@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manager/features/settings/presentation/widgets/about_dialog.dart';
 import 'package:manager/core/design/theme_provider.dart';
 import 'package:manager/l10n/l10n.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/settings/presentation/widgets/language_selection_sheet.dart';
 import 'package:manager/features/settings/presentation/widgets/theme_selection_sheet.dart';
 import 'package:manager/features/backup/presentation/backup_screen.dart';

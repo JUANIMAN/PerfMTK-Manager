@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
 
@@ -86,7 +86,7 @@ class TabChip extends StatelessWidget {
     final cs = theme.colorScheme;
     final unselectedColor = isDark
         ? cs.onSurfaceVariant.withValues(alpha: 0.65)
-        : const Color(0xFF475569);
+        : AppPalette.slate600;
 
     return AnimatedBuilder(
       animation: controller,

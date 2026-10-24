@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/backup/data/backup_entry.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/l10n/l10n.dart';
@@ -336,7 +336,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
           children: [
             const Icon(
               Icons.warning_amber_rounded,
-              color: Color(0xFFFF9100),
+              color: AppPalette.vividOrange,
             ),
             const SizedBox(width: AppConstants.spacing12),
             Expanded(
@@ -360,7 +360,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
           ),
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFFF9100),
+              backgroundColor: AppPalette.vividOrange,
               foregroundColor: Colors.black,
             ),
             icon: const Icon(Icons.restore_page_rounded, size: 18),
@@ -485,7 +485,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                             Expanded(
                               child: _buildStatItem(
                                 icon: Icons.data_usage_rounded,
-                                color: const Color(0xFF00E676),
+                                color: AppPalette.neonGreen,
                                 title: _formatTotalStorage(list),
                                 subtitle: context.l10n.storageUsed,
                               ),
@@ -498,7 +498,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                             Expanded(
                               child: _buildStatItem(
                                 icon: Icons.tune_rounded,
-                                color: const Color(0xFF2979FF),
+                                color: AppPalette.blueAccent,
                                 title: '${ProfileType.values.length} .conf',
                                 subtitle: context.l10n.profiles,
                               ),
@@ -877,10 +877,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                     Container(
                       padding: const EdgeInsets.all(AppConstants.spacing16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF9100).withValues(alpha: isDark ? 0.08 : 0.05),
+                        color: AppPalette.vividOrange.withValues(alpha: isDark ? 0.08 : 0.05),
                         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
                         border: Border.all(
-                          color: const Color(0xFFFF9100).withValues(alpha: isDark ? 0.35 : 0.25),
+                          color: AppPalette.vividOrange.withValues(alpha: isDark ? 0.35 : 0.25),
                           width: 1.0,
                         ),
                       ),
@@ -891,7 +891,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                             children: [
                               const Icon(
                                 Icons.settings_backup_restore_rounded,
-                                color: Color(0xFFFF9100),
+                                color: AppPalette.vividOrange,
                                 size: 22,
                               ),
                               const SizedBox(width: AppConstants.spacing10),
@@ -899,7 +899,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                                 context.l10n.resetStockTitle,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFFF9100),
+                                  color: AppPalette.vividOrange,
                                 ),
                               ),
                             ],
@@ -914,9 +914,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
                           const SizedBox(height: AppConstants.spacing16),
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFFFF9100),
+                              foregroundColor: AppPalette.vividOrange,
                               side: BorderSide(
-                                color: const Color(0xFFFF9100).withValues(alpha: 0.5),
+                                color: AppPalette.vividOrange.withValues(alpha: 0.5),
                               ),
                             ),
                             icon: const Icon(Icons.restart_alt_rounded, size: 18),

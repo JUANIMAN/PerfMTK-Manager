@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/features/perf_config/data/profile_config.dart';
 import 'package:manager/l10n/l10n.dart';
@@ -35,7 +35,7 @@ class ProfileSaveFab extends ConsumerWidget {
         FloatingActionButton.small(
           heroTag: 'revert_${profile.value}',
           backgroundColor: isDark
-              ? const Color(0xFF161F30).withValues(alpha: 0.90)
+              ? AppPalette.navy900.withValues(alpha: 0.90)
               : theme.colorScheme.surfaceContainerHighest,
           foregroundColor: theme.colorScheme.onSurfaceVariant,
           elevation: 4,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/settings/presentation/widgets/custom_selection_tile.dart';
 

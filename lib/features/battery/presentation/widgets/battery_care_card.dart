@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/l10n/l10n.dart';
 
 class BatteryCareCard extends StatefulWidget {
@@ -69,7 +69,7 @@ class _BatteryCareCardState extends State<BatteryCareCard>
     final cs = theme.colorScheme;
 
     final primaryColor = widget.isEnabled
-        ? (widget.isSuspended ? const Color(0xFF00E676) : const Color(0xFF00B0FF))
+        ? (widget.isSuspended ? AppPalette.neonGreen : AppPalette.skyAccent)
         : cs.onSurfaceVariant;
 
     return AnimatedBuilder(
@@ -124,7 +124,7 @@ class _BatteryCareCardState extends State<BatteryCareCard>
                           _getStatusSubtitle(context),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: widget.isSuspended
-                                ? const Color(0xFF00E676)
+                                ? AppPalette.neonGreen
                                 : cs.onSurfaceVariant,
                             fontWeight: widget.isSuspended
                                 ? FontWeight.w600

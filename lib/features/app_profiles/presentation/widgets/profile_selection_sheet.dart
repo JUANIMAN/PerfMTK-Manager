@@ -4,7 +4,7 @@ import 'package:installed_apps/app_info.dart';
 import 'package:manager/features/app_profiles/data/app_profile.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/l10n/l10n.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/app_profiles/presentation/widgets/app_profile_item.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
 
@@ -111,7 +111,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF161618) : cs.surface,
+        color: isDark ? AppPalette.ink900 : cs.surface,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(28),
         ),
@@ -161,7 +161,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                           decoration: BoxDecoration(
                             color: isDark
                                 ? cs.surfaceContainerHigh
-                                : const Color(0xFFF1F5F9),
+                                : AppPalette.slate100,
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
                               color: cs.outlineVariant.withValues(
@@ -196,7 +196,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                               padding: const EdgeInsets.all(3),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? const Color(0xFF1E293B)
+                                    ? AppPalette.slate800
                                     : Colors.white,
                                 shape: BoxShape.circle,
                                 border: Border.all(
@@ -561,7 +561,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           _buildDirectiveRow(
             context: context,
             icon: Icons.sports_esports_rounded,
-            iconColor: const Color(0xFFE040FB),
+            iconColor: AppPalette.neonPurple,
             title: context.l10n.gbeTitle,
             subtitle: context.l10n.gbeDirectiveSubtitle,
             value: _gbe,
@@ -574,7 +574,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           _buildDirectiveRow(
             context: context,
             icon: Icons.touch_app_rounded,
-            iconColor: const Color(0xFF00E5FF),
+            iconColor: AppPalette.neonCyan,
             title: context.l10n.touchBoosterTitle,
             subtitle: context.l10n.touchBoosterSubtitle,
             value: _touchGameMode,
@@ -587,7 +587,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           _buildDirectiveRow(
             context: context,
             icon: Icons.rocket_launch_rounded,
-            iconColor: const Color(0xFFFF6D00),
+            iconColor: AppPalette.neonOrange,
             title: context.l10n.renderBoost,
             subtitle: context.l10n.renderBoostDesc,
             value: _renderBoost,
@@ -607,7 +607,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           // ── Section 2: Thermal & Charging ──
           Row(
             children: [
-              Icon(Icons.thermostat_rounded, size: 14, color: const Color(0xFFFF5252)),
+              Icon(Icons.thermostat_rounded, size: 14, color: AppPalette.neonRed),
               const SizedBox(width: 6),
               Text(
                 context.l10n.thermalChargeSection.toUpperCase(),
@@ -624,7 +624,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           _buildDirectiveRow(
             context: context,
             icon: Icons.local_fire_department_rounded,
-            iconColor: const Color(0xFFFF5252),
+            iconColor: AppPalette.neonRed,
             title: context.l10n.thermalBypassTitle,
             subtitle: context.l10n.thermalBypassSubtitle,
             value: _disableThermal,
@@ -637,7 +637,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           _buildDirectiveRow(
             context: context,
             icon: Icons.bolt_rounded,
-            iconColor: const Color(0xFFFFB300),
+            iconColor: AppPalette.neonAmber,
             title: widget.hasHardwareBypass
                 ? context.l10n.hwChargeBypassTitle
                 : context.l10n.smartFastChargeTitle,
@@ -656,7 +656,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
               const Icon(
                 Icons.battery_charging_full_rounded,
                 size: 14,
-                color: Color(0xFF26A69A),
+                color: AppPalette.neonTeal,
               ),
               const SizedBox(width: 6),
               Text(
@@ -696,7 +696,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
               const Icon(
                 Icons.speed_rounded,
                 size: 14,
-                color: Color(0xFF00E676),
+                color: AppPalette.neonGreen,
               ),
               const SizedBox(width: 6),
               Text(
@@ -918,7 +918,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
   }) {
     final cs = Theme.of(context).colorScheme;
     final isSelected = _selectedFps == value;
-    const accentColor = Color(0xFF00E676);
+    const accentColor = AppPalette.neonGreen;
 
     return Expanded(
       child: Material(
@@ -973,7 +973,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
   }) {
     final cs = Theme.of(context).colorScheme;
     final isSelected = _gentleCharge == value;
-    const accentColor = Color(0xFF26A69A);
+    const accentColor = AppPalette.neonTeal;
 
     return Expanded(
       child: Material(

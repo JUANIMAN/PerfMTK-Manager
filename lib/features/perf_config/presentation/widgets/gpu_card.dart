@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/perf_config/presentation/widgets/freq_slider.dart';
 import 'package:manager/features/perf_config/presentation/widgets/governor_dropdown.dart';

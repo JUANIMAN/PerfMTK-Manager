@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:manager/features/system/data/models/system_state.dart';
 import 'package:manager/l10n/l10n.dart';
 
@@ -19,8 +19,8 @@ class HardwareTelemetryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB);
-    final liveColor = isDark ? const Color(0xFF10B981) : const Color(0xFF059669);
+    final accentColor = context.perfColors.accent;
+    final liveColor = context.perfColors.live;
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacing16),
@@ -192,7 +192,7 @@ class HardwareTelemetryCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    final color = _clusterAccentColor(index, total, isDark);
+    final color = context.perfColors.clusterAccent(index, total);
     final label = _clusterLabel(index, total);
     final freqText = _cleanClusterFreq(raw);
     final mhz = _parseFreqValue(raw);
@@ -263,8 +263,8 @@ class HardwareTelemetryCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    final gpuColor = isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706); // Warm Amber
-    final dramColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB); // Dimensity Tech Blue
+    final gpuColor = context.perfColors.warm; // Warm Amber
+    final dramColor = context.perfColors.accent; // Dimensity Tech Blue
 
     final gpuRatio = _calcGpuRatio(state.gpuFreq);
     final dramRatio = _calcDramRatio(state.dramFreq);
@@ -448,10 +448,10 @@ class HardwareTelemetryCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final tempColor = state.socTempC != null
-        ? _tempColor(state.socTempC!, isDark)
-        : (isDark ? const Color(0xFF10B981) : const Color(0xFF059669));
+        ? context.perfColors.tempColor(state.socTempC!)
+        : (context.perfColors.live);
     final thermalRatio = _calcThermalRatio(state.socTempC);
-    final bypassColor = isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706);
+    final bypassColor = context.perfColors.warm;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,7 +516,7 @@ class HardwareTelemetryCard extends StatelessWidget {
                           ],
                         ),
                         if (state.socTempC != null)
-                          _tempBadge(state.socTempC!, isDark),
+                          _tempBadge(state.socTempC!, isDark, context.perfColors),
                       ],
                     ),
                     const SizedBox(height: 3),
@@ -638,32 +638,6 @@ class HardwareTelemetryCard extends StatelessWidget {
   }
 
   // ── Helper Math & Formatters ───────────────────────────────────────────────
-  Color _clusterAccentColor(int index, int total, bool isDark) {
-    if (isDark) {
-      if (total == 3) {
-        if (index == 0) return const Color(0xFF38BDF8); // Sky blue 400 (Little)
-        if (index == 1) return const Color(0xFF60A5FA); // Blue 400 (Mid)
-        return const Color(0xFF818CF8); // Indigo 400 (Prime)
-      }
-      if (total == 2) {
-        if (index == 0) return const Color(0xFF38BDF8);
-        return const Color(0xFF818CF8);
-      }
-      return const Color(0xFF38BDF8);
-    } else {
-      if (total == 3) {
-        if (index == 0) return const Color(0xFF0284C7); // Sky blue 600 (Little)
-        if (index == 1) return const Color(0xFF2563EB); // Royal blue 600 (Mid)
-        return const Color(0xFF4F46E5); // Indigo 600 (Prime)
-      }
-      if (total == 2) {
-        if (index == 0) return const Color(0xFF0284C7);
-        return const Color(0xFF4F46E5);
-      }
-      return const Color(0xFF2563EB);
-    }
-  }
-
   String _clusterLabel(int index, int total) {
     if (total == 3) {
       if (index == 0) return 'LITTLE (0-3)';
@@ -768,12 +742,9 @@ class HardwareTelemetryCard extends StatelessWidget {
     return r.clamp(0.14, 1.0);
   }
 
-  Widget _tempBadge(double temp, bool isDark) {
-    final (label, color) = switch (temp) {
-      >= 70.0 => ('HOT', isDark ? const Color(0xFFEF4444) : const Color(0xFFDC2626)),
-      >= 55.0 => ('WARM', isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706)),
-      _ => ('OK', isDark ? const Color(0xFF10B981) : const Color(0xFF059669)),
-    };
+  Widget _tempBadge(double temp, bool isDark, PerfColors colors) {
+    final color = colors.tempColor(temp);
+    final label = temp >= 70.0 ? 'HOT' : (temp >= 55.0 ? 'WARM' : 'OK');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
@@ -801,11 +772,6 @@ class HardwareTelemetryCard extends StatelessWidget {
     return freq.trim();
   }
 
-  Color _tempColor(double temp, bool isDark) {
-    if (temp >= 70.0) return isDark ? const Color(0xFFEF4444) : const Color(0xFFDC2626);
-    if (temp >= 55.0) return isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706);
-    return isDark ? const Color(0xFF10B981) : const Color(0xFF059669);
-  }
 }
 
 /// Multi-segment LED Rev Meter.
@@ -841,16 +807,16 @@ class LedRevMeter extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
                 color: i < activeCount
                     ? (isThermal
-                        ? _thermalSegmentColor(i, totalSegments, isDark)
+                        ? context.perfColors.thermalSegment(i)
                         : activeColor)
                     : (isDark
                         ? cs.surfaceContainerHighest.withValues(alpha: 0.35)
-                        : const Color(0xFFE2E8F0)),
+                        : AppPalette.slate200),
                 boxShadow: i < activeCount
                     ? [
                         BoxShadow(
                           color: (isThermal
-                                  ? _thermalSegmentColor(i, totalSegments, isDark)
+                                  ? context.perfColors.thermalSegment(i)
                                   : activeColor)
                               .withValues(alpha: isDark ? 0.45 : 0.25),
                           blurRadius: isDark ? 3 : 1.5,
@@ -866,9 +832,4 @@ class LedRevMeter extends StatelessWidget {
     );
   }
 
-  static Color _thermalSegmentColor(int index, int total, bool isDark) {
-    if (index >= 5) return isDark ? const Color(0xFFEF4444) : const Color(0xFFDC2626);
-    if (index >= 3) return isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706);
-    return isDark ? const Color(0xFF10B981) : const Color(0xFF059669);
-  }
 }

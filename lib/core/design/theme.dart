@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 
 class AppTheme {
   // ── Paleta ─────────────────────────────────────────────────────────────────
@@ -84,6 +84,7 @@ class AppTheme {
       inversePrimary: const Color(0xFFAAC8FF),
     ),
     scaffoldBackgroundColor: _lightBg,
+    extensions: const [PerfColors.light],
     textTheme: _buildTextTheme(const Color(0xFF1A1C22)),
 
     // App Bar — modern seamless header matching scaffold background
@@ -346,6 +347,7 @@ class AppTheme {
       inversePrimary: _primary,
     ),
     scaffoldBackgroundColor: _darkBg,
+    extensions: const [PerfColors.dark],
     textTheme: _buildTextTheme(const Color(0xFFE4E2EC)),
 
     // App Bar — dark variant with a slightly lighter primary shade

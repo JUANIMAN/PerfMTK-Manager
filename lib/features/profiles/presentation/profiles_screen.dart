@@ -8,7 +8,7 @@ import 'package:manager/features/system/presentation/system_provider.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_button.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
 import 'package:manager/features/profiles/presentation/widgets/hardware_telemetry_card.dart';
-import 'package:manager/core/design/app_constants.dart';
+import 'package:manager/core/design/design.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProfilesScreen extends ConsumerStatefulWidget {

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/features/system/data/models/system_state.dart';
 import 'package:manager/l10n/l10n.dart';
-import 'package:manager/features/battery/presentation/battery_screen.dart';
+import 'package:manager/features/battery/presentation/widgets/live_battery_hero_card.dart';
 import 'package:manager/features/battery/presentation/widgets/charge_bypass_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

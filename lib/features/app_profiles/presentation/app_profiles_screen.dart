@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:manager/core/providers/app_services_providers.dart';
 import 'package:manager/core/design/design.dart';
-import 'package:manager/core/utils/app_icon_cache.dart';
 import 'package:manager/features/app_profiles/data/app_profile.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/l10n/l10n.dart';
@@ -327,7 +327,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        await AppIconCache.instance.clear();
+        await ref.read(appIconCacheProvider).clear();
         await ref.read(appProfileProvider.notifier).reloadInstalledApps();
       },
       child: ListView.builder(

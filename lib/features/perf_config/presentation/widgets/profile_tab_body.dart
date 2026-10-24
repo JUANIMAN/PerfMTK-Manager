@@ -20,6 +20,7 @@ import 'package:manager/features/perf_config/presentation/widgets/uclamp_card.da
 import 'package:manager/features/perf_config/presentation/widgets/ufs_card.dart';
 import 'package:manager/features/perf_config/presentation/widgets/vm_card.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
+import 'package:manager/features/perf_config/presentation/widgets/section_label.dart';
 
 /// Body for each profile tab showing all configurable hardware subsystems.
 class ProfileTabBody extends ConsumerStatefulWidget {
@@ -720,24 +721,6 @@ class _ProfileTabBodyState extends ConsumerState<ProfileTabBody>
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class SectionLabel extends StatelessWidget {
-  final String label;
-  final Color color;
-  const SectionLabel({super.key, required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label.toUpperCase(),
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: color,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.2,
       ),
     );
   }

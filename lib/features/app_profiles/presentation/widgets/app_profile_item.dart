@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:installed_apps/app_info.dart';
-import 'package:manager/core/utils/app_icon_cache.dart';
 import 'package:manager/features/app_profiles/data/app_profile.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/features/app_profiles/presentation/widgets/profile_selection_sheet.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
 import 'package:manager/core/design/design.dart';
+import 'package:manager/features/app_profiles/presentation/widgets/app_icon_image.dart';
 
 class AppProfileItem extends StatelessWidget {
   final AppInfo app;
@@ -481,87 +481,6 @@ class AppProfileItem extends StatelessWidget {
         onProfileSelected: (profile, directives) {
           onProfileSelected(profile, directives);
         },
-      ),
-    );
-  }
-}
-
-/// Renders an app icon either from memory, cache, or lazily on demand.
-class AppIconImage extends StatefulWidget {
-  final String packageName;
-  final Uint8List? initialIcon;
-  final double size;
-
-  const AppIconImage({
-    super.key,
-    required this.packageName,
-    this.initialIcon,
-    this.size = 44,
-  });
-
-  @override
-  State<AppIconImage> createState() => _AppIconImageState();
-}
-
-class _AppIconImageState extends State<AppIconImage> {
-  Uint8List? _iconBytes;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _resolveIcon();
-  }
-
-  @override
-  void didUpdateWidget(AppIconImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.packageName != widget.packageName) {
-      _isLoading = false;
-      _resolveIcon();
-    }
-  }
-
-  void _resolveIcon() {
-    final pkg = widget.packageName;
-    _iconBytes =
-        widget.initialIcon ??
-        AppIconCache.instance.getCached(pkg);
-    if (_iconBytes == null && !_isLoading) {
-      _isLoading = true;
-      AppIconCache.instance.loadIcon(pkg).then((bytes) {
-        if (mounted && widget.packageName == pkg) {
-          setState(() {
-            _iconBytes = bytes;
-            _isLoading = false;
-          });
-        }
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = _iconBytes;
-    if (icon != null) {
-      return Image.memory(
-        icon,
-        width: widget.size,
-        height: widget.size,
-        cacheWidth: 72,
-        cacheHeight: 72,
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-      );
-    }
-
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: Icon(
-        Icons.android_rounded,
-        size: widget.size * 0.65,
-        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
       ),
     );
   }

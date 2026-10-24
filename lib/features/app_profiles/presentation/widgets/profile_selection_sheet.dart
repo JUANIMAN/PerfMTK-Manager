@@ -5,8 +5,10 @@ import 'package:manager/features/app_profiles/data/app_profile.dart';
 import 'package:manager/features/system/data/models/profile.dart';
 import 'package:manager/l10n/l10n.dart';
 import 'package:manager/core/design/design.dart';
-import 'package:manager/features/app_profiles/presentation/widgets/app_profile_item.dart';
 import 'package:manager/features/profiles/presentation/widgets/profile_utils.dart';
+import 'package:manager/features/app_profiles/presentation/widgets/app_icon_image.dart';
+import 'package:manager/features/app_profiles/presentation/widgets/directives_draft.dart';
+import 'package:manager/features/app_profiles/presentation/widgets/sheet_animated_item.dart';
 
 class ProfileSelectionSheet extends StatefulWidget {
   final AppInfo app;
@@ -33,53 +35,21 @@ class ProfileSelectionSheet extends StatefulWidget {
 
 class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
   late ProfileType? _selectedProfile;
-  late bool _gbe;
-  late bool _chargeBypass;
-  late bool _disableThermal;
-  late bool _touchGameMode;
-  late bool _renderBoost;
-  late int? _gentleCharge;
-  late int? _selectedFps;
+  late final DirectivesDraft _draft;
   late bool _showDirectives;
 
   @override
   void initState() {
     super.initState();
     _selectedProfile = widget.currentProfile;
-    _gbe = widget.currentDirectives?.gbe == 1;
-    _chargeBypass = widget.currentDirectives?.chargeBypass == true;
-    _disableThermal = widget.currentDirectives?.disableThermal == true;
-    _touchGameMode = widget.currentDirectives?.touchGameMode == true;
-    _renderBoost = widget.currentDirectives?.renderBoost == 1;
-    _gentleCharge = widget.currentDirectives?.gentleCharge;
-    _selectedFps = widget.currentDirectives?.fps;
+    _draft = DirectivesDraft.from(widget.currentDirectives);
     _showDirectives = widget.currentDirectives != null &&
         widget.currentDirectives!.isNotEmpty;
   }
 
-  int get _activeDirectivesCount {
-    var count = 0;
-    if (_gbe) count++;
-    if (_chargeBypass) count++;
-    if (_disableThermal) count++;
-    if (_touchGameMode) count++;
-    if (_renderBoost) count++;
-    if (_gentleCharge != null) count++;
-    if (_selectedFps != null) count++;
-    return count;
-  }
-
   void _clearDirectives() {
     HapticFeedback.lightImpact();
-    setState(() {
-      _gbe = false;
-      _chargeBypass = false;
-      _disableThermal = false;
-      _touchGameMode = false;
-      _renderBoost = false;
-      _gentleCharge = null;
-      _selectedFps = null;
-    });
+    setState(_draft.clear);
     _apply(_selectedProfile);
   }
 
@@ -88,20 +58,9 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
       widget.onProfileSelected(null, null);
       return;
     }
-    final directives = AppDirectives(
-      gbe: _gbe ? 1 : null,
-      chargeBypass: _chargeBypass ? true : null,
-      disableThermal: _disableThermal ? true : null,
-      touchGameMode: _touchGameMode ? true : null,
-      dramMin: widget.currentDirectives?.dramMin,
-      uclampMax: widget.currentDirectives?.uclampMax,
-      gentleCharge: _gentleCharge,
-      renderBoost: _renderBoost ? 1 : null,
-      fps: _selectedFps,
-    );
+    final directives = _draft.toDirectives(base: widget.currentDirectives);
     widget.onProfileSelected(profile, directives.isEmpty ? null : directives);
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -284,7 +243,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                 itemBuilder: (context, index) {
                   final p = profiles[index];
                   final isSelected = _selectedProfile == p.profileType;
-                  return _AnimatedSheetItem(
+                  return AnimatedSheetItem(
                     index: index,
                     child: _buildProfileCard(
                       context: context,
@@ -362,7 +321,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     bool isDark,
     ColorScheme cs,
   ) {
-    final count = _activeDirectivesCount;
+    final count = _draft.activeCount;
     final hasActive = count > 0;
 
     return Material(
@@ -522,7 +481,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
                     ),
                   ),
                 ),
-                if (_activeDirectivesCount > 0) ...[
+                if (_draft.activeCount > 0) ...[
                   const SizedBox(width: 6),
                   GestureDetector(
                     onTap: _clearDirectives,
@@ -564,9 +523,9 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             iconColor: AppPalette.neonPurple,
             title: context.l10n.gbeTitle,
             subtitle: context.l10n.gbeDirectiveSubtitle,
-            value: _gbe,
+            value: _draft.gbe,
             onChanged: (v) {
-              setState(() => _gbe = v);
+              setState(() => _draft.gbe = v);
               _apply(_selectedProfile);
             },
           ),
@@ -577,9 +536,9 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             iconColor: AppPalette.neonCyan,
             title: context.l10n.touchBoosterTitle,
             subtitle: context.l10n.touchBoosterSubtitle,
-            value: _touchGameMode,
+            value: _draft.touchGameMode,
             onChanged: (v) {
-              setState(() => _touchGameMode = v);
+              setState(() => _draft.touchGameMode = v);
               _apply(_selectedProfile);
             },
           ),
@@ -590,9 +549,9 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             iconColor: AppPalette.neonOrange,
             title: context.l10n.renderBoost,
             subtitle: context.l10n.renderBoostDesc,
-            value: _renderBoost,
+            value: _draft.renderBoost,
             onChanged: (v) {
-              setState(() => _renderBoost = v);
+              setState(() => _draft.renderBoost = v);
               _apply(_selectedProfile);
             },
           ),
@@ -627,9 +586,9 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             iconColor: AppPalette.neonRed,
             title: context.l10n.thermalBypassTitle,
             subtitle: context.l10n.thermalBypassSubtitle,
-            value: _disableThermal,
+            value: _draft.disableThermal,
             onChanged: (v) {
-              setState(() => _disableThermal = v);
+              setState(() => _draft.disableThermal = v);
               _apply(_selectedProfile);
             },
           ),
@@ -644,9 +603,9 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
             subtitle: widget.hasHardwareBypass
                 ? context.l10n.hwBypassDirectiveSubtitle
                 : context.l10n.smartFastChargeDirectiveSubtitle,
-            value: _chargeBypass,
+            value: _draft.chargeBypass,
             onChanged: (v) {
-              setState(() => _chargeBypass = v);
+              setState(() => _draft.chargeBypass = v);
               _apply(_selectedProfile);
             },
           ),
@@ -917,7 +876,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     required bool isDark,
   }) {
     final cs = Theme.of(context).colorScheme;
-    final isSelected = _selectedFps == value;
+    final isSelected = _draft.fps == value;
     const accentColor = AppPalette.neonGreen;
 
     return Expanded(
@@ -927,7 +886,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           borderRadius: BorderRadius.circular(10),
           onTap: () {
             HapticFeedback.selectionClick();
-            setState(() => _selectedFps = value);
+            setState(() => _draft.fps = value);
             _apply(_selectedProfile);
           },
           child: AnimatedContainer(
@@ -972,7 +931,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     required bool isDark,
   }) {
     final cs = Theme.of(context).colorScheme;
-    final isSelected = _gentleCharge == value;
+    final isSelected = _draft.gentleCharge == value;
     const accentColor = AppPalette.neonTeal;
 
     return Expanded(
@@ -982,7 +941,7 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
           borderRadius: BorderRadius.circular(10),
           onTap: () {
             HapticFeedback.selectionClick();
-            setState(() => _gentleCharge = value);
+            setState(() => _draft.gentleCharge = value);
             _apply(_selectedProfile);
           },
           child: AnimatedContainer(
@@ -1022,90 +981,33 @@ class _ProfileSelectionSheetState extends State<ProfileSelectionSheet> {
     );
   }
 
-  List<_SheetProfileData> _buildProfiles(BuildContext context) {
+  List<SheetProfileData> _buildProfiles(BuildContext context) {
     return [
-      _SheetProfileData(
+      SheetProfileData(
         profileType: null,
         name: context.l10n.defaultProfile,
         description: context.l10n.defaultProfileDesc,
       ),
-      _SheetProfileData(
+      SheetProfileData(
         profileType: ProfileType.performance,
         name: ProfileUtils.nameFor(context, ProfileType.performance),
         description: context.l10n.performanceDesc,
       ),
-      _SheetProfileData(
+      SheetProfileData(
         profileType: ProfileType.balanced,
         name: ProfileUtils.nameFor(context, ProfileType.balanced),
         description: context.l10n.balancedDesc,
       ),
-      _SheetProfileData(
+      SheetProfileData(
         profileType: ProfileType.powersave,
         name: ProfileUtils.nameFor(context, ProfileType.powersave),
         description: context.l10n.powersaveDesc,
       ),
-      _SheetProfileData(
+      SheetProfileData(
         profileType: ProfileType.powersavePlus,
         name: ProfileUtils.nameFor(context, ProfileType.powersavePlus),
         description: context.l10n.powersavePlusDesc,
       ),
     ];
-  }
-}
-
-class _SheetProfileData {
-  final ProfileType? profileType;
-  final String name;
-  final String description;
-  const _SheetProfileData({
-    required this.profileType,
-    required this.name,
-    required this.description,
-  });
-}
-
-// ── Animated slide-in for each sheet item ─────────────────────────────────────
-class _AnimatedSheetItem extends StatefulWidget {
-  final Widget child;
-  final int index;
-  const _AnimatedSheetItem({required this.child, required this.index});
-  @override
-  State<_AnimatedSheetItem> createState() => _AnimatedSheetItemState();
-}
-
-class _AnimatedSheetItemState extends State<_AnimatedSheetItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _opacity;
-  late Animation<Offset> _slide;
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: AppConstants.animationNormal,
-    );
-    _opacity = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(
-      begin: const Offset(0.12, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    Future.delayed(Duration(milliseconds: 35 * widget.index), () {
-      if (mounted) _ctrl.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _opacity,
-      child: SlideTransition(position: _slide, child: widget.child),
-    );
   }
 }

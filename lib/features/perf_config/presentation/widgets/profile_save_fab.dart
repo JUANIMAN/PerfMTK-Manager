@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,7 +74,7 @@ class ProfileSaveFab extends ConsumerWidget {
           onPressed: isSaving
               ? null
               : () async {
-                  HapticFeedback.mediumImpact();
+                  unawaited(HapticFeedback.mediumImpact());
                   final ok = await ref
                       .read(profileEditorProvider(profile).notifier)
                       .save();

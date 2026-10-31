@@ -30,8 +30,8 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # TODO(refactor): enable `unawaited_futures` once Phase 4 rewrites backup_screen.
-    unawaited_futures: false
+    unawaited_futures: true
+    avoid_catches_without_on_clauses: true
     prefer_final_locals: true
     avoid_print: true
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule

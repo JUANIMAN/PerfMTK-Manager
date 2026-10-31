@@ -93,7 +93,7 @@ class ProfileEditorNotifier extends Notifier<ProfileEditorState> {
       // Invalidate so the next read picks up the fresh file.
       ref.invalidate(profileConfigProvider(profile));
       return true;
-    } catch (e) {
+    } on Object catch (e) {
       state = state.copyWith(isSaving: false, errorMessage: e.toString());
       return false;
     }

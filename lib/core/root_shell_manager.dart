@@ -184,7 +184,7 @@ class RootShellManager implements ShellCommandExecutor {
 
       return commandOutput;
     } on Object catch (error) {
-      commandSubscription.cancel();
+      unawaited(commandSubscription.cancel());
       if (error is TimeoutException) {
         if (restartOnTimeout) {
           try {

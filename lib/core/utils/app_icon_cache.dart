@@ -62,7 +62,7 @@ class AppIconCache {
             }
           });
         }
-      } catch (_) {
+      } on Exception catch (_) {
         // Fallback gracefully
       }
     }
@@ -144,7 +144,7 @@ class AppIconCache {
         {'packageName': packageName},
       );
       return bytes;
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -161,6 +161,6 @@ class AppIconCache {
     _runningCount = 0;
     try {
       await _channel.invokeMethod('clearIconCache');
-    } catch (_) {}
+    } on Exception catch (_) {}
   }
 }

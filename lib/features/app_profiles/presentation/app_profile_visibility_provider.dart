@@ -35,7 +35,7 @@ class AppProfileVisibilityNotifier extends AsyncNotifier<bool> {
   Future<bool> _configFileExists() async {
     try {
       return await ref.read(configRepositoryProvider).configExists();
-    } catch (_) {
+    } on Exception catch (_) {
       return false;
     }
   }

@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:manager/core/utils/app_icon_cache.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AppIconCache', () {
     final cache = AppIconCache.instance;
 

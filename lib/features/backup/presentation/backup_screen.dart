@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,21 +48,21 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
   }
 
   Future<void> _handleCreateBackup() async {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     final notifier = ref.read(backupListProvider.notifier);
     final success = await notifier.createBackup();
     if (!mounted) return;
     if (success) {
-      HapticFeedback.lightImpact();
+      unawaited(HapticFeedback.lightImpact());
       _showSnackBar(context.l10n.backupCreatedSuccess);
     } else {
-      HapticFeedback.heavyImpact();
+      unawaited(HapticFeedback.heavyImpact());
       _showSnackBar(context.l10n.backupCreateError, isError: true);
     }
   }
 
   Future<void> _confirmRestore(BackupEntry entry) async {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     final confirmed = await showRestoreBackupDialog(context, entry);
 
     if (confirmed == true && mounted) {
@@ -69,17 +70,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       final success = await notifier.restoreBackup(entry.filename);
       if (!mounted) return;
       if (success) {
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         _showSnackBar(context.l10n.restoreSuccess);
       } else {
-        HapticFeedback.heavyImpact();
+        unawaited(HapticFeedback.heavyImpact());
         _showSnackBar(context.l10n.restoreError, isError: true);
       }
     }
   }
 
   Future<void> _confirmDelete(BackupEntry entry) async {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     final confirmed = await showDeleteBackupDialog(context, entry);
 
     if (confirmed == true && mounted) {
@@ -87,17 +88,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       final success = await notifier.deleteBackup(entry.filename);
       if (!mounted) return;
       if (success) {
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         _showSnackBar(context.l10n.backupDeletedSuccess);
       } else {
-        HapticFeedback.heavyImpact();
+        unawaited(HapticFeedback.heavyImpact());
         _showSnackBar(context.l10n.backupDeleteError, isError: true);
       }
     }
   }
 
   Future<void> _confirmDeleteAll() async {
-    HapticFeedback.heavyImpact();
+    unawaited(HapticFeedback.heavyImpact());
     final confirmed = await showDeleteAllBackupsDialog(context);
 
     if (confirmed == true && mounted) {
@@ -105,17 +106,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       final success = await notifier.deleteAllBackups();
       if (!mounted) return;
       if (success) {
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         _showSnackBar(context.l10n.allBackupsDeletedSuccess);
       } else {
-        HapticFeedback.heavyImpact();
+        unawaited(HapticFeedback.heavyImpact());
         _showSnackBar(context.l10n.backupDeleteError, isError: true);
       }
     }
   }
 
   Future<void> _confirmResetStock() async {
-    HapticFeedback.heavyImpact();
+    unawaited(HapticFeedback.heavyImpact());
     final confirmed = await showResetStockDialog(context);
 
     if (confirmed == true && mounted) {
@@ -123,10 +124,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen>
       final success = await notifier.resetStockProfiles();
       if (!mounted) return;
       if (success) {
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         _showSnackBar(context.l10n.resetStockSuccess);
       } else {
-        HapticFeedback.heavyImpact();
+        unawaited(HapticFeedback.heavyImpact());
         _showSnackBar(context.l10n.restoreError, isError: true);
       }
     }

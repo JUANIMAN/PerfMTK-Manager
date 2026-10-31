@@ -435,7 +435,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
   Future<void> _commitDebounce(int value) async {
     try {
       await ref.read(appProfileProvider.notifier).setDebounceMs(value);
-    } catch (_) {
+    } on Exception catch (_) {
       _showSaveError();
     }
   }
@@ -451,7 +451,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
           .read(appProfileProvider.notifier)
           .setAppProfile(packageName, profile, directives: directives);
       if (mounted) _showProfileChangedSnackbar(appName, profile);
-    } catch (_) {
+    } on Exception catch (_) {
       _showSaveError();
     }
   }
@@ -459,7 +459,7 @@ class _AppProfilesScreenState extends ConsumerState<AppProfilesScreen> {
   Future<void> _setScreenOffProfile(ProfileType profile) async {
     try {
       await ref.read(appProfileProvider.notifier).setScreenOffProfile(profile);
-    } catch (_) {
+    } on Exception catch (_) {
       _showSaveError();
     }
   }

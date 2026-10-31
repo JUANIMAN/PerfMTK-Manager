@@ -59,7 +59,7 @@ class UpdateChecker {
         decoded['body'] is String ? decoded['body'] as String : '',
       );
       return true;
-    } catch (_) {
+    } on Exception catch (_) {
       return false;
     }
   }

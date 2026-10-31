@@ -157,7 +157,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
             ),
           ),
         );
-    } catch (_) {
+    } on Exception catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
@@ -176,7 +176,7 @@ class _ProfilesScreenState extends ConsumerState<ProfilesScreen> {
     );
     try {
       await launchUrl(uri);
-    } catch (_) {
+    } on Exception catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.downloadMess)),

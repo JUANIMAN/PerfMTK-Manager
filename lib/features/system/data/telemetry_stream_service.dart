@@ -72,7 +72,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
     if (_isDisposed) return;
     try {
       WidgetsBinding.instance.addObserver(this);
-    } catch (_) {
+    } on Object catch (_) {
       // In non-Flutter test environments, WidgetsBinding might not be bound.
     }
     _isPaused = false;
@@ -124,7 +124,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
 
       // Tier 3: Root CLI process fallback
       await _startStreamProcess();
-    } catch (e) {
+    } on Object {
       _scheduleReconnect();
     } finally {
       _isStarting = false;
@@ -177,7 +177,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
           }
         }
       }
-    } catch (_) {
+    } on Object catch (_) {
       _stopProcess();
       _scheduleReconnect();
     }
@@ -220,7 +220,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
             onError: (_) {},
             cancelOnError: false,
           );
-    } catch (e) {
+    } on Object {
       _scheduleReconnect();
     }
   }
@@ -241,7 +241,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
       if (!_controller.isClosed) {
         _controller.add(state);
       }
-    } catch (_) {
+    } on Object catch (_) {
       // Ignore malformed partial lines
     }
   }
@@ -291,7 +291,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
     if (p != null) {
       try {
         p.kill();
-      } catch (_) {}
+      } on Object catch (_) {}
     }
   }
 
@@ -325,7 +325,7 @@ class TelemetryStreamService with WidgetsBindingObserver {
     _isDisposed = true;
     try {
       WidgetsBinding.instance.removeObserver(this);
-    } catch (_) {}
+    } on Object catch (_) {}
     _stopProcess();
     _controller.close();
   }

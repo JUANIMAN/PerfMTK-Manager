@@ -25,8 +25,6 @@ class AppTheme {
   static const Color _darkSurfaceVariant = Color(0xFF1E1E22);
   static const Color _darkSurfaceHighest = Color(0xFF252528);
 
-  static ThemeMode get themeMode => ThemeMode.system;
-
   // ── Tipografía ─────────────────────────────────────────────────────────────
   static TextTheme _buildTextTheme(Color onSurface) {
     return TextTheme(
@@ -108,35 +106,6 @@ class AppTheme {
       actionsIconTheme: const IconThemeData(color: Color(0xFF1F2937)),
     ),
 
-    // Navigation Bar
-    navigationBarTheme: NavigationBarThemeData(
-      elevation: 0,
-      height: 64,
-      backgroundColor: _lightSurface.withValues(alpha: 0.92),
-      surfaceTintColor: Colors.transparent,
-      indicatorColor: _primary.withValues(alpha: 0.12),
-      indicatorShape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      labelTextStyle: WidgetStateProperty.resolveWith((states) {
-        final selected = states.contains(WidgetState.selected);
-        return TextStyle(fontFamily: AppFonts.family, 
-          color: selected ? _primary : const Color(0xFF74777F),
-          fontSize: 11,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-          letterSpacing: 0.3,
-        );
-      }),
-      iconTheme: WidgetStateProperty.resolveWith((states) {
-        return IconThemeData(
-          color: states.contains(WidgetState.selected)
-              ? _primary
-              : const Color(0xFF74777F),
-          size: states.contains(WidgetState.selected) ? 24 : 22,
-        );
-      }),
-    ),
 
     // Card
     cardTheme: CardThemeData(
@@ -376,35 +345,6 @@ class AppTheme {
       ),
     ),
 
-    // Navigation Bar
-    navigationBarTheme: NavigationBarThemeData(
-      elevation: 0,
-      height: 64,
-      backgroundColor: _darkSurface.withValues(alpha: 0.92),
-      surfaceTintColor: Colors.transparent,
-      indicatorColor: _primaryDark.withValues(alpha: 0.18),
-      indicatorShape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      labelTextStyle: WidgetStateProperty.resolveWith((states) {
-        final selected = states.contains(WidgetState.selected);
-        return TextStyle(fontFamily: AppFonts.family, 
-          color: selected ? _primaryDark : const Color(0xFF74777F),
-          fontSize: 11,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-          letterSpacing: 0.3,
-        );
-      }),
-      iconTheme: WidgetStateProperty.resolveWith((states) {
-        return IconThemeData(
-          color: states.contains(WidgetState.selected)
-              ? _primaryDark
-              : const Color(0xFF74777F),
-          size: states.contains(WidgetState.selected) ? 24 : 22,
-        );
-      }),
-    ),
 
     // Card
     cardTheme: CardThemeData(

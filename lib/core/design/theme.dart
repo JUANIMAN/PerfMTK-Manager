@@ -1,7 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:manager/core/design/design.dart';
+
+/// Bundled typefaces (see `assets/fonts`). No runtime downloads: the app is
+/// frequently used offline.
+abstract final class AppFonts {
+  static const String family = 'Inter';
+}
 
 class AppTheme {
   // ── Paleta ─────────────────────────────────────────────────────────────────
@@ -24,8 +29,7 @@ class AppTheme {
 
   // ── Tipografía ─────────────────────────────────────────────────────────────
   static TextTheme _buildTextTheme(Color onSurface) {
-    return GoogleFonts.interTextTheme(
-      TextTheme(
+    return TextTheme(
         displayLarge: TextStyle(color: onSurface, fontWeight: FontWeight.w700, letterSpacing: -1.5),
         displayMedium: TextStyle(color: onSurface, fontWeight: FontWeight.w700, letterSpacing: -0.5),
         displaySmall: TextStyle(color: onSurface, fontWeight: FontWeight.w600),
@@ -41,8 +45,7 @@ class AppTheme {
         labelLarge: TextStyle(color: onSurface, fontWeight: FontWeight.w600, letterSpacing: 0.1),
         labelMedium: TextStyle(color: onSurface, fontWeight: FontWeight.w500, letterSpacing: 0.5),
         labelSmall: TextStyle(color: onSurface, fontWeight: FontWeight.w500, letterSpacing: 0.5),
-      ),
-    );
+    ).apply(fontFamily: AppFonts.family);
   }
 
   // ── Light Theme ────────────────────────────────────────────────────────────
@@ -95,7 +98,7 @@ class AppTheme {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: TextStyle(fontFamily: AppFonts.family, 
         fontSize: 19,
         fontWeight: FontWeight.w700,
         color: const Color(0xFF111827),
@@ -118,7 +121,7 @@ class AppTheme {
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
-        return GoogleFonts.inter(
+        return TextStyle(fontFamily: AppFonts.family, 
           color: selected ? _primary : const Color(0xFF74777F),
           fontSize: 11,
           fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
@@ -161,7 +164,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -174,7 +177,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -186,7 +189,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 14, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -225,8 +228,8 @@ class AppTheme {
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         borderSide: const BorderSide(color: Color(0xFFE53935), width: 2),
       ),
-      hintStyle: GoogleFonts.inter(color: const Color(0xFF9EA3B0), fontSize: 14),
-      labelStyle: GoogleFonts.inter(color: const Color(0xFF44474F), fontSize: 14, fontWeight: FontWeight.w500),
+      hintStyle: TextStyle(fontFamily: AppFonts.family, color: const Color(0xFF9EA3B0), fontSize: 14),
+      labelStyle: TextStyle(fontFamily: AppFonts.family, color: const Color(0xFF44474F), fontSize: 14, fontWeight: FontWeight.w500),
     ),
 
     // Chip
@@ -234,7 +237,7 @@ class AppTheme {
       backgroundColor: _lightSurfaceVariant,
       selectedColor: _primary,
       disabledColor: const Color(0xFFE5E8F0),
-      labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+      labelStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 13, fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
@@ -249,8 +252,8 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstants.radiusXXLarge),
       ),
-      titleTextStyle: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1A1C22)),
-      contentTextStyle: GoogleFonts.inter(fontSize: 15, color: const Color(0xFF44474F), height: 1.6),
+      titleTextStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1A1C22)),
+      contentTextStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 15, color: const Color(0xFF44474F), height: 1.6),
     ),
 
     // Bottom Sheet
@@ -267,7 +270,7 @@ class AppTheme {
     // Snackbar
     snackBarTheme: SnackBarThemeData(
       backgroundColor: const Color(0xFF1E2128),
-      contentTextStyle: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+      contentTextStyle: TextStyle(fontFamily: AppFonts.family, color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
       actionTextColor: _secondary,
       behavior: SnackBarBehavior.floating,
       elevation: 4,
@@ -358,7 +361,7 @@ class AppTheme {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: TextStyle(fontFamily: AppFonts.family, 
         fontSize: 19,
         fontWeight: FontWeight.w700,
         color: Colors.white,
@@ -386,7 +389,7 @@ class AppTheme {
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
-        return GoogleFonts.inter(
+        return TextStyle(fontFamily: AppFonts.family, 
           color: selected ? _primaryDark : const Color(0xFF74777F),
           fontSize: 11,
           fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
@@ -429,7 +432,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -442,7 +445,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -454,7 +457,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
         ),
-        textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 14, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -493,8 +496,8 @@ class AppTheme {
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
         borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 2),
       ),
-      hintStyle: GoogleFonts.inter(color: const Color(0xFF52545E), fontSize: 14),
-      labelStyle: GoogleFonts.inter(color: const Color(0xFFA8AABC), fontSize: 14, fontWeight: FontWeight.w500),
+      hintStyle: TextStyle(fontFamily: AppFonts.family, color: const Color(0xFF52545E), fontSize: 14),
+      labelStyle: TextStyle(fontFamily: AppFonts.family, color: const Color(0xFFA8AABC), fontSize: 14, fontWeight: FontWeight.w500),
     ),
 
     // Chip
@@ -502,7 +505,7 @@ class AppTheme {
       backgroundColor: _darkSurfaceHighest,
       selectedColor: _primaryDark,
       disabledColor: _darkSurfaceVariant,
-      labelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+      labelStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 13, fontWeight: FontWeight.w500),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
@@ -517,8 +520,8 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstants.radiusXXLarge),
       ),
-      titleTextStyle: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFFE4E2EC)),
-      contentTextStyle: GoogleFonts.inter(fontSize: 15, color: const Color(0xFFA8AABC), height: 1.6),
+      titleTextStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFFE4E2EC)),
+      contentTextStyle: TextStyle(fontFamily: AppFonts.family, fontSize: 15, color: const Color(0xFFA8AABC), height: 1.6),
     ),
 
     // Bottom Sheet
@@ -535,7 +538,7 @@ class AppTheme {
     // Snackbar
     snackBarTheme: SnackBarThemeData(
       backgroundColor: const Color(0xFFE4E2EC),
-      contentTextStyle: GoogleFonts.inter(color: const Color(0xFF1A1C22), fontSize: 14, fontWeight: FontWeight.w500),
+      contentTextStyle: TextStyle(fontFamily: AppFonts.family, color: const Color(0xFF1A1C22), fontSize: 14, fontWeight: FontWeight.w500),
       actionTextColor: _secondary,
       behavior: SnackBarBehavior.floating,
       elevation: 4,

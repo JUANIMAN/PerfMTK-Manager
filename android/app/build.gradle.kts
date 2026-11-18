@@ -58,6 +58,9 @@ android {
         debug {
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = true
+            // Lets a debug build live next to the release app (different signing key).
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
     }
 }

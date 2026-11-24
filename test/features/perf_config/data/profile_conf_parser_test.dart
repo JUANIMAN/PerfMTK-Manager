@@ -271,5 +271,79 @@ GPU_GOVERNOR="none"
       expect(serialized.contains('GPU_MIN_FREQ'), isFalse);
       expect(serialized.contains('GPU_MAX_FREQ'), isFalse);
     });
+
+    test('preserves v17.3 daemon-only keys inside known sections on round-trip', () {
+      const v173PerfConf = '''
+[CPU]
+GOVERNOR="sugov_ext sugov_ext sugov_ext"
+UP_RATE_LIMIT_US="500 500 500"
+DOWN_RATE_LIMIT_US="10000 16000 20000"
+CORE_CONFIG="cpu0:4:4|cpu4:3:3|cpu7:1:1"
+MAX_FREQS="2200000 3200000 3350000"
+MIN_FREQS="800000 1100000 1200000"
+SCHED_ENERGY_AWARE=1
+CPU_DMA_LATENCY_US=100
+TASK_TURBO_FEATS=15
+METIS_PERF_MODE=0
+
+[DVFSRC]
+TURBO_QOS=0
+REQ_DDR_OPP=-1
+FORCE_VCORE_OPP=255
+
+[UFS]
+UFS_GOVERNOR="performance"
+UFS_CLK_ENABLE=0
+CLKGATE_DELAY_MS=20
+CLKGATE_ENABLE=1
+WRITE_BOOSTER=1
+
+[FPSGO]
+FORCE_ONOFF=1
+BOOST_TA=0
+FSTB_TUNE_QUANTILE=95
+BLC_BOOST=3
+BOOST_VIP=1
+BYPASS_NON_SF=1
+RESCUE_ENABLE=-1
+ULTRA_RESCUE=-1
+CPUMASK_HEAVY=240
+
+[VM]
+SWAPPINESS=5
+STAT_INTERVAL=15
+WATERMARK_SCALE_FACTOR=20
+MGLRU=true
+MGLRU_MIN_TTL_MS=2000
+COMPACTION_PROACTIVENESS=0
+VFS_CACHE_PRESSURE=50
+
+[TOUCH]
+GAME_MODE=true
+THP_SMOOTH=false
+TOUCH_DOWN_THRESHOLD=0
+TOUCH_MOVE_THRESHOLD=0
+SENSOR_BOOST=true
+''';
+
+      final config = ProfileConfParser.parse(v173PerfConf);
+      final serialized = ProfileConfParser.serialize(ProfileType.performance, config);
+
+      expect(serialized, contains('CPU_DMA_LATENCY_US=100'));
+      expect(serialized, contains('TASK_TURBO_FEATS=15'));
+      expect(serialized, contains('METIS_PERF_MODE=0'));
+      expect(serialized, contains('FORCE_VCORE_OPP=255'));
+      expect(serialized, contains('CLKGATE_DELAY_MS=20'));
+      expect(serialized, contains('CLKGATE_ENABLE=1'));
+      expect(serialized, contains('WRITE_BOOSTER=1'));
+      expect(serialized, contains('BLC_BOOST=3'));
+      expect(serialized, isNot(contains('BLC_BOOST=1')));
+      expect(serialized, contains('BOOST_VIP=1'));
+      expect(serialized, contains('RESCUE_ENABLE=-1'));
+      expect(serialized, contains('ULTRA_RESCUE=-1'));
+      expect(serialized, contains('COMPACTION_PROACTIVENESS=0'));
+      expect(serialized, contains('VFS_CACHE_PRESSURE=50'));
+      expect(serialized, contains('SENSOR_BOOST=true'));
+    });
   });
 }

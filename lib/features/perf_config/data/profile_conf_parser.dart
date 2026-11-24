@@ -49,6 +49,125 @@ class ProfileConfParser {
     final guardian = sections.remove('THERMAL_GUARDIAN') ?? sections.remove('GUARDIAN') ?? {};
     final vm = sections.remove('VM') ?? sections.remove('MEMORY') ?? {};
 
+    Map<String, String> remaining(Map<String, String> src, Set<String> known) {
+      final out = <String, String>{};
+      for (final e in src.entries) {
+        if (!known.contains(e.key)) {
+          out[e.key] = e.value;
+        }
+      }
+      return out;
+    }
+
+    final extraSectionKeys = <String, Map<String, String>>{};
+    void collectExtra(String section, Map<String, String> src, Set<String> known) {
+      final rem = remaining(src, known);
+      if (rem.isNotEmpty) {
+        extraSectionKeys[section] = rem;
+      }
+    }
+
+    collectExtra('CPU', cpu, const {
+      'GOVERNOR',
+      'DOWN_RATE_LIMIT_US',
+      'UP_RATE_LIMIT_US',
+      'CORE_CONFIG',
+      'MAX_FREQS',
+      'MIN_FREQS',
+      'SCHED_ENERGY_AWARE',
+      'EAS_SCHED_ENERGY_AWARE',
+      'LATENCY_SENSITIVE',
+    });
+    collectExtra('UCLAMP', uclamp, const {
+      'UCLAMP_MIN_TOP_APP',
+      'UCLAMP_MAX_TOP_APP',
+      'UCLAMP_MIN_FG',
+      'UCLAMP_MAX_FG',
+      'LATENCY_SENSITIVE',
+    });
+    collectExtra('GPU', gpu, const {
+      'GPU_FREQ',
+      'GPU_MIN_FREQ',
+      'GPU_MAX_FREQ',
+      'GPU_GOVERNOR',
+      'GED_DVFS_MARGIN',
+      'GED_LOADING_STEP',
+      'GED_BOOST_LEVEL',
+      'GED_SMART_BOOST',
+      'GED_BOOST_ENABLE',
+    });
+    collectExtra('DEVFREQ', devfreq, const {
+      'DVF_GOVERNOR',
+      'DVF_MIN_FREQ',
+      'DVF_MAX_FREQ',
+      'TURBO_QOS',
+    });
+    collectExtra('DVFSRC', dvfsrc, const {
+      'TURBO_QOS',
+      'REQ_DDR_OPP',
+    });
+    collectExtra('UFS', ufs, const {
+      'UFS_GOVERNOR',
+      'UFS_CLK_ENABLE',
+    });
+    collectExtra('FPSGO', fpsgo, const {
+      'FORCE_ONOFF',
+      'BOOST_TA',
+      'FBT_BHR_OPP',
+      'RESCUE_ENABLE',
+      'ULTRA_RESCUE',
+      'CPUMASK_HEAVY',
+      'FILTER_F_KMIN',
+      'FLOOR_BOUND',
+      'DOWN_THROTTLE',
+      'RESCUE_PERCENT',
+      'RESCUE_ENHANCE_F',
+      'FSTB_TUNE_QUANTILE',
+    });
+    collectExtra('GBE', gbe, const {
+      'GBE_ENABLE',
+      'GBE_THRM_HDRM',
+      'MAGT_CURRENT_AVG',
+      'MAGT_CURRENT_MAX',
+      'MAGT_FPSDROP_THRS',
+    });
+    collectExtra('THERMAL_CHARGE', chargeThermal, const {
+      'BYPASS_CHARGE_THROTTLE',
+      'HARDWARE_CHARGE_BYPASS',
+      'GENTLE_CHARGE_MA',
+      'MAX_CHARGE_MA',
+      'UNLOCK_FPS_THERMAL',
+      'BATTERY_TEMP_LIMIT',
+      'BYPASS_MIN_BATT_PCT',
+      'BATTERY_CARE_ENABLED',
+      'BATTERY_CARE_LIMIT',
+      'DISABLE_THERMAL_SERVICES',
+    });
+    collectExtra('DISPLAY', display, const {
+      'REFRESH_RATE',
+      'FPS',
+    });
+    collectExtra('VM', vm, const {
+      'SWAPPINESS',
+      'STAT_INTERVAL',
+      'WATERMARK_SCALE_FACTOR',
+      'WMARK_SCALE',
+      'MGLRU',
+      'MGLRU_ENABLED',
+      'MGLRU_MIN_TTL_MS',
+      'COMPACTION_PROACTIVENESS',
+      'SCHED_SCHEDSTATS',
+      'COMPACT_ON_LAUNCH',
+    });
+    collectExtra('TOUCH', touch, const {
+      'GAME_MODE',
+      'THP_SMOOTH',
+      'TOUCH_DOWN_THRESHOLD',
+      'TOUCH_DOWNTHD',
+      'TOUCH_MOVE_THRESHOLD',
+      'TOUCH_MOVETHD',
+    });
+
     // CORE_CONFIG: "cpu0:4:4|cpu4:3:2|cpu7:1:0"
     final coreConfigStr = (cpu['CORE_CONFIG'] ?? '').trim();
     final clusters = (coreConfigStr.isEmpty || coreConfigStr == 'auto')
@@ -223,6 +342,7 @@ class ProfileConfParser {
         uclampStepPct: int.tryParse(guardian['UCLAMP_STEP_PCT'] ?? '') ?? 10,
       ),
       extraSections: sections,
+      extraSectionKeys: extraSectionKeys,
     );
   }
 
@@ -273,12 +393,23 @@ class ProfileConfParser {
       ..writeln('MAX_FREQS="$maxStr"')
       ..writeln('MIN_FREQS="$minStr"');
 
+    void writeExtraKeys(String section, {Set<String> skip = const {}}) {
+      final map = c.extraSectionKeys[section];
+      if (map == null || map.isEmpty) return;
+      for (final kv in map.entries) {
+        if (skip.contains(kv.key)) continue;
+        final needsQuotes = kv.value.contains(' ') || kv.value.contains('|');
+        b.writeln(needsQuotes ? '${kv.key}="${kv.value}"' : '${kv.key}=${kv.value}');
+      }
+    }
+
     if (c.cpu.schedEnergyAware != null) {
       b.writeln('SCHED_ENERGY_AWARE=${c.cpu.schedEnergyAware}');
     }
     if (c.cpu.latencySensitive != null) {
       b.writeln('LATENCY_SENSITIVE=${c.cpu.latencySensitive}');
     }
+    writeExtraKeys('CPU');
 
     b
       ..writeln()
@@ -291,6 +422,7 @@ class ProfileConfParser {
     if (c.cpu.latencySensitive != null) {
       b.writeln('LATENCY_SENSITIVE=${c.cpu.latencySensitive}');
     }
+    writeExtraKeys('UCLAMP');
 
     b
       ..writeln()
@@ -322,6 +454,7 @@ class ProfileConfParser {
     if (c.gpu.gedBoostEnable >= 0) {
       b.writeln('GED_BOOST_ENABLE=${c.gpu.gedBoostEnable}');
     }
+    writeExtraKeys('GPU');
 
     b
       ..writeln()
@@ -334,41 +467,55 @@ class ProfileConfParser {
     if (c.devfreq.dvfMaxFreq > 0) {
       b.writeln('DVF_MAX_FREQ=${c.devfreq.dvfMaxFreq}');
     }
+    writeExtraKeys('DEVFREQ');
 
-    if (c.devfreq.dvfsrcTurboQos >= 0) {
+    final dvfsrcExtras = c.extraSectionKeys['DVFSRC'];
+    if (c.devfreq.dvfsrcTurboQos >= 0 || (dvfsrcExtras != null && dvfsrcExtras.isNotEmpty)) {
       b
         ..writeln()
-        ..writeln('[DVFSRC]')
-        ..writeln('TURBO_QOS=${c.devfreq.dvfsrcTurboQos}')
-        ..writeln('REQ_DDR_OPP=${c.devfreq.dvfsrcTurboQos == 1 ? 0 : -1}');
+        ..writeln('[DVFSRC]');
+      if (c.devfreq.dvfsrcTurboQos >= 0) {
+        b
+          ..writeln('TURBO_QOS=${c.devfreq.dvfsrcTurboQos}')
+          ..writeln('REQ_DDR_OPP=${c.devfreq.dvfsrcTurboQos == 1 ? 0 : -1}');
+      }
+      writeExtraKeys('DVFSRC');
     }
 
     b
       ..writeln()
       ..writeln('[UFS]')
       ..writeln('UFS_GOVERNOR="${c.ufs.ufsGovernor}"')
-      ..writeln('UFS_CLK_ENABLE=${c.ufs.ufsClkEnable}')
+      ..writeln('UFS_CLK_ENABLE=${c.ufs.ufsClkEnable}');
+    writeExtraKeys('UFS');
+
+    b
       ..writeln()
       ..writeln('[FPSGO]')
       ..writeln('# FORCE_ONOFF: 0=off, 1=on, 2=free(default)')
       ..writeln('FORCE_ONOFF=${c.fpsgo.forceOnOff}')
       ..writeln('BOOST_TA=${c.fpsgo.boostTa}');
 
+    final fpsgoExtras = c.extraSectionKeys['FPSGO'];
+    final fpsgoWrittenExtras = <String>{};
     if (c.fpsgo.fstbTuneQuantile > 0) {
       b.writeln('FSTB_TUNE_QUANTILE=${c.fpsgo.fstbTuneQuantile}');
       if (c.fpsgo.fstbTuneQuantile >= 95) {
-        b.writeln('BLC_BOOST=1');
-        b.writeln('BYPASS_NON_SF=1');
+        final blc = fpsgoExtras?['BLC_BOOST'] ?? '1';
+        final bypassNonSf = fpsgoExtras?['BYPASS_NON_SF'] ?? '1';
+        b.writeln('BLC_BOOST=$blc');
+        b.writeln('BYPASS_NON_SF=$bypassNonSf');
+        fpsgoWrittenExtras.addAll(const {'BLC_BOOST', 'BYPASS_NON_SF'});
       }
     }
 
     if (c.fpsgo.fbtBhrOpp > 0) {
       b.writeln('FBT_BHR_OPP=${c.fpsgo.fbtBhrOpp}');
     }
-    if (c.fpsgo.rescueEnable > 0) {
+    if (c.fpsgo.rescueEnable != 0) {
       b.writeln('RESCUE_ENABLE=${c.fpsgo.rescueEnable}');
     }
-    if (c.fpsgo.ultraRescue > 0) {
+    if (c.fpsgo.ultraRescue != 0) {
       b.writeln('ULTRA_RESCUE=${c.fpsgo.ultraRescue}');
     }
     if (c.fpsgo.cpumaskHeavy != 255) {
@@ -389,6 +536,7 @@ class ProfileConfParser {
     if (c.fpsgo.rescueEnhanceF > 0) {
       b.writeln('RESCUE_ENHANCE_F=${c.fpsgo.rescueEnhanceF}');
     }
+    writeExtraKeys('FPSGO', skip: fpsgoWrittenExtras);
 
     b
       ..writeln()
@@ -405,6 +553,7 @@ class ProfileConfParser {
     if (c.gbe.magtFpsdropThrs > 0 || c.gbe.magtCurrentAvg > 0) {
       b.writeln('MAGT_FPSDROP_THRS=${c.gbe.magtFpsdropThrs}');
     }
+    writeExtraKeys('GBE');
 
     b
       ..writeln()
@@ -431,11 +580,13 @@ class ProfileConfParser {
     if (c.chargeThermal.disableThermalServices) {
       b.writeln('DISABLE_THERMAL_SERVICES=${c.chargeThermal.disableThermalServices}');
     }
+    writeExtraKeys('THERMAL_CHARGE');
 
     b
       ..writeln()
       ..writeln('[DISPLAY]')
       ..writeln('REFRESH_RATE=${c.refreshRate}');
+    writeExtraKeys('DISPLAY');
 
     b
       ..writeln()
@@ -448,15 +599,14 @@ class ProfileConfParser {
     if (c.vm.mglruMinTtlMs > 0) {
       b.writeln('MGLRU_MIN_TTL_MS=${c.vm.mglruMinTtlMs}');
     }
-    if (c.vm.compactionProactiveness > 0) {
-      b.writeln('COMPACTION_PROACTIVENESS=${c.vm.compactionProactiveness}');
-    }
+    b.writeln('COMPACTION_PROACTIVENESS=${c.vm.compactionProactiveness}');
     if (c.vm.schedSchedstats > 0) {
       b.writeln('SCHED_SCHEDSTATS=${c.vm.schedSchedstats}');
     }
     if (c.vm.compactOnLaunch) {
       b.writeln('COMPACT_ON_LAUNCH=${c.vm.compactOnLaunch}');
     }
+    writeExtraKeys('VM');
 
     b
       ..writeln()
@@ -465,6 +615,7 @@ class ProfileConfParser {
       ..writeln('THP_SMOOTH=${c.touch.thpSmooth}')
       ..writeln('TOUCH_DOWN_THRESHOLD=${c.touch.touchDownThreshold}')
       ..writeln('TOUCH_MOVE_THRESHOLD=${c.touch.touchMoveThreshold}');
+    writeExtraKeys('TOUCH');
 
     for (final entry in c.extraSections.entries) {
       b

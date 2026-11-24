@@ -555,6 +555,7 @@ class ProfileConfig {
   final VmConfig vm;
   final ThermalGuardianConfig thermalGuardian;
   final Map<String, Map<String, String>> extraSections;
+  final Map<String, Map<String, String>> extraSectionKeys;
 
   const ProfileConfig({
     required this.cpu,
@@ -570,6 +571,7 @@ class ProfileConfig {
     this.vm = const VmConfig(),
     this.thermalGuardian = const ThermalGuardianConfig(),
     this.extraSections = const {},
+    this.extraSectionKeys = const {},
   });
 
   ProfileConfig copyWith({
@@ -586,6 +588,7 @@ class ProfileConfig {
     VmConfig? vm,
     ThermalGuardianConfig? thermalGuardian,
     Map<String, Map<String, String>>? extraSections,
+    Map<String, Map<String, String>>? extraSectionKeys,
   }) {
     return ProfileConfig(
       cpu: cpu ?? this.cpu,
@@ -601,6 +604,7 @@ class ProfileConfig {
       vm: vm ?? this.vm,
       thermalGuardian: thermalGuardian ?? this.thermalGuardian,
       extraSections: extraSections ?? this.extraSections,
+      extraSectionKeys: extraSectionKeys ?? this.extraSectionKeys,
     );
   }
 }
